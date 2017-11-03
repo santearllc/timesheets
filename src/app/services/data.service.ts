@@ -7,10 +7,9 @@ import 'rxjs/add/operator/map';
 
 export class DataService {
     
+
     constructor(public http:Http) {
-
+     
     }
-
-
 
 }

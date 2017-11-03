@@ -13,12 +13,14 @@ import { NavigationComponent } from './navigation/navigation.component';
 import { UserDetailsComponent } from './user-details/user-details.component';
 
 import { DataService } from './services/data.service';
+import { ServiceService } from './services/service.service';
 
 import { routes } from './app.routes'
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatDatepickerModule } from '@angular/material';
 import 'hammerjs';
+import { EntryRowComponent } from './entry-row/entry-row.component';
 
 
 @NgModule({
@@ -29,7 +31,8 @@ import 'hammerjs';
     ExportComponent,
     AdministrateComponent,
     NavigationComponent,
-    UserDetailsComponent
+    UserDetailsComponent,
+    EntryRowComponent
   ],
   imports: [
     BrowserModule,
@@ -39,7 +42,7 @@ import 'hammerjs';
     FormsModule,
     HttpModule
   ],
-  providers: [DataService],
+  providers: [DataService, ServiceService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

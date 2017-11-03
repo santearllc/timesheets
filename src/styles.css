@@ -8,51 +8,6 @@
    License: none (public domain)
 */
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
-}
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-	display: block;
-}
-body {
-	line-height: 1;
-}
-ol, ul {
-	list-style: none;
-}
-blockquote, q {
-	quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
-}
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
-
-
 
 /* AF TSS GLOBAL STYLES */
 
@@ -111,7 +66,7 @@ h1{
 }
 
 
-.day, .blank, .sum{
+.day_zero, .day, .blank, .sum{
 	width: 10%;	
 	text-align: center;
 	font-size: 1em;
@@ -125,9 +80,15 @@ h1{
 	vertical-align: center;
 }
 
-.day input{
+.day input, .day_zero input{
 	box-sizing: border-box;
-	width: 100%;
+	width: 100%;	
+	padding:5px;
+	text-align: center;
+	font-size: .8em;
+}
+
+.day_zero{
 	opacity: .2;
 }
 
@@ -141,6 +102,11 @@ h1{
 	cursor: pointer;
 }
 
+.ot:hover{
+	color:#F00;
+	font-weight: 700;
+}
+
 
 .save_btn{
 	padding:15px;
@@ -151,4 +117,12 @@ h1{
 
 .save_btn:hover{
 	background-color: #DDD;
+}
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
