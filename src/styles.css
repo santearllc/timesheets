@@ -16,7 +16,17 @@ body {
   background-color: #151515;
   color: #FFF;
   margin: 50px 135px;
-  font-family: 'Raleway', sans-serif;
+  font-family: 'Roboto', sans-serif;
+
+
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+   -khtml-user-select: none; /* Konqueror HTML */
+	 -moz-user-select: none; /* Firefox */
+	  -ms-user-select: none; /* Internet Explorer/Edge */
+		  user-select: none; /* Non-prefixed version, currently
+								supported by Chrome and Opera */
+	cursor: default;
 }
 
 h1{
@@ -56,8 +66,7 @@ h1{
 
 .timesheet_footer{
 	color:#000;
-	background-color:#BCBCBC;
-	padding:15px;
+	background-color:#BCBCBC;	
 	text-align: right;
 }
 
@@ -65,6 +74,10 @@ h1{
 	height: 10px;
 }
 
+
+.hour_sum{
+	color:#999;
+}
 
 .day_zero, .day, .blank, .sum{
 	width: 10%;	
@@ -96,7 +109,7 @@ h1{
 	opacity: 1.0;
 }
 
-.ot{
+.ot, .ot_selected{
 	font-size: .75em;
 	color:#AAA;
 	cursor: pointer;
@@ -107,18 +120,58 @@ h1{
 	font-weight: 700;
 }
 
+.ot_selected{
+	color:#F00;
+}
 
-.save_btn{
+
+.editList_hide{
+	display: none;
+}
+
+.editList{
+	min-width: 50px;
+	text-align: right;	
+}
+
+.editList_disabled{
+	min-width: 50px;
+	text-align: right;	
+	opacity: 0.0;
+	pointer-events: none;
+}
+
+
+.removeLine, .addLine{
+	cursor: pointer;
+	color:#999;
+	font-weight: 700;
+}
+
+.addRemoveLine_disabled{
+	opacity: 0.0;
+	pointer-events: none;
+}
+
+.addLine:hover{	
+	color:Green;
+}
+
+.removeLine:hover{	
+	color:#F00;
+}
+
+.save_btn, .submit_btn{
 	padding:15px;
 	border: 1px #FFF outset;
 	display: inline-block;
 	cursor: pointer;
+	margin-left: 0px;
 }
 
-.save_btn:hover{
+.save_btn:hover, .submit_btn:hover{
 	background-color: #DDD;
 }
-
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {

@@ -10,7 +10,7 @@ import { UserDetailsComponent } from './user-details/user-details.component';
 
 
 export const router: Routes = [
-  { path: '', redirectTo : 'administrate', pathMatch: 'full' },
+  { path: '', redirectTo : 'entry', pathMatch: 'full' },
   { path: 'approval', component: ApprovalComponent },
   { path: 'export', component: ExportComponent },
   { path: 'administrate', component: AdministrateComponent },
