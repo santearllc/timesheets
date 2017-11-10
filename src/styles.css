@@ -86,6 +86,11 @@ h1{
 	vertical-align: center;
 }
 
+
+.blank{
+	width: 5%;
+}
+
 .cat_1_title .title{
 	width: 200px;
 	font-size: 1.5em;
@@ -178,4 +183,83 @@ input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
     -webkit-appearance: none;
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+.plus, .minus, .empty{
+	background-image: url("/assets/plus.png");
+	width: 24px;
+	height: 24px;
+	opacity: .15;
+	display: inline-block;	
+	cursor: pointer;
+}
+
+.minus{
+	background-image: url("/assets/minus.png");
+}
+
+.empty{
+	background-image: url("/assets/empty.png");
+	cursor: default;
+	opacity: 0.07;
+}
+
+.plus:hover, .minus:hover{
+opacity: 1.0;
+}
+
+
+.debug_settings{
+	padding:10px;
+	background-color: #999;
+	margin-top: -130px;
+	margin-left: 820px;
+	position:fixed;
+	border: 2px #F00 solid;
+}
+
+.alt_btn{
+	cursor: pointer;
+}
+
+
+select{
+	padding:5px;
+	font-size: .8em;
+}
+
+.addRowOption input{
+	font-size: 0.8em;
+	padding: 3px;
+}
+
+
+.addRowOption_shotAssetList, .addRowOption_ProjectList{	
+	overflow-x: hidden;
+	position:absolute;
+	max-width:150px;
+	width:150px;
+	background-color:#000;
+	color:#FFF;
+	font-size: 0.8em;
+}
+
+
+.addRowOption_shotAssetList div, .addRowOption_ProjectList div{
+	padding:5px;
+	border-bottom:1px #AAA solid;
+	cursor: pointer;
+}
+
+.addRowOption_ProjectList{	
+	max-width:none;
+	width: 770px;
+	box-sizing: border-box;
+}
+
+
+.addRowOption_shotAssetSelect_change{
+	font-size: .75em;
+	color:#999;
+	cursor:pointer;
 }
