@@ -1,4 +1,5 @@
 export interface Line{
+    UserKey:number;
     Cat_1:number;
     Cat_1_Title:String;
     Cat_2:number;
@@ -10,4 +11,5 @@ export interface Line{
     Cat_5:number;
     Cat_5_Title:String;
     Hours:any;
+    OT:any;
 }

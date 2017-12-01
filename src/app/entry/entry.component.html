@@ -1,7 +1,23 @@
-<div class="debug_settings" *ngIf="false">
-	<div onClick="$(this).next().toggle()" style="cursor:pointer;border-bottom:1px #333 solid;">Debug Settings</div>
-	<div style="display:none;">
-		<div class="alt_btn" (click)="resetTimeSheetData()">Reset Timesheet Data</div>
+<div class="popup">
+	<div>
+		<div class="popup_title">Dialog Box Title</div>
+		<div class="popup_text">Dialog Box Text</div>
+		<div class="popup_buttons">
+			<button (click)="closePopup($event)">Confirm</button>
+			<button (click)="closePopup($event)">Confirm</button>
+		</div>
+	</div>
+
+</div>
+
+
+<div class="debug_settings" *ngIf="true">
+	<div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Menu</div>
+	<div class="debug_items" style="">
+		<div class="alt_btn" (click)="(current_office==1) ? current_office=0 : current_office=1;updateTimeSheetTotals();">Toggle Location: {{ (current_office == 1) ? 'CAN' : 'US'}}</div>
+		<div class="alt_btn" (click)="loadInitSheet()">Clear Timesheet (reset)</div>
+		<div class="alt_btn" (click)="timesheetToLines()" *ngIf="false">TimeSheet to Lines</div>
+		<div class="alt_btn" (click)="loadSampleTimeSheet()">Load Sample Time Sheet</div>
 	</div>
 </div>
 
@@ -9,7 +25,89 @@
 
 
 <div style="margin-bottom: 10px;">
-	{{timesheet_date}}
+	<div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{timesheet_date}}</div>
+
+	<div style="float:right;color:#555;" (click)="saveTimeSheet()">
+		{{saveStatus}}
+		<svg height="10" width="10">
+			<circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="saveStatusColor" />
+		</svg>
+	</div>
+
+	<div id="cal">
+
+		<div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
+			<table width="100%;">
+				<tr>
+					<td>
+							<td>&larr;
+								</td>
+								<td style="text-align:center;">November 2015</td>
+								<td>&rarr;</td>
+
+				</tr>
+			</table>
+		</div>
+
+
+		<table class="cal_weeks" width="100%;">
+			<tr>
+				<td width="14%" style="font-weight:700;">M</td>
+				<td width="14%" style="font-weight:700;">T</td>
+				<td width="14%" style="font-weight:700;">W</td>
+				<td width="14%" style="font-weight:700;">T</td>
+				<td width="14%" style="font-weight:700;">F</td>
+				<td width="14%" style="font-weight:700;">S</td>
+				<td width="14%" style="font-weight:700;">S</td>
+			</tr>
+			<tr>
+				<td width="14%" style="opacity:0.25">30</td>
+				<td width="14%" style="opacity:0.25">31</td>
+				<td width="14%">1</td>
+				<td width="14%">2</td>
+				<td width="14%">3</td>
+				<td width="14%">4</td>
+				<td width="14%">5</td>
+			</tr>
+			<tr>
+				<td width="14%">6</td>
+				<td width="14%">7</td>
+				<td width="14%">8</td>
+				<td width="14%">9</td>
+				<td width="14%">10</td>
+				<td width="14%">11</td>
+				<td width="14%">12</td>
+			</tr>
+			<tr>
+				<td width="14%">13</td>
+				<td width="14%">14</td>
+				<td width="14%">15</td>
+				<td width="14%">16</td>
+				<td width="14%">17</td>
+				<td width="14%">18</td>
+				<td width="14%">19</td>
+			</tr>
+			<tr>
+				<td width="14%">20</td>
+				<td width="14%">21</td>
+				<td width="14%">22</td>
+				<td width="14%">23</td>
+				<td width="14%">24</td>
+				<td width="14%">25</td>
+				<td width="14%">26</td>
+			</tr>
+			<tr>
+				<td width="14%">27</td>
+				<td width="14%">28</td>
+				<td width="14%">29</td>
+				<td width="14%">30</td>
+				<td width="14%" style="opacity:0.25">1</td>
+				<td width="14%" style="opacity:0.25">2</td>
+				<td width="14%" style="opacity:0.25">3</td>
+			</tr>
+		</table>
+	</div>
+
 </div>
 
 <!-- Template for Projects -->
@@ -44,30 +142,25 @@
 		</table>
 
 		<div class="addRowOption" style="margin-top:20px;display:none;" id="{{'addRow_'+x_1.cat_key }}">
+			
 			<div class="addRowOption_projectSearch" style="display:inline-block;width:100%;">
 				<input style="width:100%;" class="addRowOption_searchProjects" type="text" placeholder="Project Name or Code" (keyup)="searchShotAsset($event,1)">
-
-				<select class="addRowOption_departments" style="display:none;"></select>
-				<select class="addRowOption_departmentTask" style="display:none;"></select>
+				
+				<select class="addRowOption_departments" style="display:none;" (change)="addRowOption_change($event,[x_1])"></select>
+				<select class="addRowOption_departmentTask" style="display:none;" (change)="addRowOption_change($event,[x_1])"></select>
 
 				<div style="z-index:1000;" class="addRowOption_ProjectList">
-					<div *ngFor="let el of results" (click)="selectShotAsset($event, el,true)" style="">
+					<div *ngFor="let el of results" (click)="selectProject($event, el,true)" style="">
 						{{ el.Cat_Title }}
 					</div>
 				</div>
-
-				<div style="float:right;">
-					<button (click)="addLineItem($event,[x_1])" [disabled]="addLineItem_disabled">add</button>
-					<button (click)="cancelAddRowItem($event)" [disabled]="addLineItem_disabled">cancel</button>
-				</div>
 			</div>
-
 		</div>
 	</div>
 
 
 	<div class="cat_1_content" *ngIf="x_1.children.length > 0">
-		<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'">
+		<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'" [class]="(!x_2.indicateRemoval) ? '' : 'indicateRemoval'">
 			<div *ngIf="!first">&nbsp;</div>
 			<div style="border-bottom:1px #BBB solid;padding-bottom:5px;margin-bottom: 5px;">
 				<table style="width:100%;">
@@ -75,7 +168,7 @@
 						<td style="width: 200px;" class="project_title">
 							<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 								<div (click)="showAddLine([x_1.cat_key, x_2.cat_key])" class="plus">&nbsp;</div>
-								<div (click)="removeLineItem(x_1.children, i_1,[x_1.cat_key, x_2.cat_key])" class="minus">&nbsp;</div>
+								<div (click)="removeLineItem(x_1.children, i_1,[x_1.cat_key, x_2.cat_key])" class="minus" (mouseover)="indicateRemoval(x_2)" (mouseout)="indicateRemoval_reset(x_2)">&nbsp;</div>
 							</div>
 							{{ titles[x_1.cat_key][x_2.cat_key]['Title'] }}
 						</td>
@@ -83,13 +176,27 @@
 							<table style="width: 100%;">
 								<tr>
 									<td class="blank">&nbsp;</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 1)" [class]="x_2.ot[1] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 2)" [class]="x_2.ot[2] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 3)" [class]="x_2.ot[3] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 4)" [class]="x_2.ot[4] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 5)" [class]="x_2.ot[5] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 6)" [class]="x_2.ot[6] ? 'ot_selected day' : 'ot day'">OT</td>
-									<td (click)="setOT(x_1.cat_key, x_2.cat_key, 0)" [class]="x_2.ot[0] ? 'ot_selected day' : 'ot day'">OT</td>
+									<td [class]="x_2.ot[1] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 1)" *ngIf="x_2.ot_req[0]">OT</div>
+									</td>
+									<td [class]="x_2.ot[2] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 2)" *ngIf="x_2.ot_req[1]">OT</div>
+									</td>
+									<td [class]="x_2.ot[3] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 3)" *ngIf="x_2.ot_req[2]">OT</div>
+									</td>
+									<td [class]="x_2.ot[4] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 4)" *ngIf="x_2.ot_req[3]">OT</div>
+									</td>
+									<td [class]="x_2.ot[5] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 5)" *ngIf="x_2.ot_req[4]">OT</div>
+									</td>
+									<td [class]="x_2.ot[6] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 6)" *ngIf="x_2.ot_req[5]">OT</div>
+									</td>
+									<td [class]="x_2.ot[0] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOT(x_1.cat_key, x_2.cat_key, 0)" *ngIf="x_2.ot_req[6]">OT</div>
+									</td>
 									<td class="blank">&nbsp;</td>
 									<td class="sum">&nbsp;</td>
 								</tr>
@@ -98,19 +205,19 @@
 					</tr>
 				</table>
 			</div>
-			<div class="addRowOption" style="margin-bottom:20px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key }}">
-
-				<select class="addRowOption_projectTask" (change)="catUpdate($event,3)"></select>
-				<select class="addRowOption_productionTask" style="display:none;" (change)="catUpdate($event,4)"></select>
-				<select class="addRowOption_assetTask" style="display:none;"></select>
-				<select class="addRowOption_shotTask" style="display:none;"></select>
-				<select class="addRowOption_departmentTask" style="display:none;"></select>
-
+			
+			<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key }}">
+				
+				<select class="addRowOption_projectTask" (change)="catUpdate($event,3);addRowOption_change($event,[x_1,x_2])"></select>
+				<select class="addRowOption_productionTask" style="display:none;" (change)="catUpdate($event,4);addRowOption_change($event,[x_1,x_2])"></select>
+				<select class="addRowOption_assetTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2])"></select>
+				<select class="addRowOption_shotTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2])"></select>
+				<select class="addRowOption_departmentTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2])"></select>
 				<div class="addRowOption_shotAssetSearch" style="display:inline-block">
 					<input class="addRowOption_searchShotAsset" type="text" placeholder="Bid ID" style="width:150px;display:none;" (keyup)="searchShotAsset($event,2)">
 
 					<div class="addRowOption_shotAssetList" style="z-index:1000;">
-						<div *ngFor="let el of results" (click)="selectShotAsset($event, el,false)">
+						<div *ngFor="let el of results" (click)="selectShotAsset($event, el, [x_1,x_2])">
 							{{ el.Cat_Title }}
 						</div>
 					</div>
@@ -119,60 +226,12 @@
 					<span class="addRowOption_shotAssetSelect"></span>&nbsp;
 					<span class="addRowOption_shotAssetSelect_change" style="display:none;" (click)="resetShotAssetSearch($event)">(change)</span>
 				</div>
-				<div style="float:right;">
-					<button (click)="addLineItem($event,[x_1,x_2])" [disabled]="addLineItem_disabled">add</button>
-					<button (click)="cancelAddRowItem($event)" [disabled]="addLineItem_disabled">cancel</button>
-				</div>
-			</div>
-			<div *ngIf="x_2.hours">
-				<table style="width:100%;">
-					<tr>
-						<td class="title">
-							<div style="width: 200px;">&nbsp;</div>
-						</td>
-						<td>
-							<table style="width: 100%;">
-								<tr>
-									<td class="blank">&nbsp;</td>
-									<td [class]="x_2.hours[1] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[1] > 0 ? x_2.hours[1] : ''}}" (keyup)="updateHours($event,x_2.hours, 1)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 1)" />
-									</td>
-									<td [class]="x_2.hours[2] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[2] > 0 ? x_2.hours[2] : ''}}" (keyup)="updateHours($event,x_2.hours, 2)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 2)" />
-									</td>
-									<td [class]="x_2.hours[3] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[3] > 0 ? x_2.hours[3] : ''}}" (keyup)="updateHours($event,x_2.hours, 3)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 3)" />
-									</td>
-									<td [class]="x_2.hours[4] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[4] > 0 ? x_2.hours[4] : ''}}" (keyup)="updateHours($event,x_2.hours, 4)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 4)" />
-									</td>
-									<td [class]="x_2.hours[5] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[5] > 0 ? x_2.hours[5] : ''}}" (keyup)="updateHours($event,x_2.hours, 5)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 5)" />
-									</td>
-									<td [class]="x_2.hours[6] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[6] > 0 ? x_2.hours[6] : ''}}" (keyup)="updateHours($event,x_2.hours, 6)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 6)" />
-									</td>
-									<td [class]="x_2.hours[0] > 0 ? 'day' : 'day_zero'">
-										<input type="text" value="{{x_2.hours[0] > 0 ? x_2.hours[0] : ''}}" (keyup)="updateHours($event,x_2.hours, 0)" (keypress)="isNumberKey($event)"
-										 (blur)="updateHours($event,x_2.hours, 0)" />
-									</td>
-									<td class="blank">&nbsp;</td>
-									<td class="sum hour_sum">{{ (x_2.hours[1] + x_2.hours[2] + x_2.hours[3] + x_2.hours[4] + x_2.hours[5] + x_2.hours[6] + x_2.hours[0]) | number
-										: '1.2-2'}}</td>
-								</tr>
-							</table>
-						</td>
-					</tr>
-				</table>
 			</div>
 
-			<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' ">
+			
+
+
+			<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' " [class]="(!x_3.indicateRemoval) ? '' : 'indicateRemoval'">
 				<div *ngIf="x_3.hours">
 					<table style="width:100%;">
 						<tr>
@@ -180,8 +239,7 @@
 								<div style="width: 200px;">
 									<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 										<div class="empty">&nbsp;</div>
-
-										<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])" class="minus">&nbsp;</div>
+										<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])" class="minus" (mouseover)="indicateRemoval(x_3)" (mouseout)="indicateRemoval_reset(x_3)">&nbsp;</div>
 									</div>
 									{{titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}
 
@@ -193,44 +251,52 @@
 										<td class="blank">&nbsp;</td>
 										<td [class]="x_3.hours[1] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[1] > 0 ? x_3.hours[1] : ''}}" (keyup)="updateHours($event,x_3.hours, 1)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 1)" />
+											 (blur)="updateHours($event,x_3.hours, 1)" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[2] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[2] > 0 ? x_3.hours[2] : ''}}" (keyup)="updateHours($event,x_3.hours, 2)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 2)" />
+											 (blur)="updateHours($event,x_3.hours, 2)" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[3] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[3] > 0 ? x_3.hours[3] : ''}}" (keyup)="updateHours($event,x_3.hours, 3)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 3)" />
+											 (blur)="updateHours($event,x_3.hours, 3)" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[4] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[4] > 0 ? x_3.hours[4] : ''}}" (keyup)="updateHours($event,x_3.hours, 4)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 4)" />
+											 (blur)="updateHours($event,x_3.hours, 4)" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[5] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[5] > 0 ? x_3.hours[5] : ''}}" (keyup)="updateHours($event,x_3.hours, 5)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 5)" />
+											 (blur)="updateHours($event,x_3.hours, 5)" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[6] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[6] > 0 ? x_3.hours[6] : ''}}" (keyup)="updateHours($event,x_3.hours, 6)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 6)" />
+											 (blur)="updateHours($event,x_3.hours, 6)" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
 										</td>
 										<td [class]="x_3.hours[0] > 0 ? 'day' : 'day_zero'">
 											<input type="text" value="{{x_3.hours[0] > 0 ? x_3.hours[0] : ''}}" (keyup)="updateHours($event,x_3.hours, 0)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 0)" />
+											 (blur)="updateHours($event,x_3.hours, 0)" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
 										</td>
 										<td class="blank">&nbsp;</td>
-										<td class="sum hour_sum">{{ (x_3.hours[1] + x_3.hours[2] + x_3.hours[3] + x_3.hours[4] + x_3.hours[5] + x_3.hours[6] + x_3.hours[0]) | number
+										<td class="sum hour_sum">
+												<div style="position:absolute;margin-left:100px;margin-top:5px;">
+														<div title="Add Note" (click)="notesToggle($event,x_1.children, [x_1.cat_key, x_2.cat_key, x_3.cat_key])" [class]="(x_3.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+													</div>
+
+											{{ (x_3.hours[1] + x_3.hours[2] + x_3.hours[3] + x_3.hours[4] + x_3.hours[5] + x_3.hours[6] + x_3.hours[0]) | number
 											: '1.2-2'}}</td>
 									</tr>
 								</table>
 							</td>
 						</tr>
 					</table>
+
+					<textarea (blur)="notesHide()" (keyup)="updateNote($event,x_3)" id="note_{{x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key}}" class="note_textarea"></textarea>
+
 				</div>
 
 
-				<div *ngIf="x_3.cat_key == 6">
+				<div *ngIf="x_3.cat_key == 6 && x_1.cat_key == 0">
 
 					<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 						<div (click)="showAddLine([x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="plus">&nbsp;</div>
@@ -238,17 +304,12 @@
 					</div>
 					{{titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}
 
-					<div class="addRowOption" style="margin-bottom:20px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key }}">
-						<select class="addRowOption_productionTask" style="display:none;" (change)="catUpdate($event,4)"></select>
-
-						<div style="float:right;">
-							<button (click)="addLineItem($event,[x_1,x_2,x_3])" [disabled]="addLineItem_disabled">add</button>
-							<button (click)="cancelAddRowItem($event)" [disabled]="addLineItem_disabled">cancel</button>
-						</div>
+					<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key }}">
+						<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2,x_3])"></select>
 					</div>
 
 
-					<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'">
+					<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'" [class]="(!x_4.indicateRemoval) ? '' : 'indicateRemoval'">
 
 						<table style="width:100%;">
 							<tr>
@@ -256,7 +317,7 @@
 									<div style="width: 200px;">
 										<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 											<div class="empty">&nbsp;</div>
-											<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus">&nbsp;</div>
+											<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="indicateRemoval(x_4)" (mouseout)="indicateRemoval_reset(x_4)">&nbsp;</div>
 
 										</div>
 										<span>&nbsp;&nbsp;</span>&nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</div>
@@ -267,71 +328,71 @@
 											<td class="blank">&nbsp;</td>
 											<td [class]="x_4.hours[1] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[1] > 0 ? x_4.hours[1] : ''}}" (keyup)="updateHours($event,x_4.hours, 1)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 1)" />
+												 (blur)="updateHours($event,x_4.hours, 1)" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[2] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[2] > 0 ? x_4.hours[2] : ''}}" (keyup)="updateHours($event,x_4.hours, 2)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 2)" />
+												 (blur)="updateHours($event,x_4.hours, 2)" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[3] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[3] > 0 ? x_4.hours[3] : ''}}" (keyup)="updateHours($event,x_4.hours, 3)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 3)" />
+												 (blur)="updateHours($event,x_4.hours, 3)" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[4] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[4] > 0 ? x_4.hours[4] : ''}}" (keyup)="updateHours($event,x_4.hours, 4)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 4)" />
+												 (blur)="updateHours($event,x_4.hours, 4)" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[5] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[5] > 0 ? x_4.hours[5] : ''}}" (keyup)="updateHours($event,x_4.hours, 5)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 5)" />
+												 (blur)="updateHours($event,x_4.hours, 5)" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[6] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[6] > 0 ? x_4.hours[6] : ''}}" (keyup)="updateHours($event,x_4.hours, 6)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 6)" />
+												 (blur)="updateHours($event,x_4.hours, 6)" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
 											</td>
 											<td [class]="x_4.hours[0] > 0 ? 'day' : 'day_zero'">
 												<input type="text" value="{{x_4.hours[0] > 0 ? x_4.hours[0] : ''}}" (keyup)="updateHours($event,x_4.hours, 0)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 0)" />
+												 (blur)="updateHours($event,x_4.hours, 0)" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
 											</td>
 											<td class="blank">&nbsp;</td>
-											<td class="sum hour_sum">{{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) |
+											<td class="sum hour_sum">
+													<div style="position:absolute;margin-left:100px;margin-top:5px;">
+															<div title="Add Note" (click)="notesToggle($event,x_1.children, [x_1.cat_key, x_2.cat_key, x_3.cat_key, x_4.cat_key])" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+														</div>
+												{{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) |
 												number : '1.2-2'}}</td>
 										</tr>
 									</table>
 								</td>
 							</tr>
 						</table>
+						<textarea (blur)="notesHide()" (keyup)="updateNote($event,x_4)" id="note_{{x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key}}" class="note_textarea"></textarea>
 					</div>
 				</div>
 
 				<div *ngIf="x_3.cat_key == 4 || x_3.cat_key == 5">
-					<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'">
+					<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'" [class]="(!x_4.indicateRemoval) ? '' : 'indicateRemoval'">
 						<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 							<div (click)="showAddLine([x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="plus">&nbsp;</div>
-							<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus">&nbsp;</div>
+							<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="indicateRemoval(x_4)" (mouseout)="indicateRemoval_reset(x_4)">&nbsp;</div>
 						</div>
 
 						{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']+": " + titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}
 
-						<div class="addRowOption" style="margin-bottom:20px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key +'_' + x_4.cat_key }}">
-							<select class="addRowOption_productionTask" style="display:none;" (change)="catUpdate($event,4)"></select>
-							<select class="addRowOption_assetTask" style="display:none;"></select>
-							<select class="addRowOption_shotTask" style="display:none;"></select>
-
-							<div style="float:right;">
-								<button (click)="addLineItem($event,[x_1,x_2,x_3,x_4])" [disabled]="addLineItem_disabled">add</button>
-								<button (click)="cancelAddRowItem($event)" [disabled]="addLineItem_disabled">cancel</button>
-							</div>
+						<div class="addRowOption" style="margin-left:15px;margin-bottom:0px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key +'_' + x_4.cat_key }}">
+							<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2,x_3,x_4])"></select>
+							<select class="addRowOption_assetTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2,x_3,x_4])"></select>
+							<select class="addRowOption_shotTask" style="display:none;" (change)="addRowOption_change($event,[x_1,x_2,x_3,x_4])"></select>
 						</div>
 
-						<div *ngFor="let x_5 of x_4.children;let i_4 = 'index'">
+						<div *ngFor="let x_5 of x_4.children;let i_4 = 'index'" [class]="(!x_5.indicateRemoval) ? '' : 'indicateRemoval'">
 							<table style="width:100%;">
 								<tr>
 									<td class="title">
-										<div style="width: 200px;">
+										<div style="width:  200px;">
 											<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
 												<div class="empty">&nbsp;</div>
-												<div (click)="removeLineItem(x_4.children, i_4,[+x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="minus">&nbsp;</div>
+												<div (click)="removeLineItem(x_4.children, i_4,[+x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="minus" (mouseover)="indicateRemoval(x_5)" (mouseout)="indicateRemoval_reset(x_5)">&nbsp;</div>
 											</div>
 											<span>&nbsp;&nbsp;</span>&nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key][x_5.cat_key]['Title']}}</div>
 									</td>
@@ -341,40 +402,46 @@
 												<td class="blank">&nbsp;</td>
 												<td [class]="x_5.hours[1] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[1] > 0 ? x_5.hours[1] : ''}}" (keyup)="updateHours($event,x_5.hours, 1)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 1)" />
+													 (blur)="updateHours($event,x_5.hours, 1)" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[2] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[2] > 0 ? x_5.hours[2] : ''}}" (keyup)="updateHours($event,x_5.hours, 2)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 2)" />
+													 (blur)="updateHours($event,x_5.hours, 2)" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[3] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[3] > 0 ? x_5.hours[3] : ''}}" (keyup)="updateHours($event,x_5.hours, 3)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 3)" />
+													 (blur)="updateHours($event,x_5.hours, 3)" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[4] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[4] > 0 ? x_5.hours[4] : ''}}" (keyup)="updateHours($event,x_5.hours, 4)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 4)" />
+													 (blur)="updateHours($event,x_5.hours, 4)" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[5] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[5] > 0 ? x_5.hours[5] : ''}}" (keyup)="updateHours($event,x_5.hours, 5)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 5)" />
+													 (blur)="updateHours($event,x_5.hours, 5)" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[6] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[6] > 0 ? x_5.hours[6] : ''}}" (keyup)="updateHours($event,x_5.hours, 6)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 6)" />
+													 (blur)="updateHours($event,x_5.hours, 6)" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
 												</td>
 												<td [class]="x_5.hours[0] > 0 ? 'day' : 'day_zero'">
 													<input type="text" value="{{x_5.hours[0] > 0 ? x_5.hours[0] : ''}}" (keyup)="updateHours($event,x_5.hours, 0)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 0)" />
+													 (blur)="updateHours($event,x_5.hours, 0)" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
 												</td>
 												<td class="blank">&nbsp;</td>
-												<td class="sum hour_sum">{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) |
+												<td class="sum hour_sum">
+														<div style="position:absolute;margin-left:100px;margin-top:5px;">
+																<div title="Add Note" (click)="notesToggle($event,x_1.children, [x_1.cat_key, x_2.cat_key, x_3.cat_key, x_4.cat_key, x_5.cat_key])" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+															</div>
+
+													{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) |
 													number : '1.2-2'}}</td>
 											</tr>
 										</table>
 									</td>
 								</tr>
 							</table>
+							<textarea (blur)="notesHide()" (keyup)="updateNote($event,x_5)" id="note_{{x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key+'_'+x_5.cat_key}}" class="note_textarea"></textarea>
 						</div>
 
 
@@ -426,21 +493,55 @@
 			<table style="width:100%;">
 				<tr>
 					<td style="width: 200px;" class="title">
-						<div style="color:#999;font-style:italic;font-size:0.8em;cursor:pointer;">Show OT Breakdown</div>
+						<table id="timesheet_totals" style="width: 100%;">
+							<tr>
+								<td>Regular Time</td>
+							</tr>
+							<tr *ngIf="show_ot">
+								<td>Over Time</td>
+							</tr>
+							<tr *ngIf="show_dt">
+								<td>Double Time</td>
+							</tr>
+						</table>
 					</td>
 					<td>
 						<table id="timesheet_totals" style="width: 100%;">
 							<tr>
 								<td class="blank">&nbsp;</td>
-								<td class="day hour_sum">{{ timesheet_totals[1] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[2] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[3] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[4] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[5] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[6] }}</td>
-								<td class="day hour_sum">{{ timesheet_totals[0] }}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][1] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][2] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][3] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][4] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][5] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][6] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][0] | number : '1.2-2'}}</td>
 								<td class="blank">&nbsp;</td>
-								<td class="sum" style="font-weight:700;">{{ timesheet_totals[7] | number : '1.2-2'}}</td>
+								<td class="sum" style="font-weight:700;">{{ timesheet_totals['rt'][7] | number : '1.2-2'}}</td>
+							</tr>
+							<tr *ngIf="show_ot">
+								<td class="blank">&nbsp;</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][1] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][2] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][3] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][4] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][5] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][6] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][0] | number : '1.2-2'}}</td>
+								<td class="blank">&nbsp;</td>
+								<td class="sum" style="font-weight:700;">{{ timesheet_totals['ot'][7] | number : '1.2-2'}}</td>
+							</tr>
+							<tr *ngIf="show_dt">
+								<td class="blank">&nbsp;</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][1] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][2] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][3] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][4] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][5] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][6] | number : '1.2-2'}}</td>
+								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][0] | number : '1.2-2'}}</td>
+								<td class="blank">&nbsp;</td>
+								<td class="sum" style="font-weight:700;">{{ timesheet_totals['dt'][7] | number : '1.2-2'}}</td>
 							</tr>
 						</table>
 					</td>
@@ -453,10 +554,11 @@
 <div class="spacer">&nbsp;</div>
 <!-- spacer -->
 
-<div class="timesheet_footer">
-	<div class="submit_btn" (click)="save()">Submit</div>
-	<!--   
-        -->
-	<div class="save_btn" (click)="save()">Save</div>
+<div id="timesheet_footer">
+	<div class="submit_btn" (click)="submit()">Submit</div>
 
+</div>
+
+<div id="timesheet_submitted_footer">
+	<div>Time Sheet Submitted on {{ submitDate }}</div>
 </div>
