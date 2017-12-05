@@ -1,3 +1,24 @@
 .ot_bg{
 	background-color:#bfcced;
 }
+
+.rejected_note{		
+	border:2px #c52727 solid;
+}
+
+.rejected_title{
+	font-size:1em;
+	font-weight: 800;
+
+}
+
+.rejected_text{
+	font-size:0.8;
+	font-style:italic;
+}
+
+.approval_breakdown{
+	display: none;
+	margin-bottom:10px;
+	padding:1px;
+}

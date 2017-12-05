@@ -366,7 +366,7 @@ export class ServiceService {
       },
       {
         Cat_key: 3,
-        Cat_Title: "R&amp;D "
+        Cat_Title: "R&D "
       }
     ];
 

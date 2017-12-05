@@ -9,7 +9,6 @@
         </div>
     </div>
 </div>
-
 <div class="popup" id="confirm_unapproval_popup">
     <div>
         <div class="popup_title">Confirm Unapproval</div>
@@ -20,8 +19,6 @@
         </div>
     </div>
 </div>
-
-
 <div class="debug_settings" *ngIf="true">
     <div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Info</div>
     <div style="font-size:0.8em;">OT indicator is not fully implemented</div>
@@ -32,20 +29,15 @@
         <div class="alt_btn" (click)="loadSampleTimeSheet()">Load Sample Time Sheet</div>
     </div>
 </div>
-
-
 <div style="margin-bottom: 10px;margin-top:20px;">
     <div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{approval_date}}</div>
-
-    <div style="float:right;color:#555;" (click)="saveTimeSheet()">
-        {{saveStatus}}
+    <div *ngIf="save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
+        {{save_status}}
         <svg height="10" width="10">
-            <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="saveStatusColor" />
+            <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="save_status_color" />
         </svg>
     </div>
-
     <div id="cal" style="position:absolute;padding:10px;background-color:#FFF;width:200px;color:#000;display:none;">
-
         <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
             <table width="100%;">
                 <tr>
@@ -53,14 +45,11 @@
                     </td>
                     <td style="text-align:center;">November 2015</td>
                     <td>&rarr;</td>
-
                 </tr>
             </table>
         </div>
-
-
         <table class="cal_weeks" width="100%;">
-            <tr>
+            <tr class="disable-clicks">
                 <td width="14%" style="font-weight:700;">M</td>
                 <td width="14%" style="font-weight:700;">T</td>
                 <td width="14%" style="font-weight:700;">W</td>
@@ -116,13 +105,8 @@
             </tr>
         </table>
     </div>
-
 </div>
-
-
 <div class="cat_1 projects" style="margin-bottom: 10px;">
-
-
     <table width="100%">
         <tr>
             <td width="50%">
@@ -137,11 +121,8 @@
     </table>
 </div>
 
-
-<!-- Template for Projects -->
 <!-- Template for Projects -->
 <div class="cat_1 projects" *ngFor="let x_1 of timesheet_2; let i_0 = 'index'" style="margin-bottom: 10px;">
-
     <div class="cat_1_title">
         <table style="width:100%;">
             <tr>
@@ -159,7 +140,6 @@
                             <td class="day">F</td>
                             <td class="day">S</td>
                             <td class="day">S</td>
-
                             <td class="sum_approval">&nbsp;</td>
                         </tr>
                     </table>
@@ -167,43 +147,27 @@
             </tr>
         </table>
     </div>
-
-
     <div class="cat_1_content" *ngIf="x_1.children.length > 0">
-
-
         <div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'">
-
-
-
-
             <div *ngIf="searchProject.length == 0 || titles[x_1.cat_key][x_2.cat_key]['Title'].toLowerCase().indexOf(searchProject) != -1">
                 <div *ngIf="!first">&nbsp;</div>
                 <div style="border-bottom:1px #BBB solid;padding-bottom:5px;margin-bottom: 5px;">
                     <table style="width:100%;">
                         <tr>
-                            <td style="width: 200px;" class="project_title">
+                            <td style="width: 200px;" class="cat_0_title">
                                 {{ titles[x_1.cat_key][x_2.cat_key]['Title'] }}
                             </td>
                             <td>&nbsp;</td>
                         </tr>
                     </table>
                 </div>
-
                 <div *ngFor="let x_3 of x_2.children">
                     <div [style.opacity]="(user_focused == x_3.cat_key || !user_focused) ? 1.0 : 0.25">
-
-                        <!-- <div *ngFor="let x_4 of x_3.children">
-                            {{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title'] }}
-                        </div>  -->
-
                         <div *ngIf="searchName.length == 0 || users[x_3.cat_key].FullName_r.toLowerCase().indexOf(searchName) != -1">
-
-
                             <div style="position:absolute;margin-left:800px;margin-top:5px;">
-                                <div title="Approve" *ngIf="!x_3.rejected" [class]="(x_3.approved) ? 'approval_sel' : 'approval'" (click)="approved($event,x_3)"
+                                <div title="Approve" *ngIf="!x_3.rejected" [class]="(x_3.approved) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3)"
                                     (mouseover)="x_3.approval_hover = true;" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
-                                <div title="Reject" *ngIf="!x_3.approved" [class]="(x_3.rejected) ? 'reject_sel' : 'reject'" (click)="rejected($event,x_3)"
+                                <div title="Reject" *ngIf="!x_3.approved" [class]="(x_3.rejected) ? 'reject_sel' : 'reject'" (click)="rowRejected($event,x_3)"
                                     (mouseover)="x_3.approval_hover = true;x_3.rejected_hover=true;" (mouseout)="x_3.approval_hover = false;x_3.rejected_hover=false;">&nbsp;</div>
                                 <div *ngIf="x_3.approved_by" class="approved_by" style="color:rgb(177, 177, 177);display:inline-block;">{{ x_3.approved_by }}</div>
                                 <div *ngIf="x_3.rejected_by" class="approved_by" style="color:rgb(177, 177, 177);display:inline-block;">{{ x_3.rejected_by }}</div>
@@ -251,18 +215,14 @@
                                 </tr>
                             </table>
                             <div class="approval_breakdown">
-
                                 <div *ngFor="let x_4 of x_3.children">
                                     <div *ngIf="x_4.hours">
-
-                                            <div style="position:absolute;margin-left:800px;margin-top:7px;">
-                                                <div [class]="'note_sel_sm'" (mouseover)="x_4.showNote = true" (mouseout)="x_4.showNote = false">&nbsp;</div>
-                                            </div>
-
+                                        <div style="position:absolute;margin-left:800px;margin-top:7px;">
+                                            <div [class]="'note_sel_sm'" (mouseover)="x_4.showNote = true" (mouseout)="x_4.showNote = false">&nbsp;</div>
+                                        </div>
                                         <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
                                             <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                 <td style="width: 200px;">
-
                                                     &nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key]['Title'] }}
                                                     <!-- <div class="btn_1" (click)="toggleBreakdown($event)">{{ users[x_3.cat_key].FullName_r}}</div>  -->
                                                 </td>
@@ -304,16 +264,11 @@
                                         </table>
                                         <div *ngIf="x_4.showNote" class="note_text">A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ x_4.note }}</div>
                                     </div>
-
-
-
-
                                     <div *ngFor="let x_5 of x_4.children">
                                         <div *ngIf="x_5.hours">
                                             <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
                                                 <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                     <td style="width: 200px;">
-
                                                         &nbsp;&nbsp;->{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key]['Title'] }}
                                                         <!-- <div class="btn_1" (click)="toggleBreakdown($event)">{{ users[x_3.cat_key].FullName_r}}</div>  -->
                                                     </td>
@@ -408,18 +363,18 @@
                                                 </table>
                                                 <div *ngIf="x_6.showNote" class="note_text">A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ x_6.note }}</div>
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>                                
                             </div>
                         </div>
-                        <div *ngIf="x_3.rejected && x_3.rejected_note && x_3.rejected_hover" class="rejected_note">
-                                <div class="rejected_title">Rejection Note</div>
-                                <div class="rejected_text">{{ x_3.rejected_note }}</div>
-                            </div>
+                        <div *ngIf="x_3.rejected && x_3.rejected_note && x_3.rejected_hover" class="rejected_note note_text">
+                            <div class="rejected_title">Rejection Note</div>
+                            <div class="rejected_text">{{ x_3.rejected_note }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>

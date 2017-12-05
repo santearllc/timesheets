@@ -1,24 +1,10 @@
-/* You can add global styles to this file, and also import other style files */
-
-@import "~@angular/material/prebuilt-themes/indigo-pink.css";
-
-
-/* http://meyerweb.com/eric/tools/css/reset/ 
-   v2.0 | 20110126
-   License: none (public domain)
-*/
-
-
 /* AF TSS GLOBAL STYLES */
-
 
 body {
   background-color: #151515;
   color: #FFF;
   margin: 50px 135px;
   font-family: 'Roboto', sans-serif;
-
-
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none; /* Safari */
    -khtml-user-select: none; /* Konqueror HTML */
@@ -28,6 +14,7 @@ body {
 								supported by Chrome and Opera */
 	cursor: default;
 }
+
 
 input{
 	-webkit-appearance:none
@@ -39,7 +26,9 @@ h1{
 	margin-bottom: 20px;
 }
 
-
+.cat_0_title{
+	font-weight: 700;
+}
 
 .cat_1{
 	background-color:#D8D8D8;
@@ -62,12 +51,6 @@ h1{
 	margin-bottom: 5px;
 }
 
-.project_title{
-	font-weight: 700;
-
-}
-
-
 #timesheet_footer{
 	color:#000;
 	background-color:#BCBCBC;	
@@ -84,11 +67,9 @@ h1{
 	display: none;
 }
 
-
 .spacer{
 	height: 10px;
 }
-
 
 .hour_sum{
 	color:#999;
@@ -151,7 +132,6 @@ h1{
 	font-weight: 700;
 }
 
-
 .editList_hide{
 	display: none;
 }
@@ -167,7 +147,6 @@ h1{
 	opacity: 0.0;
 	pointer-events: none;
 }
-
 
 .removeLine, .addLine{
 	cursor: pointer;
@@ -215,7 +194,6 @@ input::-webkit-inner-spin-button {
 	cursor: pointer;
 }
 
-
 .note_sel_sm, .note_sm{
 	width: 20px;
 	height: 20px;
@@ -234,11 +212,9 @@ input::-webkit-inner-spin-button {
 	opacity: 0.25;
 }
 
-
 .reject_sel{
 	background-image: url("/assets/reject_sel.png");
 }
-
 
 .approval{
 	background-image: url("/assets/approval.png");
@@ -253,7 +229,6 @@ input::-webkit-inner-spin-button {
 	background-image: url("/assets/approval_sel.png");
 	opacity: 0.5;
 }
-
 
 .minus{
 	background-image: url("/assets/minus.png");
@@ -277,17 +252,13 @@ input::-webkit-inner-spin-button {
 	opacity: 0.5;
 }
 
-
-
 .note_textarea{
 	width: 100%;
 	resize: none;
 	margin-top: 5px;
 	margin-bottom: 10px;
-	display: none;
 	font-size: .8em;
 }
-
 
 .empty{
 	background-image: url("/assets/empty.png");
@@ -296,16 +267,14 @@ input::-webkit-inner-spin-button {
 }
 
 .plus:hover, .minus:hover{
-opacity: 1.0;
+	opacity: 1.0;
 }
-
 
 .debug_settings{
 	padding:10px;
 	background-color: rgb(137, 152, 223);
 	top: 0;
-	left:0;
-	
+	left:0;	
 	position:fixed;
 }
 
@@ -323,7 +292,6 @@ opacity: 1.0;
 	color:#677ef3;
 }
 
-
 select{
 	padding:5px;
 	font-size: .8em;
@@ -334,7 +302,6 @@ select{
 	padding: 3px;
 }
 
-
 .addRowOption_shotAssetList, .addRowOption_ProjectList{	
 	overflow-x: hidden;
 	position:absolute;
@@ -344,7 +311,6 @@ select{
 	color:#FFF;
 	font-size: 0.8em;
 }
-
 
 .addRowOption_shotAssetList div, .addRowOption_ProjectList div{
 	padding:5px;
@@ -358,18 +324,15 @@ select{
 	box-sizing: border-box;
 }
 
-
 .addRowOption_shotAssetSelect_change{
 	font-size: .75em;
 	color:#999;
 	cursor:pointer;
 }
 
-
 .ot_cell{
 	background-color:#bfcced;
 }
-
 
 .popup{
 	position: fixed;
@@ -409,12 +372,6 @@ select{
 	border-top:1px #000 solid;
 }
 
-
-.row_note{
-	display:none;
-}
-
-
 .cal_weeks tr:hover{
 	background-color: #AAA;
 	cursor: pointer;
@@ -424,7 +381,6 @@ select{
 .cal_weeks td{
 	text-align: center;
 }
-
 
 #cal{
 	position:absolute;
@@ -440,49 +396,17 @@ select{
 
 }
 
-
-
 .disable-clicks {
 	pointer-events: none;
 }
-
 
 .btn_1{
 	cursor: pointer;
 }
 
-
 .btn_1:hover{
  color:#677ef3;
 }
-
-
-.approval_breakdown{
-	display: none;
-	margin-bottom:10px;
-	padding:1px;
-}
-
-
-.rejected_note{
-	
-	background-color:rgb(219, 219, 219);
-	padding:10px;
-	border:2px #c52727 solid;
-	margin:10px 10px;
-	box-shadow: 5px 5px 10px #888888;
-}
-.rejected_title{
-	font-size:1em;
-	font-weight: 800;
-
-}
-
-.rejected_text{
-	font-size:0.8;
-	font-style:italic;
-}
-
 
 .indicateRemoval{
 	color:#F00;
@@ -493,6 +417,11 @@ select{
 	background-color:rgb(185, 185, 185);
 	padding:10px;	
 	margin:0px 10px;
+	margin-top:5px;
 	margin-bottom: 20px;
-	box-shadow: 5px 5px 10px #888888;
+	box-shadow: 5px 5px 10px #888888;	
+}
+
+.note_text div{
+	white-space: pre;
 }
