@@ -37,92 +37,91 @@
             <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="save_status_color" />
         </svg>
     </div>
-    <div id="cal" style="position:absolute;padding:10px;background-color:#FFF;width:200px;color:#000;display:none;">
+
+    <!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> -->
+    <div id="cal">
         <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
             <table width="100%;">
                 <tr>
-                    <td>&larr;
-                    </td>
-                    <td style="text-align:center;">November 2015</td>
+                    <td>&larr;</td>
+                    <td style="text-align:center;">December 2015</td>
                     <td>&rarr;</td>
                 </tr>
             </table>
         </div>
         <table class="cal_weeks" width="100%;">
             <tr class="disable-clicks">
-                <td width="14%" style="font-weight:700;">M</td>
-                <td width="14%" style="font-weight:700;">T</td>
-                <td width="14%" style="font-weight:700;">W</td>
-                <td width="14%" style="font-weight:700;">T</td>
-                <td width="14%" style="font-weight:700;">F</td>
-                <td width="14%" style="font-weight:700;">S</td>
-                <td width="14%" style="font-weight:700;">S</td>
+                <td *ngFor="let day_i of days_label" style="font-weight:700;">{{ day_i }}</td>
             </tr>
-            <tr>
-                <td width="14%" style="opacity:0.25">30</td>
-                <td width="14%" style="opacity:0.25">31</td>
-                <td width="14%">1</td>
-                <td width="14%">2</td>
-                <td width="14%">3</td>
-                <td width="14%">4</td>
-                <td width="14%">5</td>
+            <tr (click)="weekSelected(0)">
+                <td class="cal_dif_mo">27</td>
+                <td class="cal_dif_mo">28</td>
+                <td class="cal_dif_mo">29</td>
+                <td class="cal_dif_mo">30</td>
+                <td>1</td>
+                <td>2</td>
+                <td>3</td>
             </tr>
-            <tr>
-                <td width="14%">6</td>
-                <td width="14%">7</td>
-                <td width="14%">8</td>
-                <td width="14%">9</td>
-                <td width="14%">10</td>
-                <td width="14%">11</td>
-                <td width="14%">12</td>
+            <tr class="cal_days" (click)="weekSelected(1)">
+                <td>4</td>
+                <td>5</td>
+                <td>6</td>
+                <td>7</td>
+                <td>8</td>
+                <td>9</td>
+                <td>10</td>
             </tr>
-            <tr>
-                <td width="14%">13</td>
-                <td width="14%">14</td>
-                <td width="14%">15</td>
-                <td width="14%">16</td>
-                <td width="14%">17</td>
-                <td width="14%">18</td>
-                <td width="14%">19</td>
+            <tr (click)="weekSelected(2)">
+                <td>11</td>
+                <td>12</td>
+                <td>13</td>
+                <td>14</td>
+                <td>15</td>
+                <td>16</td>
+                <td>17</td>
             </tr>
-            <tr>
-                <td width="14%">20</td>
-                <td width="14%">21</td>
-                <td width="14%">22</td>
-                <td width="14%">23</td>
-                <td width="14%">24</td>
-                <td width="14%">25</td>
-                <td width="14%">26</td>
+            <tr (click)="weekSelected(3)">
+                <td>18</td>
+                <td>19</td>
+                <td>20</td>
+                <td>21</td>
+                <td>22</td>
+                <td>23</td>
+                <td>24</td>
             </tr>
-            <tr>
-                <td width="14%">27</td>
-                <td width="14%">28</td>
-                <td width="14%">29</td>
-                <td width="14%">30</td>
-                <td width="14%" style="opacity:0.25">1</td>
-                <td width="14%" style="opacity:0.25">2</td>
-                <td width="14%" style="opacity:0.25">3</td>
+            <tr (click)="weekSelected(4)">
+                <td>25</td>
+                <td>26</td>
+                <td>27</td>
+                <td>28</td>
+                <td>29</td>
+                <td>30</td>
+                <td>31</td>
             </tr>
         </table>
     </div>
+
+
+
+
 </div>
 <div class="cat_1 projects" style="margin-bottom: 10px;">
     <table width="100%">
         <tr>
             <td width="50%">
-                <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="searchName=$event.target.value.toLowerCase()"
-                    (click)="$event.target.value='';searchName=''">
+                <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="search_name=$event.target.value.toLowerCase()"
+                    (click)="$event.target.value='';search_name=''">
             </td>
             <td width="50%">
-                <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="searchProject=$event.target.value.toLowerCase()"
-                    (click)="$event.target.value='';searchProject=''">
+                <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="search_project=$event.target.value.toLowerCase()"
+                    (click)="$event.target.value='';search_project=''">
             </td>
         </tr>
     </table>
 </div>
 
 <!-- Template for Projects -->
-<div class="cat_1 projects" *ngFor="let x_1 of timesheet_2; let i_0 = 'index'" style="margin-bottom: 10px;">
+<div class="cat_1 projects" *ngFor="let x_1 of timesheet; let i_0 = 'index'" style="margin-bottom: 10px;">
     <div class="cat_1_title">
         <table style="width:100%;">
             <tr>
@@ -133,13 +132,7 @@
                     <table style="width: 100%;">
                         <tr>
                             <td class="blank">&nbsp;</td>
-                            <td class="day">M</td>
-                            <td class="day">T</td>
-                            <td class="day">W</td>
-                            <td class="day">T</td>
-                            <td class="day">F</td>
-                            <td class="day">S</td>
-                            <td class="day">S</td>
+                            <td *ngFor="let day of days_label" class="day">{{ day }}</td>
                             <td class="sum_approval">&nbsp;</td>
                         </tr>
                     </table>
@@ -149,7 +142,7 @@
     </div>
     <div class="cat_1_content" *ngIf="x_1.children.length > 0">
         <div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'">
-            <div *ngIf="searchProject.length == 0 || titles[x_1.cat_key][x_2.cat_key]['Title'].toLowerCase().indexOf(searchProject) != -1">
+            <div *ngIf="search_project.length == 0 || titles[x_1.cat_key][x_2.cat_key]['Title'].toLowerCase().indexOf(search_project) != -1">
                 <div *ngIf="!first">&nbsp;</div>
                 <div style="border-bottom:1px #BBB solid;padding-bottom:5px;margin-bottom: 5px;">
                     <table style="width:100%;">
@@ -163,7 +156,7 @@
                 </div>
                 <div *ngFor="let x_3 of x_2.children">
                     <div [style.opacity]="(user_focused == x_3.cat_key || !user_focused) ? 1.0 : 0.25">
-                        <div *ngIf="searchName.length == 0 || users[x_3.cat_key].FullName_r.toLowerCase().indexOf(searchName) != -1">
+                        <div *ngIf="search_name.length == 0 || users[x_3.cat_key].FullName_r.toLowerCase().indexOf(search_name) != -1">
                             <div style="position:absolute;margin-left:800px;margin-top:5px;">
                                 <div title="Approve" *ngIf="!x_3.rejected" [class]="(x_3.approved) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3)"
                                     (mouseover)="x_3.approval_hover = true;" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
@@ -181,28 +174,9 @@
                                         <table style="width: 100%;">
                                             <tr [style.font-weight]="(user_focused == x_3.cat_key) ? 800 : default">
                                                 <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                <td class="day" [class]="(x_3.ot[1]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[1] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[1] }}</span>
+                                                <td *ngFor="let day_i of days" class="day" [class]="(x_3.ot[day_i]) ? 'ot_bg day' : 'day'">
+                                                    <span [style.opacity]="(x_3.sum_hours[day_i] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[day_i] }}</span>
                                                 </td>
-                                                <td class="day" [class]="(x_3.ot[2]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[2] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[2] }}</span>
-                                                </td>
-                                                <td class="day" [class]="(x_3.ot[3]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[3] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[3] }}</span>
-                                                </td>
-                                                <td class="day" [class]="(x_3.ot[4]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[4] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[4] }}</span>
-                                                </td>
-                                                <td class="day" [class]="(x_3.ot[5]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[5] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[5] }}</span>
-                                                </td>
-                                                <td class="day" [class]="(x_3.ot[6]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[6] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[6] }}</span>
-                                                </td>
-                                                <td class="day" [class]="(x_3.ot[0]) ? 'ot_bg day' : 'day'">
-                                                    <span [style.opacity]="(x_3.sum_hours[0] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[0] }}</span>
-                                                </td>
-
                                                 <td class="sum_approval">
                                                     <span style="font-weight:700">{{x_3.sum_hours[1] + x_3.sum_hours[2] + x_3.sum_hours[3] + x_3.sum_hours[4]
                                                         + x_3.sum_hours[5] + x_3.sum_hours[6] + x_3.sum_hours[0] | number
@@ -214,158 +188,96 @@
                                     </td>
                                 </tr>
                             </table>
-                            <div class="approval_breakdown">
-                                <div *ngFor="let x_4 of x_3.children">
-                                    <div *ngIf="x_4.hours">
-                                        <div style="position:absolute;margin-left:800px;margin-top:7px;">
-                                            <div [class]="'note_sel_sm'" (mouseover)="x_4.showNote = true" (mouseout)="x_4.showNote = false">&nbsp;</div>
-                                        </div>
-                                        <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
-                                            <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                <td style="width: 200px;">
-                                                    &nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key]['Title'] }}
-                                                    <!-- <div class="btn_1" (click)="toggleBreakdown($event)">{{ users[x_3.cat_key].FullName_r}}</div>  -->
-                                                </td>
-                                                <td>
-                                                    <table style="width: 100%;">
-                                                        <tr>
-                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[1] <= 0) ? 0.25 : 1.0">{{ x_4.hours[1] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[2] <= 0) ? 0.25 : 1.0">{{ x_4.hours[2] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[3] <= 0) ? 0.25 : 1.0">{{ x_4.hours[3] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[4] <= 0) ? 0.25 : 1.0">{{ x_4.hours[4] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[5] <= 0) ? 0.25 : 1.0">{{ x_4.hours[5] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[6] <= 0) ? 0.25 : 1.0">{{ x_4.hours[6] }}</span>
-                                                            </td>
-                                                            <td class="day">
-                                                                <span [style.opacity]="(x_4.hours[0] <= 0) ? 0.25 : 1.0">{{ x_4.hours[0] }}</span>
-                                                            </td>
-                                                            <td class="sum_approval">
-                                                                <span style="font-weight:700">{{x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4]
-                                                                    + x_4.hours[5] + x_4.hours[6] + x_4.hours[0] | number
-                                                                    : '1.2-2'}}</span>
-                                                                <span style="opacity:0.25;">/{{users[x_3.cat_key].Data.TotalHours| number : '1.2-2'}}</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                        <div *ngIf="x_4.showNote" class="note_text">A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ x_4.note }}</div>
+                            <div class="approval_breakdown" style="background-color:#BBB;">
+
+                                <div *ngFor="let b_1 of timesheet_by_user[x_3.cat_key]">
+
+                                    <div style="font-weight:700;font-size:1.2em;">
+                                        &nbsp;{{titles[b_1.cat_key]['Title']}}
                                     </div>
-                                    <div *ngFor="let x_5 of x_4.children">
-                                        <div *ngIf="x_5.hours">
-                                            <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
-                                                <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                    <td style="width: 200px;">
-                                                        &nbsp;&nbsp;->{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key]['Title'] }}
-                                                        <!-- <div class="btn_1" (click)="toggleBreakdown($event)">{{ users[x_3.cat_key].FullName_r}}</div>  -->
-                                                    </td>
-                                                    <td>
-                                                        <table style="width: 100%;">
-                                                            <tr>
-                                                                <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[1] <= 0) ? 0.25 : 1.0">{{ x_5.hours[1] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[2] <= 0) ? 0.25 : 1.0">{{ x_5.hours[2] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[3] <= 0) ? 0.25 : 1.0">{{ x_5.hours[3] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[4] <= 0) ? 0.25 : 1.0">{{ x_5.hours[4] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[5] <= 0) ? 0.25 : 1.0">{{ x_5.hours[5] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[6] <= 0) ? 0.25 : 1.0">{{ x_5.hours[6] }}</span>
-                                                                </td>
-                                                                <td class="day">
-                                                                    <span [style.opacity]="(x_5.hours[0] <= 0) ? 0.25 : 1.0">{{ x_5.hours[0] }}</span>
-                                                                </td>
-                                                                <td class="sum_approval">
-                                                                    <span style="font-weight:700">{{x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4]
-                                                                        + x_5.hours[5] + x_5.hours[6] + x_5.hours[0] | number
-                                                                        : '1.2-2'}}</span>
-                                                                    <span style="opacity:0.25;">/{{users[x_3.cat_key].Data.TotalHours| number : '1.2-2'}}</span>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </table>                                            
-                                        </div>
-                                        <div *ngIf="!x_5.hours" [style.opacity]="(x_3.approved) ? .3 : 1.0" [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                            &nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key]['Title'] + ": " + titles[x_1.cat_key][x_2.cat_key][x_4.cat_key][x_5.cat_key]['Title']
-                                            }}
-                                        </div>
-                                        <div *ngFor="let x_6 of x_5.children">
-                                            <div *ngIf="x_6.hours">
+
+                                    <div *ngFor="let b_2 of b_1.children">
+                                        <div style="font-size:1em;font-weight:700;">&nbsp;{{titles[b_1.cat_key][b_2.cat_key]['Title']}}</div>
+
+                                        <div *ngFor="let b_3 of b_2.children">
+
+                                            <div *ngIf="b_3.hours">
                                                 <div style="position:absolute;margin-left:800px;margin-top:7px;">
-                                                    <div [class]="'note_sel_sm'" (mouseover)="x_6.showNote = true" (mouseout)="x_6.showNote = false">&nbsp;</div>
+                                                    <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
                                                 </div>
-                                                <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
+                                                <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0" [style.color]="(x_3.rejected) ? '#F00' : default">
                                                     <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                         <td style="width: 200px;">
-
-                                                            &nbsp;&nbsp;&nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_4.cat_key][x_5.cat_key][x_6.cat_key]['Title'] }}
-                                                            <!-- <div class="btn_1" (click)="toggleBreakdown($event)">{{ users[x_3.cat_key].FullName_r}}</div>  -->
+                                                            <div>&nbsp;&nbsp;{{titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
                                                         </td>
                                                         <td>
                                                             <table style="width: 100%;">
                                                                 <tr>
                                                                     <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[1] <= 0) ? 0.25 : 1.0">{{ x_6.hours[1] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[2] <= 0) ? 0.25 : 1.0">{{ x_6.hours[2] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[3] <= 0) ? 0.25 : 1.0">{{ x_6.hours[3] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[4] <= 0) ? 0.25 : 1.0">{{ x_6.hours[4] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[5] <= 0) ? 0.25 : 1.0">{{ x_6.hours[5] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[6] <= 0) ? 0.25 : 1.0">{{ x_6.hours[6] }}</span>
-                                                                    </td>
-                                                                    <td class="day">
-                                                                        <span [style.opacity]="(x_6.hours[0] <= 0) ? 0.25 : 1.0">{{ x_6.hours[0] }}</span>
+                                                                    <td *ngFor="let day_i of days" class="day" [class]="(b_2.ot[day_i]) ? 'ot_bg day' : 'day'">
+                                                                        <span [style.opacity]="(b_3.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_3.hours[day_i] }}</span>
                                                                     </td>
                                                                     <td class="sum_approval">
-                                                                        <span style="font-weight:700">{{x_6.hours[1] + x_6.hours[2] + x_6.hours[3] + x_6.hours[4]
-                                                                            + x_6.hours[5] + x_6.hours[6] + x_6.hours[0]
+                                                                        <span style="font-weight:700">{{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4]
+                                                                            + b_3.hours[5] + b_3.hours[6] + b_3.hours[0]
                                                                             | number : '1.2-2'}}</span>
                                                                         <span style="opacity:0.25;">/{{users[x_3.cat_key].Data.TotalHours| number : '1.2-2'}}</span>
                                                                     </td>
                                                                 </tr>
-                                                            </table>
+                                                            </table>                                                            
                                                         </td>
                                                     </tr>
                                                 </table>
-                                                <div *ngIf="x_6.showNote" class="note_text">A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ x_6.note }}</div>
+                                                <div *ngIf="b_3.showNote" class="note_text">A note entered by the artist would display here for the approver
+                                                        to see. If there is no note then the 'note' icon will not
+                                                        be present on the screen for the specific row of data.{{
+                                                        b_3.note }}</div>
+                                            </div>
+                                            <div *ngIf="!b_3.hours">
+                                                <div *ngFor="let b_4 of b_3.children">
+                                                    &nbsp;&nbsp;{{titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}} : {{titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key]['Title']}}
+                                                    <div *ngFor="let b_5 of b_4.children">
+
+                                                        <div style="position:absolute;margin-left:800px;margin-top:7px;">
+                                                            <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true" (mouseout)="b_5.showNote = false">&nbsp;</div>
+                                                        </div>
+                                                        <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0" [style.color]="(x_3.rejected) ? '#F00' : default">
+                                                            <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
+                                                                <td style="width: 200px;">
+                                                                    <div>&nbsp;&nbsp;&nbsp;{{titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key][b_5.cat_key]['Title']}}</div>
+                                                                </td>
+                                                                <td>
+                                                                    <table style="width: 100%;">
+                                                                        <tr>
+                                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                            <td *ngFor="let day_i of days" class="day" [class]="(b_2.ot[day_i]) ? 'ot_bg day' : 'day'">
+                                                                                <span [style.opacity]="(b_5.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_5.hours[day_i] }}</span>
+                                                                            </td>
+                                                                            <td class="sum_approval">
+                                                                                <span style="font-weight:700">{{b_5.hours[1] + b_5.hours[2] + b_5.hours[3]
+                                                                                    + b_5.hours[4] + b_5.hours[5] + b_5.hours[6]
+                                                                                    + b_5.hours[0] | number : '1.2-2'}}</span>
+                                                                                <span style="opacity:0.25;">/{{users[x_3.cat_key].Data.TotalHours| number
+                                                                                    : '1.2-2'}}</span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>                                                                    
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <div *ngIf="b_5.showNote" class="note_text">A note entered by the artist would display here for the
+                                                            approver to see. If there is no note then the 'note'
+                                                            icon will not be present on the screen for the specific
+                                                            row of data.{{ b_4.note }}</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>                                
+                                </div>
+                                <div style="padding:3px;">
+                                    Totals will go here...
+                                </div>
                             </div>
                         </div>
                         <div *ngIf="x_3.rejected && x_3.rejected_note && x_3.rejected_hover" class="rejected_note note_text">

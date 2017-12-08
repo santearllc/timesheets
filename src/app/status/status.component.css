@@ -1,0 +1,23 @@
+.key > div{
+    display: inline-block;
+    padding:5px;
+    width: auto;
+    border:1px #999 solid;
+    box-shadow: 10px 10px 5px #888888;
+}
+
+.approved{
+    background-color: green;
+}   
+
+.partial_approved{
+    background-color: yellow;
+}
+
+.submitted{
+    background-color: black;
+}
+
+.pending_submission{
+    background-color: red;
+}

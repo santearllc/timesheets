@@ -1,13 +1,16 @@
+<!-- Popup used to inform user of important actions (typically includes a confirm or cancel button) -->
 <div class="popup">
 	<div>
 		<div class="popup_title"><!-- Dialog Box Title --></div>
 		<div class="popup_text"><!-- Dialog Box Text --></div>
 		<div class="popup_buttons">
-			<button (click)="closePopup($event)"><!-- Button Text --></button>
-			<button (click)="closePopup($event)"><!-- Button Text --></button>
+			<button data-button-index="0" (click)="closePopup($event)"><!-- Button Text --></button>
+			<button data-button-index="1" (click)="closePopup($event)"><!-- Button Text --></button>
 		</div>
 	</div>
 </div>
+
+<!-- Menu is used during testing -->
 <div class="debug_settings" *ngIf="true">
 	<div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Menu</div>
 	<div class="debug_items" style="">
@@ -16,18 +19,25 @@
 		<div class="alt_btn" (click)="loadSampleTimesheet()">Load Sample Time Sheet</div>
 	</div>
 </div>
-<div>
-	<h1>{{username}}</h1>
-</div>
+
+<!-- Main section of component -->
+
 <div style="margin-bottom: 10px;">
+	<div>
+		<h1>{{username}}</h1>
+	</div>
 	<div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{timesheet_date}}</div>
+	
+	<!-- Texual and graphical indicator for save state; defaults to hidden until an action is made -->
 	<div *ngIf="save_status" style="float:right;color:#555;" (click)="saveTimesheet()">
 		{{ save_status }}
 		<svg height="10" width="10">
 			<circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="save_status_color" />
 		</svg>
 	</div>
-	<div id="cal"> <!-- This static calendar will be replaced with a script generated one  -->
+		
+	<!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> --> 
+	<div id="cal"> 
 		<div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
 			<table width="100%;">
 				<tr>					
@@ -39,64 +49,58 @@
 		</div>
 		<table class="cal_weeks" width="100%;">
 			<tr class="disable-clicks">
-				<td width="14%" style="font-weight:700;">M</td>
-				<td width="14%" style="font-weight:700;">T</td>
-				<td width="14%" style="font-weight:700;">W</td>
-				<td width="14%" style="font-weight:700;">T</td>
-				<td width="14%" style="font-weight:700;">F</td>
-				<td width="14%" style="font-weight:700;">S</td>
-				<td width="14%" style="font-weight:700;">S</td>
-			</tr>
+				<td *ngFor="let day_i of days_label" style="font-weight:700;">{{ day_i }}</td>				
+			</tr>			
 			<tr (click)="weekSelected(0)">
-				<td width="14%" style="opacity:0.25">27</td>
-				<td width="14%" style="opacity:0.25">28</td>
-				<td width="14%" style="opacity:0.25">29</td>
-				<td width="14%" style="opacity:0.25">30</td>
-				<td width="14%">1</td>
-				<td width="14%">2</td>
-				<td width="14%">3</td>
+				<td class="cal_dif_mo">27</td>
+				<td class="cal_dif_mo">28</td>
+				<td class="cal_dif_mo">29</td>
+				<td class="cal_dif_mo">30</td>
+				<td>1</td>
+				<td>2</td>
+				<td>3</td>
 			</tr>
-			<tr (click)="weekSelected(1)">
-				<td width="14%">4</td>
-				<td width="14%">5</td>
-				<td width="14%">6</td>
-				<td width="14%">7</td>
-				<td width="14%">8</td>
-				<td width="14%">9</td>
-				<td width="14%">10</td>
+			<tr class="cal_days" (click)="weekSelected(1)">
+				<td>4</td>
+				<td>5</td>
+				<td>6</td>
+				<td>7</td>
+				<td>8</td>
+				<td>9</td>
+				<td>10</td>
 			</tr>
 			<tr (click)="weekSelected(2)">
-				<td width="14%">11</td>
-				<td width="14%">12</td>
-				<td width="14%">13</td>
-				<td width="14%">14</td>
-				<td width="14%">15</td>
-				<td width="14%">16</td>
-				<td width="14%">17</td>
+				<td>11</td>
+				<td>12</td>
+				<td>13</td>
+				<td>14</td>
+				<td>15</td>
+				<td>16</td>
+				<td>17</td>
 			</tr>
 			<tr (click)="weekSelected(3)">
-				<td width="14%">18</td>
-				<td width="14%">19</td>
-				<td width="14%">20</td>
-				<td width="14%">21</td>
-				<td width="14%">22</td>
-				<td width="14%">23</td>
-				<td width="14%">24</td>
+				<td>18</td>
+				<td>19</td>
+				<td>20</td>
+				<td>21</td>
+				<td>22</td>
+				<td>23</td>
+				<td>24</td>
 			</tr>
 			<tr (click)="weekSelected(4)">
-				<td width="14%">25</td>
-				<td width="14%">26</td>
-				<td width="14%">27</td>
-				<td width="14%">28</td>
-				<td width="14%" style="opacity:0.25">29</td>
-				<td width="14%" style="opacity:0.25">30</td>
-				<td width="14%" style="opacity:0.25">31</td>
+				<td>25</td>
+				<td>26</td>
+				<td>27</td>
+				<td>28</td>
+				<td>29</td>
+				<td>30</td>
+				<td>31</td>
 			</tr>
 		</table>
 	</div>
 </div>
 
-<!-- Template for Projects -->
+<!-- Timesheet Generation -->
 <div class="cat_1 projects" *ngFor="let x_1 of timesheet; let i_0 = 'index'" style="margin-bottom: 10px;">
 	<div class="cat_1_title">
 		<table style="width:100%;">
@@ -112,13 +116,7 @@
 					<table style="width: 100%;">
 						<tr>
 							<td class="blank">&nbsp;</td>
-							<td class="day">M</td>
-							<td class="day">T</td>
-							<td class="day">W</td>
-							<td class="day">T</td>
-							<td class="day">F</td>
-							<td class="day">S</td>
-							<td class="day">S</td>
+							<td *ngFor="let day_i of days_label" class="day">{{ day_i }}</td>
 							<td class="blank">&nbsp;</td>
 							<td class="sum">&nbsp;</td>
 						</tr>
@@ -126,6 +124,7 @@
 				</td>
 			</tr>
 		</table>
+		<!-- Add new row options -->
 		<div class="addRowOption" style="margin-top:20px;display:none;" id="{{'addRow_'+x_1.cat_key }}">		
 			<div class="addRowOption_projectSearch" style="display:inline-block;width:100%;">
 				<input style="width:100%;" class="addRowOption_searchProjects" type="text" placeholder="Project Name or Code" (keyup)="searchShotAsset($event,1)">				
@@ -158,28 +157,10 @@
 						<td>
 							<table style="width: 100%;">
 								<tr>
-									<td class="blank">&nbsp;</td>
-									<td [class]="x_2.ot[1] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 1)" *ngIf="x_2.ot_req[0]">OT</div>
-									</td>
-									<td [class]="x_2.ot[2] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 2)" *ngIf="x_2.ot_req[1]">OT</div>
-									</td>
-									<td [class]="x_2.ot[3] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 3)" *ngIf="x_2.ot_req[2]">OT</div>
-									</td>
-									<td [class]="x_2.ot[4] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 4)" *ngIf="x_2.ot_req[3]">OT</div>
-									</td>
-									<td [class]="x_2.ot[5] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 5)" *ngIf="x_2.ot_req[4]">OT</div>
-									</td>
-									<td [class]="x_2.ot[6] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 6)" *ngIf="x_2.ot_req[5]">OT</div>
-									</td>
-									<td [class]="x_2.ot[0] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, 0)" *ngIf="x_2.ot_req[6]">OT</div>
-									</td>
+									<td class="blank">&nbsp;</td>																		
+									<td *ngFor="let day_i of days;" [class]="x_2.ot[day_i] ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i]">OT</div>
+									</td>									
 									<td class="blank">&nbsp;</td>
 									<td class="sum">&nbsp;</td>
 								</tr>
@@ -187,7 +168,8 @@
 						</td>
 					</tr>
 				</table>
-			</div>			
+			</div>
+			<!-- Add new row options -->
 			<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key }}">
 				<select class="addRowOption_projectTask" (change)="catUpdate($event,3);addRowOptionChange($event,[x_1,x_2])">
 					<option *ngFor="let i of project_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
@@ -236,33 +218,9 @@
 								<table style="width: 100%;">
 									<tr>
 										<td class="blank">&nbsp;</td>
-										<td [class]="x_3.hours[1] > 0 || x_3.focus[1] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[1] > 0 ? x_3.hours[1] : ''}}" (focus)="x_3.focus[1] = true;" (keyup)="updateHours($event,x_3.hours, 1)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 1);x_3.focus[1] = false;" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[2] > 0 || x_3.focus[2] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[2] > 0 ? x_3.hours[2] : ''}}" (focus)="x_3.focus[2] = true;" (keyup)="updateHours($event,x_3.hours, 2)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 2);x_3.focus[2] = false;" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[3] > 0 || x_3.focus[3] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[3] > 0 ? x_3.hours[3] : ''}}" (focus)="x_3.focus[3] = true;" (keyup)="updateHours($event,x_3.hours, 3)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 3);x_3.focus[3] = false;" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[4] > 0 || x_3.focus[4] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[4] > 0 ? x_3.hours[4] : ''}}" (focus)="x_3.focus[4] = true;" (keyup)="updateHours($event,x_3.hours, 4)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 4);x_3.focus[4] = false;" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[5] > 0 || x_3.focus[5] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[5] > 0 ? x_3.hours[5] : ''}}" (focus)="x_3.focus[5] = true;" (keyup)="updateHours($event,x_3.hours, 5)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 5);x_3.focus[5] = false;" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[6] > 0 || x_3.focus[6] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[6] > 0 ? x_3.hours[6] : ''}}" (focus)="x_3.focus[6] = true;" (keyup)="updateHours($event,x_3.hours, 6)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 6);x_3.focus[6] = false;" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
-										</td>
-										<td [class]="x_3.hours[0] > 0 || x_3.focus[0] ? 'day' : 'day_zero'">
-											<input type="text" value="{{x_3.hours[0] > 0 ? x_3.hours[0] : ''}}" (focus)="x_3.focus[0] = true;" (keyup)="updateHours($event,x_3.hours, 0)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, 0);x_3.focus[0] = false;" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
+										<td *ngFor="let day_i of days;" [class]="x_3.hours[day_i] > 0 || x_3.focus[day_i] ? 'day' : 'day_zero'">
+											<input type="text" value="{{ x_3.hours[day_i] > 0 ? x_3.hours[day_i] : '' }}" (focus)="x_3.focus[day_i] = true;" (keyup)="updateHours($event,x_3.hours, day_i)" (keypress)="isNumberKey($event)"
+											 (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
 										</td>
 										<td class="blank">&nbsp;</td>
 										<td class="sum hour_sum">
@@ -295,6 +253,7 @@
 						<div (click)="removeLineItem(x_2.children, i_2,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
 					</div>					
 					<div>{{titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}</div>
+					<!-- Add new row options -->
 					<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key }}">
 						<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3])">
 							<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
@@ -317,40 +276,16 @@
 									<table style="width: 100%;">
 										<tr>
 											<td class="blank">&nbsp;</td>
-											<td [class]="x_4.hours[1] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[1] > 0 ? x_4.hours[1] : ''}}" (keyup)="updateHours($event,x_4.hours, 1)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 1)" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[2] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[2] > 0 ? x_4.hours[2] : ''}}" (keyup)="updateHours($event,x_4.hours, 2)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 2)" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[3] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[3] > 0 ? x_4.hours[3] : ''}}" (keyup)="updateHours($event,x_4.hours, 3)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 3)" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[4] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[4] > 0 ? x_4.hours[4] : ''}}" (keyup)="updateHours($event,x_4.hours, 4)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 4)" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[5] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[5] > 0 ? x_4.hours[5] : ''}}" (keyup)="updateHours($event,x_4.hours, 5)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 5)" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[6] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[6] > 0 ? x_4.hours[6] : ''}}" (keyup)="updateHours($event,x_4.hours, 6)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 6)" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
-											</td>
-											<td [class]="x_4.hours[0] > 0 ? 'day' : 'day_zero'">
-												<input type="text" value="{{x_4.hours[0] > 0 ? x_4.hours[0] : ''}}" (keyup)="updateHours($event,x_4.hours, 0)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, 0)" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
+											<td *ngFor="let day_i of days;" [class]="x_4.hours[day_i] > 0 || x_4.focus[day_i] ? 'day' : 'day_zero'">
+												<input type="text" value="{{ x_4.hours[day_i] > 0 ? x_4.hours[day_i] : '' }}" (focus)="x_4.focus[day_i] = true;" (keyup)="updateHours($event,x_4.hours, day_i)" (keypress)="isNumberKey($event)"
+												 (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
 											</td>
 											<td class="blank">&nbsp;</td>
 											<td class="sum hour_sum">
-													<div style="position:absolute;margin-left:100px;margin-top:5px;">
-														<div title="Note" (click)="notesToggle(x_4)" (mouseover)="x_4.show_note=true"  (mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
-													</div>
-													<div> {{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) | number : '1.2-2'}}</div>
+												<div style="position:absolute;margin-left:100px;margin-top:5px;">
+													<div title="Note" (click)="notesToggle(x_4)" (mouseover)="x_4.show_note=true"  (mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+												</div>
+												<div> {{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) | number : '1.2-2'}}</div>
 											</td>
 										</tr>
 									</table>
@@ -378,6 +313,7 @@
 							<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
 						</div>
 						<div>{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']+": " + titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</div>						
+						<!-- Add new row options -->
 						<div class="addRowOption" style="margin-left:15px;margin-bottom:0px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key +'_' + x_4.cat_key }}">
 							<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3,x_4])">
 								<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
@@ -405,40 +341,15 @@
 										<table style="width: 100%;">
 											<tr>
 												<td class="blank">&nbsp;</td>
-												<td [class]="x_5.hours[1] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[1] > 0 ? x_5.hours[1] : ''}}" (keyup)="updateHours($event,x_5.hours, 1)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 1)" [class]="x_2.ot[1] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[2] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[2] > 0 ? x_5.hours[2] : ''}}" (keyup)="updateHours($event,x_5.hours, 2)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 2)" [class]="x_2.ot[2] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[3] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[3] > 0 ? x_5.hours[3] : ''}}" (keyup)="updateHours($event,x_5.hours, 3)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 3)" [class]="x_2.ot[3] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[4] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[4] > 0 ? x_5.hours[4] : ''}}" (keyup)="updateHours($event,x_5.hours, 4)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 4)" [class]="x_2.ot[4] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[5] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[5] > 0 ? x_5.hours[5] : ''}}" (keyup)="updateHours($event,x_5.hours, 5)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 5)" [class]="x_2.ot[5] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[6] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[6] > 0 ? x_5.hours[6] : ''}}" (keyup)="updateHours($event,x_5.hours, 6)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 6)" [class]="x_2.ot[6] ? 'ot_cell' : ''" />
-												</td>
-												<td [class]="x_5.hours[0] > 0 ? 'day' : 'day_zero'">
-													<input type="text" value="{{x_5.hours[0] > 0 ? x_5.hours[0] : ''}}" (keyup)="updateHours($event,x_5.hours, 0)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, 0)" [class]="x_2.ot[0] ? 'ot_cell' : ''" />
+												<td *ngFor="let day_i of days;" [class]="x_5.hours[day_i] > 0 || x_5.focus[day_i] ? 'day' : 'day_zero'">
+													<input type="text" value="{{ x_5.hours[day_i] > 0 ? x_5.hours[day_i] : '' }}" (focus)="x_5.focus[day_i] = true;" (keyup)="updateHours($event,x_5.hours, day_i)" (keypress)="isNumberKey($event)"
+													 (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
 												</td>
 												<td class="blank">&nbsp;</td>
 												<td class="sum hour_sum">
-														<div style="position:absolute;margin-left:100px;margin-top:5px;">
-																<div title="Note" (click)="notesToggle(x_5)"  (mouseover)="x_5.show_note=true"  (mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
-															</div>
-
+													<div style="position:absolute;margin-left:100px;margin-top:5px;">
+														<div title="Note" (click)="notesToggle(x_5)"  (mouseover)="x_5.show_note=true"  (mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+													</div>
 													{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) |
 													number : '1.2-2'}}</td>
 											</tr>
@@ -476,13 +387,7 @@
 					<table style="width: 100%;">
 						<tr>
 							<td class="blank">&nbsp;</td>
-							<td class="day">M</td>
-							<td class="day">T</td>
-							<td class="day">W</td>
-							<td class="day">T</td>
-							<td class="day">F</td>
-							<td class="day">S</td>
-							<td class="day">S</td>
+							<td *ngFor="let day_i of days_label" class="day">{{ day_i }}</td>							
 							<td class="blank">&nbsp;</td>
 							<td class="sum">&nbsp;</td>
 						</tr>
@@ -512,40 +417,28 @@
 						<table id="timesheet_totals" style="width: 100%;">
 							<tr>
 								<td class="blank">&nbsp;</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][1] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][2] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][3] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][4] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][5] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][6] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['rt'][0] | number : '1.2-2'}}</td>
+								<td *ngFor="let day_i of days" class="day hour_sum" [style.opacity]="(timesheet_totals['rt'][day_i] <= 0) ? 0.25 : 1.0">
+									{{ timesheet_totals['rt'][day_i] | number : '1.2-2'}}
+								</td>
 								<td class="blank">&nbsp;</td>
 								<td class="sum" style="font-weight:700;">{{ timesheet_totals['rt'][7] | number : '1.2-2'}}</td>
 							</tr>
 							<tr *ngIf="show_ot">
 								<td class="blank">&nbsp;</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][1] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][2] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][3] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][4] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][5] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][6] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['ot'][0] | number : '1.2-2'}}</td>
+								<td *ngFor="let day_i of days" class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][day_i] <= 0) ? 0.25 : 1.0">
+									{{ timesheet_totals['ot'][day_i] | number : '1.2-2'}}
+								</td>
 								<td class="blank">&nbsp;</td>
 								<td class="sum" style="font-weight:700;">{{ timesheet_totals['ot'][7] | number : '1.2-2'}}</td>
 							</tr>
 							<tr *ngIf="show_dt">
 								<td class="blank">&nbsp;</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][1] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][1] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][2] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][2] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][3] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][3] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][4] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][4] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][5] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][5] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][6] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][6] | number : '1.2-2'}}</td>
-								<td class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][0] <= 0) ? 0.25 : 1.0">{{ timesheet_totals['dt'][0] | number : '1.2-2'}}</td>
+								<td *ngFor="let day_i of days" class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][day_i] <= 0) ? 0.25 : 1.0">
+									{{ timesheet_totals['dt'][day_i] | number : '1.2-2'}}
+								</td>
 								<td class="blank">&nbsp;</td>
 								<td class="sum" style="font-weight:700;">{{ timesheet_totals['dt'][7] | number : '1.2-2'}}</td>
-							</tr>
+							</tr>							
 						</table>
 					</td>
 				</tr>
@@ -555,8 +448,8 @@
 </div>
 
 <div class="spacer">&nbsp;</div>
-<!-- spacer -->
 
+<!-- Footers -->
 <div id="timesheet_footer">
 	<div class="submit_btn" (click)="submitTimesheet()">Submit</div>
 </div>

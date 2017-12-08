@@ -393,7 +393,14 @@ select{
 	margin-top:5px;
 	margin-left: 5px;
 	z-index: 100;
+}
 
+.cal_days td{
+	width:14%;
+}
+
+.cal_dif_mo{
+	opacity:0.25;	
 }
 
 .disable-clicks {
@@ -414,7 +421,7 @@ select{
 
 .note_text{	
 	font-size:0.8em;
-	background-color:rgb(185, 185, 185);
+	background-color:rgb(160, 160, 160);
 	padding:10px;	
 	margin:0px 10px;
 	margin-top:5px;
@@ -424,4 +431,12 @@ select{
 
 .note_text div{
 	white-space: pre;
+}
+
+.show_full_opacity{
+	opacity: 1.0;
+}
+
+td{
+	vertical-align: top;
 }

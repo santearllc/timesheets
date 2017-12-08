@@ -21,6 +21,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatDatepickerModule } from '@angular/material';
 import 'hammerjs';
 import { EntryRowComponent } from './entry-row/entry-row.component';
+import { CalendarComponent } from './calendar/calendar.component';
+import { StatusComponent } from './status/status.component';
 
 
 @NgModule({
@@ -32,7 +34,9 @@ import { EntryRowComponent } from './entry-row/entry-row.component';
     AdministrateComponent,
     NavigationComponent,
     UserDetailsComponent,
-    EntryRowComponent
+    EntryRowComponent,
+    CalendarComponent,
+    StatusComponent
   ],
   imports: [
     BrowserModule,

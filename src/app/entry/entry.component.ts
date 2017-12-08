@@ -2,7 +2,7 @@
 // AUTHOR: Tyler Cote
 // EMAIL: tyler@santear.com
 // 
-// NOTE: Using the following index for days of week; 0 = Sunday; 
+// NOTE: Using the following index for days of week; 0 = Monday; 
 // functions : camelCase
 // variables: lowercase, separate_words_with_underscore 
 
@@ -14,6 +14,7 @@ declare var jquery: any;
 declare var $: any;
 
 
+
 @Component({
 	selector: 'app-entry',
 	templateUrl: './entry.component.html',
@@ -21,27 +22,26 @@ declare var $: any;
 })
 
 export class EntryComponent {
-
 	// misc variables
 	username = 'Your Name';
 	timesheet_date = 'Nov 27 - Dec 3 (this week)';
 	lines: Object[];
-	
+
 	timesheet = Array();
 	titles = {};
 	timesheet_totals = {};
 	editList = true;
 	save_status;
-	save_status_color;	
+	save_status_color;
 	save_timeout;
 	current_office = 1;  // 0 = Oakland   1 = Montreal
 	submit_date;
 
 
 	// Month and Day of Week Text
-	mo_text = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-	days = [1, 2, 3, 4, 5, 6, 0];  // working with Sun=0 index so need to not use 'i' for enumerating in this situations as Monday needs to be the first day that start when determining OT hours. 
+	days = [0, 1, 2, 3, 4, 5, 6]; 
+	days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 	//dropdowns
 	shot_tasks;
@@ -65,10 +65,10 @@ export class EntryComponent {
 
 	// temporary variables used during development
 	week_labels = ['Nov 27 - Dec 3 (this week)',
-	'Dec 4 - Dec 10 (this week)',
-	'Dec 11 - Dec 17 (this week)',
-	'Dec 18 - Dec 24 (this week)',
-	'Dec 25 - Dec 31 (this week)'] 
+		'Dec 4 - Dec 10 (this week)',
+		'Dec 11 - Dec 17 (this week)',
+		'Dec 18 - Dec 24 (this week)',
+		'Dec 25 - Dec 31 (this week)']
 
 	constructor(public serviceService: ServiceService) {
 		// connection to database functions
@@ -93,81 +93,22 @@ export class EntryComponent {
 		this.lines = this.serviceService.getInitLines();
 
 		// Convert rows queried from database to an object and then do some other tasks
-		let convert_lines_to_timesheet = this.convertLinesToTimesheetObject(this.lines);
-		this.titles = convert_lines_to_timesheet['titles'];
-		this.generateTimesheet(convert_lines_to_timesheet['timesheet']);
-		this.updateTimesheetTotals();
+		let converted = this.convertLinesToObject(this.lines);
+		
+		this.titles = converted['titles'];
+		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'],this.titles)
+		
+		// sum hours
+		this.timesheet = this.serviceService.sumHours(this.timesheet);
 	}
 
-	generateTimesheet(timesheet) {
-		let children = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-		this.timesheet = Array();
-
-		for (var prop_1 in timesheet) {
-			if (prop_1 != 'Hours') {
-				children[1] = [];  // rest children				
-				for (var prop_2 in timesheet[prop_1]) {
-					if (prop_2 != 'Hours') {
-						children[2] = [];  // reset children
-						children[1].push({
-							title: this.titles[prop_1][prop_2].Title,
-							cat_key: prop_2,
-							sum_hours: [0, 0, 0, 0, 0, 0, 0], note: '',
-							ot: [false, false, false, false, false, false, false],
-							ot_req: [false, false, false, false, false, false, false],
-							hours: timesheet[prop_1][prop_2]['Hours'],
-							focus: [false, false, false, false, false, false, false],
-							children: children[2]
-						});
-						for (var prop_3 in timesheet[prop_1][prop_2]) {
-							if (prop_3 != 'Hours') {
-								children[3] = [];  // reset children
-								children[2].push({
-									title: this.titles[prop_1][prop_2][prop_3].Title,
-									cat_key: prop_3,
-									note: '',
-									hours: timesheet[prop_1][prop_2][prop_3]['Hours'],
-									focus: [false, false, false, false, false, false, false],
-									children: children[3]
-								});
-								for (var prop_4 in timesheet[prop_1][prop_2][prop_3]) {
-									if (prop_4 != 'Hours') {
-										children[4] = [];  // reset children
-										children[3].push({
-											title: this.titles[prop_1][prop_2][prop_3][prop_4].Title,
-											cat_key: prop_4, note: '',
-											hours: timesheet[prop_1][prop_2][prop_3][prop_4]['Hours'],
-											focus: [false, false, false, false, false, false, false],
-											children: children[4]
-										});
-										for (var prop_5 in timesheet[prop_1][prop_2][prop_3][prop_4]) {
-											if (prop_5 != 'Hours') {
-												children[4].push({
-													title: this.titles[prop_1][prop_2][prop_3][prop_4][prop_5].Title,
-													cat_key: prop_5, note: '',
-													hours: timesheet[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours'],
-													focus: [false, false, false, false, false, false, false],
-													children: []
-												});
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			this.timesheet.push({
-				title: this.titles[prop_1].Title,				
-				cat_key: prop_1,
-				hours: timesheet[prop_1]['Hours'],
-				children: children[1]
-			});
-		}
+	weekSelected(week_i) {
+		this.timesheet_date = this.week_labels[week_i];
+		//$('#cal').hide();
+		this.loadInitTimeheet();
 	}
 
-	convertLinesToTimesheetObject(lines) {
+	convertLinesToObject(lines) {
 		let timesheet = {};
 		let titles = {};
 
@@ -250,12 +191,12 @@ export class EntryComponent {
 
 
 	saveTimesheet() {
+		// add function to post data once database is setup
+
 		let loc_this = this;
 		this.save_status = "saving";
 		this.save_status_color = "yellow";
 		clearTimeout(this.save_timeout);
-
-		// add function to post data once database is setup
 
 		// return state back to saved after a certain period. 
 		this.save_timeout = setTimeout(function () {
@@ -267,8 +208,7 @@ export class EntryComponent {
 
 	updateHours(event, e, day) {
 		day = parseInt(day);
-		console.log('update')
-		console.log(e)
+
 		if (isNaN(event.target.value) || event.target.value.trim() == '') {
 			e[day] = 0;
 			if (event.target.value.trim() != '.') {
@@ -508,8 +448,6 @@ export class EntryComponent {
 			par_obj.find('.addRowOption_searchProjects').val('');
 			par_obj.find('.addRowOption_searchProjects').show();
 
-			
-
 			if (cats[0] == 0) {  // If Projects			
 				if (cats.length > 2) {
 					if (cats[2] == 5) {
@@ -523,7 +461,6 @@ export class EntryComponent {
 			} else {  // If Departments
 				par_obj.find('.addRowOption_departments').val(-1);
 				par_obj.find('.addRowOption_departmentTask').val(-1);
-
 				par_obj.find('.addRowOption_projectTask').hide();
 				par_obj.find('.addRowOption_searchProjects').hide();
 				par_obj.find('.addRowOption_departments').show();
@@ -536,7 +473,6 @@ export class EntryComponent {
 
 	resetShotAssetSearch(event) {
 		var par_obj = $(event.target).closest('div[id]');
-
 		par_obj.find('.addRowOption_shotAssetSelect').html('');
 		par_obj.find('.addRowOption_shotAssetSearch').show();
 		par_obj.find('.addRowOption_shotAssetSelect_div').hide();
@@ -573,7 +509,6 @@ export class EntryComponent {
 					par_obj.find('.addRowOption_shotTask').show();
 				}
 			}
-
 			if (sel_val == 6) {
 				par_obj.find('.addRowOption_productionTask').val('-1');
 				par_obj.find('.addRowOption_productionTask').show();
@@ -857,17 +792,17 @@ export class EntryComponent {
 			Hours: hours
 		});
 
-		let convertLinesToTimeSheet = this.convertLinesToTimesheetObject(this.lines)
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.generateTimesheet(convertLinesToTimeSheet['timesheet']);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
 		this.updateTimesheetTotals();
 	}
 
 	loadInitTimeheet() {
 		this.lines = this.serviceService.getInitLines()
-		var convertLinesToTimeSheet = this.convertLinesToTimesheetObject(this.lines)
+		var convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.generateTimesheet(convertLinesToTimeSheet['timesheet']);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
 		this.updateTimesheetTotals();
 
 		$('#timesheet_submitted_footer').hide();
@@ -926,7 +861,7 @@ export class EntryComponent {
 				for (var i = 0; i < element_2.ot.length; i++) {
 
 					if (element_2.ot[i]) {
-						ot_selected[i - 1] = element_2.ot[i];
+						ot_selected[i] = element_2.ot[i];
 					}
 
 					if (ot_required[i]) {
@@ -943,6 +878,8 @@ export class EntryComponent {
 				missing.push(i);
 			}
 		}
+
+		
 
 		if (missing.length > 0 && onSubmit) {
 			var missing_days = []
@@ -992,20 +929,15 @@ export class EntryComponent {
 			$('#timesheet_footer').hide();
 			$('.addRemove_btns').hide();
 			$('.note').hide();
-			$('.ot_selected, .ot').addClass('disable-clicks');			
+			$('.ot_selected, .ot').addClass('disable-clicks');
 			$('textarea').attr('readonly', true);
 
-			var dateObj = new Date();
-			var mo = dateObj.getUTCMonth(); //months from 1-12
-			var da = dateObj.getUTCDate();
-			var yr = dateObj.getUTCFullYear();
-
-			this.submit_date = this.mo_text[mo] + ' ' + da + ', ' + yr;			
+			this.submit_date = this.serviceService.generateDate(true);
 		}
 	}
 
 	notesToggle(el) {
-		if(el.show_note_force){
+		if (el.show_note_force) {
 			el.show_note_force = false;
 		} else {
 			el.show_note_force = true;
@@ -1017,22 +949,13 @@ export class EntryComponent {
 		this.saveTimesheet();
 	}
 
-
 	loadSampleTimesheet() {
 		this.loadInitTimeheet();
 		this.lines = this.serviceService.getSampleLines();
-		let convertLinesToTimeSheet = this.convertLinesToTimesheetObject(this.lines);
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines);
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.generateTimesheet(convertLinesToTimeSheet['timesheet']);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
 		this.updateTimesheetTotals();
 		this.submit_date = false;
-	}
-
-	// Calendar Functions (this will be moved to a global class file)
-	weekSelected(week_index){
-		this.timesheet_date = this.week_labels[week_index];
-		$('#cal').hide();
-		this.loadInitTimeheet();
-
 	}
 }
