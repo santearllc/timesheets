@@ -51,20 +51,19 @@ h1{
 	margin-bottom: 5px;
 }
 
-#timesheet_footer{
+.timesheet_footer{
 	color:#000;
 	background-color:#BCBCBC;	
 	text-align: right;
 }
 
-#timesheet_submitted_footer{
+.timesheet_submitted_footer{
 	color:#000;
 	background-color:#BCBCBC;	
 	text-align: right;
 	padding:20px;
 	text-align: center;
-	font-weight: 700;
-	display: none;
+	font-weight: 700;	
 }
 
 .spacer{
@@ -341,8 +340,7 @@ select{
 	background-color: rgba(0, 0, 0, .50);
 	left:0;
 	top:0;
-	z-index:2;
-	display: none;
+	z-index:2;	
 }
 
 .popup > div{
@@ -362,7 +360,7 @@ select{
 
 .popup_text{
 	font-style: italic;
-	margin:20px 0px;
+	margin:10px 0px;
 }
 
 
@@ -387,8 +385,7 @@ select{
 	padding:10px;
 	background-color:#FFF;
 	width:200px;
-	color:#000;
-	display:none;
+	color:#000;	
 	box-shadow: 10px 10px 5px #888888;
 	margin-top:5px;
 	margin-left: 5px;

@@ -23,6 +23,7 @@ import 'hammerjs';
 import { EntryRowComponent } from './entry-row/entry-row.component';
 import { CalendarComponent } from './calendar/calendar.component';
 import { StatusComponent } from './status/status.component';
+import { SafeHtmlPipe } from './pipes/safeHtml.pipe';
 
 
 @NgModule({
@@ -36,7 +37,8 @@ import { StatusComponent } from './status/status.component';
     UserDetailsComponent,
     EntryRowComponent,
     CalendarComponent,
-    StatusComponent
+    StatusComponent,
+    SafeHtmlPipe
   ],
   imports: [
     BrowserModule,

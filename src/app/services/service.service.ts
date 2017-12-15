@@ -2317,6 +2317,35 @@ export class ServiceService {
 		var yr = dateObj.getUTCFullYear();
 
 		return this.mo_text[mo] + ' ' + da + ', ' + yr;;
+  }
+  
+  hideShowDivs(timesheet, prop_sel, bool_set) {		
+		for (var x_1 in timesheet) {
+			try {
+				timesheet[x_1][prop_sel] = bool_set;
+			} catch (err) { }
+			for (var x_2 in timesheet[x_1]['children']) {
+				try {
+					timesheet[x_1]['children'][x_2][prop_sel] = bool_set;
+				} catch (err) { }
+				for (var x_3 in timesheet[x_1]['children'][x_2]['children']) {
+					try {
+						timesheet[x_1]['children'][x_2]['children'][x_3][prop_sel] = bool_set;
+					} catch (err) { }
+					for (var x_4 in timesheet[x_1]['children'][x_2]['children'][x_3]['children']) {
+						try {
+							timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4][prop_sel] = bool_set;
+						} catch (err) { }
+						for (var x_5 in timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children']) {
+							try {
+								timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children'][x_5][prop_sel] = bool_set;
+							} catch (err) { }
+						}
+					}
+				}
+			}
+    }
+    return timesheet;
 	}
 
 }

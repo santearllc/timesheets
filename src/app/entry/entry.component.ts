@@ -9,11 +9,7 @@
 import { Component } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 import { forEach } from '@angular/router/src/utils/collection';
-
-declare var jquery: any;
-declare var $: any;
-
-
+import { SafeHtml } from '@angular/platform-browser';
 
 @Component({
 	selector: 'app-entry',
@@ -36,11 +32,13 @@ export class EntryComponent {
 	save_timeout;
 	current_office = 1;  // 0 = Oakland   1 = Montreal
 	submit_date;
+	popup = Object();
+	entry_vars = Object();
 
 
 	// Month and Day of Week Text
 	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-	days = [0, 1, 2, 3, 4, 5, 6]; 
+	days = [0, 1, 2, 3, 4, 5, 6];
 	days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 	//dropdowns
@@ -57,8 +55,7 @@ export class EntryComponent {
 	departments;
 	results;
 	project_selected;
-	shot_selected;
-	asset_selected;
+	shot_selected;	
 	show_ot;
 	show_dt;
 	current_hover_el;
@@ -94,10 +91,10 @@ export class EntryComponent {
 
 		// Convert rows queried from database to an object and then do some other tasks
 		let converted = this.convertLinesToObject(this.lines);
-		
+
 		this.titles = converted['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'],this.titles)
-		
+		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'], this.titles)
+
 		// sum hours
 		this.timesheet = this.serviceService.sumHours(this.timesheet);
 	}
@@ -431,114 +428,23 @@ export class EntryComponent {
 		this.saveTimesheet();
 	}
 
-	addLineShow(cats) {
-		this.results = [];
-		this.shot_selected = null;
-		this.asset_selected = null;
 
-		var par_obj = $("#" + "addRow_" + cats.join("_"));
-		var isVisible = par_obj.is(':visible');
-
-		if (!isVisible) {
-			$('.addRowOption').hide();
-			par_obj.show();
-			par_obj.find('.addRowOption_shotAssetSelect').html('');
-			par_obj.find('.addRowOption_shotAssetSelect_div').hide();
-			par_obj.find('.addRowOption_searchShotAsset').val('');
-			par_obj.find('.addRowOption_searchProjects').val('');
-			par_obj.find('.addRowOption_searchProjects').show();
-
-			if (cats[0] == 0) {  // If Projects			
-				if (cats.length > 2) {
-					if (cats[2] == 5) {
-						par_obj.find('.addRowOption_shotTask').show();
-					} else if (cats[2] == 4) {
-						par_obj.find('.addRowOption_assetTask').show();
-					} else if (cats[2] == 6) {
-						par_obj.find('.addRowOption_productionTask').show();
-					}
-				}
-			} else {  // If Departments
-				par_obj.find('.addRowOption_departments').val(-1);
-				par_obj.find('.addRowOption_departmentTask').val(-1);
-				par_obj.find('.addRowOption_projectTask').hide();
-				par_obj.find('.addRowOption_searchProjects').hide();
-				par_obj.find('.addRowOption_departments').show();
-				par_obj.find('.addRowOption_departmentTask').show();
-			}
-		} else {
-			$('.addRowOption').hide();
-		}
-	}
-
-	resetShotAssetSearch(event) {
-		var par_obj = $(event.target).closest('div[id]');
-		par_obj.find('.addRowOption_shotAssetSelect').html('');
-		par_obj.find('.addRowOption_shotAssetSearch').show();
-		par_obj.find('.addRowOption_shotAssetSelect_div').hide();
-	}
-
-	catUpdate(event, cat) {
-		var sel_val = event.target.value;
-		var par_obj = $(event.target).closest('div[id]');
-
-		if (cat == 3) {
-			// hide and reset input box for search of shot or asset.
-			par_obj.find('.addRowOption_searchShotAsset').val('');
-			par_obj.find('.addRowOption_shotAssetSelect').html('');
-			par_obj.find('.addRowOption_shotAssetSearch').show();
-
-			par_obj.find('.addRowOption_searchShotAsset').hide();
-			par_obj.find('.addRowOption_shotAssetSelect_div').hide();
-			par_obj.find('.addRowOption_assetTask').hide();
-			par_obj.find('.addRowOption_shotTask').hide();
-
-			// show shot & asset search box if selected in first dropdown
-			if (sel_val == 4 || sel_val == 5) {
-				this.shot_selected = null;
-				this.asset_selected = null;
-
-				par_obj.find('.addRowOption_searchShotAsset').val('');
-				par_obj.find('.addRowOption_searchShotAsset').show();
-
-				if (sel_val == 4) {
-					par_obj.find('.addRowOption_assetTask').val(-1);
-					par_obj.find('.addRowOption_assetTask').show();
-				} else if (sel_val == 5) {
-					par_obj.find('.addRowOption_shotTask').val(-1);
-					par_obj.find('.addRowOption_shotTask').show();
-				}
-			}
-			if (sel_val == 6) {
-				par_obj.find('.addRowOption_productionTask').val('-1');
-				par_obj.find('.addRowOption_productionTask').show();
-			} else {
-				par_obj.find('.addRowOption_productionTask').val('-1');
-				par_obj.find('.addRowOption_productionTask').hide();
-			}
-		}
-	}
-
-	cancelAddRowItem(event) {
-		var par_obj = $(event.target).closest('div[id]');
-		this.results = [];
-
-		$('.addRowOption_projectCat1').val(-1);
-		par_obj.find('.addRowOption_searchShotAsset').hide();
-		par_obj.find('.addRowOption_shotTask').hide();
-		par_obj.find('.addRowOption_assetTask').hide();
-		par_obj.find('.addRowOption_productionTask').hide();
-		par_obj.hide();
-	}
+	//
+	//
+	//	ADD/REMOVE ROW FUNCTIONS 
+	//
+	//
 
 
+
+
+
+	// ALL GOOD - DON'T TOUCH
 	searchShotAsset(event, cat) {
-		var par_obj = $(event.target).closest('div[id]');
-
 		if (cat == 1) {
 			var search_array = this.projects;
 		} else if (cat == 2) {
-			var search_array = (par_obj.find('.addRowOption_projectTask').val() == 5) ? this.shots : this.assets;
+			var search_array = (this.entry_vars.projectTask == 5) ? this.shots : this.assets;
 		}
 
 		var results = [];
@@ -567,79 +473,179 @@ export class EntryComponent {
 		this.results = results
 	}
 
+
+	// ALL GOOD - DON'T TOUCH
 	selectProject(event, el) {
 		if (el.Cat_key > 0) {
-			this.results = [];
-
-			var par_obj = $(event.target).closest('div[id]');
-			par_obj.find('.addRowOption_searchShotAsset').val('');
-			par_obj.find('.addRowOption_searchProjects').hide();
 			this.shot_selected = el;
-			this.addLineItem(event, [{ cat_key: 0, title: 'Projects' }]);
-			this.addLineShow(['0', el.Cat_key])
+			this.addLineItem([{ cat_key: 0, title: 'Projects' }]);
+			this.resetDropdowns();
 		}
 	}
 
-
-	selectShotAsset(event, el, cats) {
-		var par_obj = $(event.target).closest('div[id]');
-		var projectTask = parseInt(par_obj.find('.addRowOption_projectTask').val());
-
-		par_obj.find('.addRowOption_projectTask').val(-1);
-		par_obj.find('.addRowOption_projectTask').val(projectTask);
-
+	// ALL GOOD - DON'T TOUCH
+	selectShotAsset(el, cats) {
 		if (el.Cat_key > 0) {
 			this.shot_selected = el;
-			par_obj.find('.addRowOption_shotAssetSelect').html(el.Cat_Title);
-			par_obj.find('.addRowOption_shotAssetSearch').hide();
-			par_obj.find('.addRowOption_shotAssetSelect_div').show();
-			par_obj.find('.addRowOption_searchShotAsset').val('');
-			par_obj.find('.addRowOption_searchProjects').hide();
 			this.results = [];
 		}
-
-		this.addRowOptionChange(event, cats);
+		this.addRowOptionChange(cats);
 	}
 
-	addRowOptionChange(event, cats) {
-		var par_obj = $(event.target).closest('div[id]');
-
+	// ALL GOOD - DON'T TOUCH
+	addRowOptionChange(cats) {
+		
 		if (parseInt(cats[0].cat_key) == 1) { // Departments
-			var cur_class = $(event.target).attr('class')
 
 			if (cats.length == 1) {
-				if (par_obj.find('.addRowOption_departments').val() > 0 && par_obj.find('.addRowOption_departmentTask').val() > 0) {
-					this.addLineItem(event, cats);
+				if (this.entry_vars.department > 0 && this.entry_vars.departmentTask > 0) {
+					this.addLineItem(cats);
 				}
 			} else {
-				if (par_obj.find('.addRowOption_departmentTask').val() > 0) {
-					this.addLineItem(event, cats);
+				if (this.entry_vars.departmentTask > 0) {
+					this.addLineItem(cats);
 				}
 			}
-		} else {
-			var cur_class = $(event.target).attr('class');
-			var cur_val = parseInt($(event.target).val());
-			var projectTask = parseInt(par_obj.find('.addRowOption_projectTask').val())
-			var shotTask = parseInt(par_obj.find('.addRowOption_shotTask').val())
-			var assetTask = parseInt(par_obj.find('.addRowOption_assetTask').val())
-			var productionTask = parseInt(par_obj.find('.addRowOption_productionTask').val())
+		} else { // Projects
 
-			if (projectTask != 4 && projectTask != 5 && projectTask != 6) {
-				this.addLineItem(event, cats);
+			if (this.entry_vars.projectTask == -1) {
+				return false;
+			} else if (this.entry_vars.projectTask == 4) {
+				if (this.entry_vars.assetTask != -1 && this.shot_selected) {
+					this.addLineItem(cats);
+				}
+			} else if (this.entry_vars.projectTask == 5) {
+				if (this.entry_vars.shotTask != -1 && this.shot_selected) {
+					this.addLineItem(cats);
+				}
+
+			} else if (this.entry_vars.projectTask == 6) {
+				if (this.entry_vars.productionTask != -1) {
+					this.addLineItem(cats);
+				}
 			} else {
-				if (projectTask == 6 && productionTask != -1) {
-					this.addLineItem(event, cats);
-				}
-				if (projectTask == 5 && this.shot_selected != null && shotTask != -1) {
-					this.addLineItem(event, cats);
-				}
-				if (projectTask == 4 && this.shot_selected != null && assetTask != -1) {
-					this.addLineItem(event, cats);
-				}
+				this.addLineItem(cats);
 			}
 		}
 	}
 
+
+	addLineItem(cats) {
+	
+		var cat_array = [];
+		var hours = [0, 0, 0, 0, 0, 0, 0];
+
+		for (var i = 0; i < 5; i++) {
+			try {
+				cat_array.push({
+					title: cats[i].title,
+					cat_key: parseInt(cats[i].cat_key)
+				});
+			} catch (err) {
+				cat_array.push({
+					title: '',
+					cat_key: null
+				})
+			}
+		}
+
+		if (cats.length == 1) {
+			if (cats[0]['cat_key'] == 0) {  // Projects
+				hours = null;
+				cat_array[1] = {
+					title: this.shot_selected.Cat_Title,
+					cat_key: this.shot_selected.Cat_key
+				};
+			} else {  // Departments
+				cat_array[1] = {
+					title: this.label(this.entry_vars.department, this.departments),					
+					cat_key: this.entry_vars.department
+				};
+				cat_array[2] = {
+					title: this.label(this.entry_vars.departmentTask, this.department_tasks),
+					cat_key: this.entry_vars.departmentTask
+				};
+			}
+
+		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
+			cat_array[2] = {
+				title: this.label(this.entry_vars.projectTask, this.project_tasks),
+				cat_key: this.entry_vars.projectTask
+			};
+
+		} else if (cats.length == 4) {
+
+			if (cat_array[2]['cat_key'] == 5) {
+				cat_array[4] = {
+					title: this.label(this.entry_vars.shotTask, this.shot_tasks),					
+					cat_key: this.entry_vars.shotTask
+				};
+			} else {
+				cat_array[4] = {
+					title: this.label(this.entry_vars.assetTask, this.asset_tasks),					
+					cat_key: this.entry_vars.assetTask
+				};
+			}
+		} else if (cats.length == 3) {
+			cat_array[3] = {
+				title: this.label(this.entry_vars.productionTask, this.production_tasks),				
+				cat_key: this.entry_vars.productionTask
+			};
+
+		} else {			
+			cat_array[2] = {
+				title: this.label(this.entry_vars.projectTask, this.project_tasks),
+				cat_key: this.entry_vars.projectTask
+			};
+
+
+			if (cat_array[2]['cat_key'] == 5 || cat_array[2]['cat_key'] == 4) {
+				cat_array[3] = {
+					title: this.shot_selected.Cat_Title,
+					cat_key: this.shot_selected.Cat_key
+				};
+
+				// Slice off the 's' so that it's not plural. 
+				cat_array[2]['title'] = cat_array[2]['title'].slice(0, -1);
+
+				if (cat_array[2]['cat_key'] == 5) {
+					cat_array[4] = {
+						title: this.label(this.entry_vars.shotTask, this.shot_tasks),						
+						cat_key: this.entry_vars.shotTask
+					};
+				} else {
+					cat_array[4] = {
+						title: this.label(this.entry_vars.assetTask, this.asset_tasks),						
+						cat_key: this.entry_vars.assetTask
+					};
+				}
+			} else if (cat_array[2]['cat_key'] == 6) {
+				cat_array[3] = {
+					title: this.label(this.entry_vars.productionTask, this.production_tasks),					
+					cat_key: this.entry_vars.productionTask
+				};
+			}
+		}
+
+		this.lines.push({
+			Cat_1: cat_array[0]['cat_key'],
+			Cat_1_Title: cat_array[0]['title'],
+			Cat_2: cat_array[1]['cat_key'],
+			Cat_2_Title: cat_array[1]['title'],
+			Cat_3: cat_array[2]['cat_key'],
+			Cat_3_Title: cat_array[2]['title'],
+			Cat_4: cat_array[3]['cat_key'],
+			Cat_4_Title: cat_array[3]['title'],
+			Cat_5: cat_array[4]['cat_key'],
+			Cat_5_Title: cat_array[4]['title'],
+			Hours: hours
+		});
+
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
+		this.titles = convertLinesToTimeSheet['titles'];
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
+		this.updateTimesheetTotals();
+	}
 
 	removeLineItem(obj_parent, obj_i, cats) {
 		var obj = obj_parent[(parseInt(obj_i))];
@@ -680,135 +686,31 @@ export class EntryComponent {
 		this.updateTimesheetTotals();
 	}
 
-	addLineItem(event, cats) {
-		var par_obj = $(event.target).closest('div[id]');
-		var cat_array = [];
-		var hours = [0, 0, 0, 0, 0, 0, 0];
-
-		for (var i = 0; i < 5; i++) {
-			try {
-				cat_array.push({
-					title: cats[i].title,
-					cat_key: parseInt(cats[i].cat_key)
-				});
-			} catch (err) {
-				cat_array.push({
-					title: '',
-					cat_key: null
-				})
-			}
-		}
-
-		if (cats.length == 1) {
-			if (cats[0]['cat_key'] == 0) {  // Projects
-				hours = null;
-				cat_array[1] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
-				};
-			} else {  // Departments
-				cat_array[1] = {
-					title: par_obj.find('.addRowOption_departments option:selected').text(),
-					cat_key: parseInt(par_obj.find('.addRowOption_departments').val())
-				};
-				cat_array[2] = {
-					title: par_obj.find('.addRowOption_departmentTask option:selected').text(),
-					cat_key: parseInt(par_obj.find('.addRowOption_departmentTask').val())
-				};
-			}
-
-		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
-
-			cat_array[2] = {
-				title: par_obj.find('.addRowOption_departmentTask option:selected').text(),
-				cat_key: parseInt(par_obj.find('.addRowOption_departmentTask').val())
-			};
-
-		} else if (cats.length == 4) {
-
-			if (cat_array[2]['cat_key'] == 5) {
-				cat_array[4] = {
-					title: par_obj.find('.addRowOption_shotTask option:selected').text(),
-					cat_key: parseInt(par_obj.find('.addRowOption_shotTask').val())
-				};
-			} else {
-				cat_array[4] = {
-					title: par_obj.find('.addRowOption_assetTask option:selected').text(),
-					cat_key: parseInt(par_obj.find('.addRowOption_assetTask').val())
-				};
-			}
-		} else if (cats.length == 3) {
-			cat_array[3] = {
-				title: par_obj.find('.addRowOption_productionTask option:selected').text(),
-				cat_key: parseInt(par_obj.find('.addRowOption_productionTask').val())
-			};
-
-		} else {
-
-			cat_array[2] = {
-				title: par_obj.find('.addRowOption_projectTask option:selected').text(),
-				cat_key: parseInt(par_obj.find('.addRowOption_projectTask').val())
-			};
-
-			if (cat_array[2]['cat_key'] == 5 || cat_array[2]['cat_key'] == 4) {
-				cat_array[3] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
-				};
-
-				// Slice off the 's' so that it's not plural. 
-				cat_array[2]['title'] = cat_array[2]['title'].slice(0, -1);
-
-				if (cat_array[2]['cat_key'] == 5) {
-					cat_array[4] = {
-						title: par_obj.find('.addRowOption_shotTask option:selected').text(),
-						cat_key: parseInt(par_obj.find('.addRowOption_shotTask').val())
-					};
-				} else {
-					cat_array[4] = {
-						title: par_obj.find('.addRowOption_assetTask option:selected').text(),
-						cat_key: parseInt(par_obj.find('.addRowOption_assetTask').val())
-					};
-				}
-			} else if (cat_array[2]['cat_key'] == 6) {
-				cat_array[3] = {
-					title: par_obj.find('.addRowOption_productionTask option:selected').text(),
-					cat_key: parseInt(par_obj.find('.addRowOption_productionTask').val())
-				};
-			}
-		}
-
-		this.lines.push({
-			Cat_1: cat_array[0]['cat_key'],
-			Cat_1_Title: cat_array[0]['title'],
-			Cat_2: cat_array[1]['cat_key'],
-			Cat_2_Title: cat_array[1]['title'],
-			Cat_3: cat_array[2]['cat_key'],
-			Cat_3_Title: cat_array[2]['title'],
-			Cat_4: cat_array[3]['cat_key'],
-			Cat_4_Title: cat_array[3]['title'],
-			Cat_5: cat_array[4]['cat_key'],
-			Cat_5_Title: cat_array[4]['title'],
-			Hours: hours
-		});
-
-		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
-		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
-		this.updateTimesheetTotals();
+	resetDropdowns() {		
+		this.entry_vars.projectTask = -1;
+		this.entry_vars.projectTask = -1;
+		this.entry_vars.productionTask = -1;
+		this.entry_vars.assetTask = -1;
+		this.entry_vars.shotTask = -1;
+		this.entry_vars.department = -1;
+		this.entry_vars.departmentTask = -1;
+		this.shot_selected = null;		
+		this.results = [];
 	}
 
+	//
+	//
+	//	LOAD/SUBMIT TIMESHEET
+	//
+	//
+
 	loadInitTimeheet() {
+		this.entry_vars.timesheet_submitted = false;
 		this.lines = this.serviceService.getInitLines()
 		var convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
 		this.updateTimesheetTotals();
-
-		$('#timesheet_submitted_footer').hide();
-		$('#timesheet_footer').show();
-		$('input').attr('readonly', false);
-		$('input').css('border', 'default');
 		this.submit_date = false;
 	}
 
@@ -816,8 +718,10 @@ export class EntryComponent {
 		if (this.validateOvertime(true)) {
 			this.openPopup('Confirm Time Sheet Submission',
 				'Pressing confirm below indicates that you have completed your timesheet for the currently displayed week. Please contact your manager if you need to make any changes after submission.',
-				['Confirm', 'Cancel']);
-		};
+				[{ label: 'Confirm', action: 'confirmTimesheet' }, { label: 'Cancel', action: 'closePopup' }]);
+		} else {
+			console.log('...>')
+		}
 	}
 
 	validateOvertime(onSubmit = false) {
@@ -879,8 +783,6 @@ export class EntryComponent {
 			}
 		}
 
-		
-
 		if (missing.length > 0 && onSubmit) {
 			var missing_days = []
 			missing.forEach(element => {
@@ -891,49 +793,17 @@ export class EntryComponent {
 				'You need to select which show/department will be assigned OT for the following day(s): <span style="font-weight:700;">'
 				+ missing_days.join(', ')
 				+ "</span><br><br><span style='font-style:italic;font-size:0.8em;'>Click the OT button on the timesheet for the specific day and show that gets OT assigned to it.</span>"
-				, ['Close']);
+				, [{ label: 'Close', action: 'closePopup' }]);
 			return false;
 		}
 		return true;
 	}
 
-	openPopup(title, text, buttonList) {
-		var par_obj = $('.popup');
-		var buttons = par_obj.find('button').toArray();
-
-		par_obj.find('.popup_title').html(title);
-		par_obj.find('.popup_text').html(text);
-
-		for (var i = 0; i < buttonList.length; i++) {
-			$(buttons[i]).html(buttonList[i]);
-		}
-
-		if (buttonList.length == 1) {
-			$(buttons[1]).hide();
-		} else {
-			$(buttons[1]).show();
-		}
-
-		par_obj.show();
-	}
-
-	closePopup(event) {
-		var par_obj = $(event.target).closest('.popup');
-		par_obj.fadeOut();
-
-		if (event.target.innerHTML == 'Confirm') {
-			var inputs = $('input').attr('readonly', true);
-			var inputs = $('input').css('border', '1px #DDD solid');
-
-			$('#timesheet_submitted_footer').show();
-			$('#timesheet_footer').hide();
-			$('.addRemove_btns').hide();
-			$('.note').hide();
-			$('.ot_selected, .ot').addClass('disable-clicks');
-			$('textarea').attr('readonly', true);
-
-			this.submit_date = this.serviceService.generateDate(true);
-		}
+	openPopup(title, text, buttons) {
+		this.popup.text = text;
+		this.popup.title = title;
+		this.popup.buttons = buttons;
+		this.entry_vars.showPopup = true
 	}
 
 	notesToggle(el) {
@@ -951,11 +821,36 @@ export class EntryComponent {
 
 	loadSampleTimesheet() {
 		this.loadInitTimeheet();
+
 		this.lines = this.serviceService.getSampleLines();
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines);
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'],this.titles);
-		this.updateTimesheetTotals();
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
 		this.submit_date = false;
+
+		this.updateTimesheetTotals();
 	}
+
+	popupFunction(functionName) {
+		console.log(functionName);
+		this.entry_vars.showPopup = false;
+
+		if (functionName == 'confirmTimesheet') {
+			this.entry_vars.timesheet_submitted = true;
+			this.entry_vars.submit_date = this.serviceService.generateDate(true);
+			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_note_force', false);
+		}
+	}
+
+
+	label(cat_key, in_array){
+		var label = 'Label';
+		for(var i = 0; i < in_array.length; i++){
+			if(in_array[i]['Cat_key'] == cat_key){
+				label = in_array[i]['Cat_Title'];
+			}
+		}
+		return label;
+	}
+
 }

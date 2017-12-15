@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 import { forEach } from '@angular/router/src/utils/collection';
 
-declare var jquery: any;
-declare var $: any;
+// Jquery import
+//declare var jquery: any;
+//declare var $: any;
 
 @Component({
   selector: 'app-approval',
@@ -30,7 +31,8 @@ export class ApprovalComponent implements OnInit {
   save_timeout;
   days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   days = [0, 1, 2, 3, 4, 5, 6]; // Order of days
-  
+  approval_vars = Object();
+
   // temporary variables used during development
   week_labels = ['Nov 27 - Dec 3',
     'Dec 4 - Dec 10 (this week)',
@@ -63,6 +65,7 @@ export class ApprovalComponent implements OnInit {
 
     // Sum hours
     this.timesheet = this.serviceService.sumHours(this.timesheet);
+
   }
 
   // save changes made to approval page (approvals and rejections)
@@ -325,13 +328,12 @@ export class ApprovalComponent implements OnInit {
 
   // approves selected row item 
   rowApproved(event, el) {
-    var par_obj = $(event.target);
     this.user_focused_el = el;
     this.user_focused = false;
+    this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'breakdown_show', false)
 
-    $('.approval_breakdown').hide();
     if (el['approved']) {
-      $('#confirm_unapproval_popup').show();
+      this.approval_vars.showPopup_unapproval = true;
     } else {
       this.save();
       el['approved'] = true;
@@ -339,61 +341,82 @@ export class ApprovalComponent implements OnInit {
     }
   }
 
-  // rejects selected row item
-  rowRejected(event, el) {
-    var par_obj = $(event.target);
 
-    if (!el['rejected']) {
-      this.user_focused_el = el;
-      el['rejected'] = true;
-      el['rejected_by'] = 'Your Name';
-      $('#rejected_note_popup').show();
-      $('#rejected_note_popup').find('.popup_title').html('Rejection Note');
-      $('#rejected_note_popup').find('.popup_text').html('<textarea style="width:100%;resize:none;height:100px;">'
-        + this.user_focused_el['rejected_note']
-        + '</textarea>');
-      var buttons = $('#rejected_note_popup').find('.popup_buttons button').toArray();
-      this.save();
+  // rejects selected row item
+  rowRejectedConfirm(el) {
+    this.approval_vars.showPopup_reject_text_artist = false;
+    this.approval_vars.showPopup_reject_text_department = false;
+    this.user_focused_el = el;
+    this.approval_vars.showPopup_reject = true;
+  }
+
+  // rejects selected row item
+  rowRejected() {
+    // Set all rows for this user to rejected
+    for (var x_1 in this.timesheet) {
+      for (var x_2 in this.timesheet[x_1]['children']) {
+        for (var x_3 in this.timesheet[x_1]['children'][x_2]['children']) {          
+          try {
+            if (this.timesheet[x_1]['children'][x_2]['children'][x_3]['cat_key'] == this.user_focused_el['cat_key']) {
+              this.timesheet[x_1]['children'][x_2]['children'][x_3]['rejected'] = true;
+            }
+          } catch (err) { }
+        }
+      }
     }
+
+    var el = this.user_focused_el;
+    el['rejected'] = true;
+    el['rejected_by'] = 'Your Name';
+
+    if (this.approval_vars.showPopup_reject_text_artist != false) {
+      this.user_focused_el['rejected_note'] = this.approval_vars.showPopup_reject_text_artist.trim();
+    }
+
+    if (this.approval_vars.showPopup_reject_text_department != false) {
+      this.user_focused_el['rejected_note_department'] = this.approval_vars.showPopup_reject_text_department.trim();
+    }
+
+    this.approval_vars.showPopup_reject = false;
+    this.save();
   }
 
   // toggle the timesheet view for the selected user
-  toggleBreakdown(event, UserKey) {
-    var par_obj = $(event.target);
-    var cur_state = par_obj.parent().parent().parent().parent().parent().find('.approval_breakdown').is(':visible');
-    $('.approval_breakdown').hide();
-    this.user_focused = false;
-    if (!cur_state) {
-      par_obj.parent().parent().parent().parent().parent().find('.approval_breakdown').show();
+  toggleBreakdown(event, UserKey, el) {
+
+    if (el.breakdown_show) {
+      el.breakdown_show = false;
+      this.user_focused = false;
+    } else {
+      el.breakdown_show = true;
       this.user_focused = UserKey;
     }
   }
 
-  // close popup window that opened when the user pressed the rejection button
-  saveRejectionNote(event) {
-    var par_obj = $('#rejected_note_popup');
-    var cur_text = $('#rejected_note_popup').find('.popup_text textarea').val().trim();
-    this.user_focused_el['rejected_note'] = cur_text;
-    this.save();
-    par_obj.fadeOut();
+  updateNote(event, to) {
+    if (to == 'artist') {
+      this.approval_vars.showPopup_reject_text_artist = event.target.value;
+    } else {
+      this.approval_vars.showPopup_reject_text_department = event.target.value;
+    }
   }
 
   // close popup window that opened when the user pressed the rejection button
   unapprovalConfirmed(event) {
-    $('#confirm_unapproval_popup').fadeOut();
+    this.approval_vars.showPopup_unapproval = false;
     this.user_focused_el['approved'] = false;
     this.user_focused_el['approved_by'] = false;
     this.save();
   }
 
-  closePopup(event) {
-    var par_obj = $(event.target).closest('.popup');
-    par_obj.fadeOut();
+  closePopup() {
+    this.approval_vars.showPopup_unapproval = false;
   }
+
 
   // temp function during dev
   weekSelected(week_i) {
     this.approval_date = this.week_labels[week_i];
-    $('#cal').hide();
+    this.approval_vars.showCal = false;
   }
 }

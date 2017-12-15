@@ -1,11 +1,10 @@
 <!-- Popup used to inform user of important actions (typically includes a confirm or cancel button) -->
-<div class="popup">
+<div *ngIf="entry_vars.showPopup" class="popup">
 	<div>
-		<div class="popup_title"><!-- Dialog Box Title --></div>
-		<div class="popup_text"><!-- Dialog Box Text --></div>
+		<div class="popup_title" [innerHTML]="popup.title | safeHtml: 'html'"></div>
+		<div class="popup_text" [innerHTML]="popup.text | safeHtml: 'html'"></div>
 		<div class="popup_buttons">
-			<button data-button-index="0" (click)="closePopup($event)"><!-- Button Text --></button>
-			<button data-button-index="1" (click)="closePopup($event)"><!-- Button Text --></button>
+			<button *ngFor="let button of popup.buttons" (click)="popupFunction(button.action)">{{ button.label }}</button>			
 		</div>
 	</div>
 </div>
@@ -23,10 +22,10 @@
 <!-- Main section of component -->
 
 <div style="margin-bottom: 10px;">
-	<div>
+	<div>		
 		<h1>{{username}}</h1>
 	</div>
-	<div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{timesheet_date}}</div>
+	<div class="alt_btn" style="display:inline-block;" (click)="(entry_vars.showCal) ? entry_vars.showCal = false : entry_vars.showCal = true;">{{timesheet_date}}</div>
 	
 	<!-- Texual and graphical indicator for save state; defaults to hidden until an action is made -->
 	<div *ngIf="save_status" style="float:right;color:#555;" (click)="saveTimesheet()">
@@ -37,7 +36,7 @@
 	</div>
 		
 	<!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> --> 
-	<div id="cal"> 
+	<div *ngIf="entry_vars.showCal" id="cal"> 
 		<div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
 			<table width="100%;">
 				<tr>					
@@ -106,8 +105,8 @@
 		<table style="width:100%;">
 			<tr>
 				<td style="width: 200px;font-size:1.5em;font-weight: 700;">
-					<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:7px;">
-						<div (click)="addLineShow([x_1.cat_key])" class="plus">&nbsp;</div>
+					<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:7px;">												
+						<div (click)="(x_1.show_add_line) ? timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false) : timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false);x_1.show_add_line  = true;resetDropdowns()" class="plus">&nbsp;</div>
 						<div class="empty">&nbsp;</div>
 					</div>
 					<div>{{ titles[x_1.cat_key]['Title'] }}</div>					
@@ -125,19 +124,26 @@
 			</tr>
 		</table>
 		<!-- Add new row options -->
-		<div class="addRowOption" style="margin-top:20px;display:none;" id="{{'addRow_'+x_1.cat_key }}">		
-			<div class="addRowOption_projectSearch" style="display:inline-block;width:100%;">
+		<div *ngIf="x_1.show_add_line" class="addRowOption" style="margin-top:20px;" id="{{'addRow_'+x_1.cat_key }}">
+			
+			<!-- This div is for project searching -->
+			<div *ngIf="x_1.cat_key == 0">				
 				<input style="width:100%;" class="addRowOption_searchProjects" type="text" placeholder="Project Name or Code" (keyup)="searchShotAsset($event,1)">				
-				<select class="addRowOption_departments" style="display:none;" (change)="addRowOptionChange($event,[x_1])">
-					<option *ngFor="let i of departments" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
-				<select class="addRowOption_departmentTask" style="display:none;" (change)="addRowOptionChange($event,[x_1])">
-					<option *ngFor="let i of department_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
 				<div style="z-index:1000;" class="addRowOption_ProjectList">
 					<div *ngFor="let el of results" (click)="selectProject($event, el,true)" style="">{{ el.Cat_Title }}</div>
 				</div>
 			</div>
+
+			<!-- This div is for department searching -->
+			<div *ngIf="x_1.cat_key == 1">
+				
+				<select class="addRowOption_departments" (change)="addRowOptionChange($event,[x_1])">
+					<option *ngFor="let i of departments" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+				</select>
+				<select class="addRowOption_departmentTask" (change)="addRowOptionChange($event,[x_1])">
+					<option *ngFor="let i of department_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+				</select>
+			</div>			
 		</div>
 	</div>
 
@@ -148,14 +154,14 @@
 				<table style="width:100%;">
 					<tr>
 						<td style="width: 200px;" class="cat_0_title">
-							<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
-								<div (click)="addLineShow([x_1.cat_key, x_2.cat_key])" class="plus">&nbsp;</div>
+							<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">								
+								<div (click)="(x_2.show_add_line) ? timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false) : timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false);x_2.show_add_line  = true;resetDropdowns();" class="plus">&nbsp;</div>
 								<div (click)="removeLineItem(x_1.children, i_1,[x_1.cat_key, x_2.cat_key])" class="minus" (mouseover)="x_2.indicateRemoval=true" (mouseout)="x_2.indicateRemoval=false">&nbsp;</div>
 							</div>
 							<div>{{ titles[x_1.cat_key][x_2.cat_key]['Title'] }}</div>							
 						</td>
 						<td>
-							<table style="width: 100%;">
+							<table style="width: 100%;" [class]="(entry_vars.timesheet_submitted) ? 'disable-clicks' : ''">
 								<tr>
 									<td class="blank">&nbsp;</td>																		
 									<td *ngFor="let day_i of days;" [class]="x_2.ot[day_i] ? 'ot_selected day' : 'ot day'">
@@ -170,36 +176,43 @@
 				</table>
 			</div>
 			<!-- Add new row options -->
-			<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key }}">
-				<select class="addRowOption_projectTask" (change)="catUpdate($event,3);addRowOptionChange($event,[x_1,x_2])">
-					<option *ngFor="let i of project_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
+			<div *ngIf="x_2.show_add_line" class="addRowOption" style="margin-bottom:5px;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key }}">
 
-				<select class="addRowOption_productionTask" style="display:none;" (change)="catUpdate($event,4);addRowOptionChange($event,[x_1,x_2])">
-					<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
+				<div *ngIf="x_1.cat_key == 0">
+					<select [(ngModel)]="entry_vars.projectTask" class="addRowOption_projectTask" (change)="addRowOptionChange([x_1,x_2]);shot_selected = null">
+						<option *ngFor="let i of project_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+					</select>
+					
 
-				<select class="addRowOption_assetTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2])">
-					<option *ngFor="let i of asset_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
+					<select *ngIf="entry_vars.projectTask == 6" [(ngModel)]="entry_vars.productionTask" class="addRowOption_productionTask" (change)="addRowOptionChange([x_1,x_2])">
+						<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+					</select>
+	
+					<select *ngIf="entry_vars.projectTask == 4" [(ngModel)]="entry_vars.assetTask" class="addRowOption_assetTask" (change)="addRowOptionChange([x_1,x_2])">
+						<option *ngFor="let i of asset_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+					</select>
 
-				<select class="addRowOption_shotTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2])">
-					<option *ngFor="let i of shot_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
+					<select *ngIf="entry_vars.projectTask == 5" [(ngModel)]="entry_vars.shotTask" class="addRowOption_shotTask" (change)="addRowOptionChange([x_1,x_2])">
+						<option *ngFor="let i of shot_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+					</select>
 
-				<select class="addRowOption_departmentTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2])">
-					<option *ngFor="let i of department_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-				</select>
-				<div class="addRowOption_shotAssetSearch" style="display:inline-block">
-					<input class="addRowOption_searchShotAsset" type="text" placeholder="Bid ID" style="width:150px;display:none;" (keyup)="searchShotAsset($event,2)">
-					<div class="addRowOption_shotAssetList" style="z-index:1000;">
-						<div *ngFor="let el of results" (click)="selectShotAsset($event, el, [x_1,x_2])">{{ el.Cat_Title }}</div>
+					<div *ngIf="(entry_vars.projectTask == 5 || entry_vars.projectTask == 4) && !shot_selected" class="addRowOption_shotAssetSearch" style="display:inline-block">							
+						<input class="addRowOption_searchShotAsset" type="text" placeholder="Bid ID" style="width:150px;" (keyup)="searchShotAsset($event,2)">
+						<div class="addRowOption_shotAssetList" style="z-index:1000;">
+							<div *ngFor="let el of results" (click)="selectShotAsset(el, [x_1,x_2])">{{ el.Cat_Title }}</div>
+						</div>
+					</div>
+					<div *ngIf="(entry_vars.projectTask == 5 || entry_vars.projectTask == 4) && shot_selected" class="addRowOption_shotAssetSelect_div" style="display:inline-block;">
+						<span class="addRowOption_shotAssetSelect">{{ (shot_selected) ? shot_selected.Cat_Title : '' }}</span>&nbsp;
+						<span class="addRowOption_shotAssetSelect_change"  (click)="shot_selected = null">(change)</span>
 					</div>
 				</div>
-				<div class="addRowOption_shotAssetSelect_div" style="display:inline-block;">
-					<span class="addRowOption_shotAssetSelect"></span>&nbsp;
-					<span class="addRowOption_shotAssetSelect_change" style="display:none;" (click)="resetShotAssetSearch($event)">(change)</span>
-				</div>
+
+				<div *ngIf="x_1.cat_key == 1">
+					<select class="addRowOption_departmentTask" (change)="addRowOptionChange($event,[x_1,x_2])">
+						<option *ngFor="let i of department_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
+					</select>					
+				</div>				
 			</div>
 			<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' " [class]="(!x_3.indicateRemoval) ? '' : 'indicateRemoval'">
 				<div *ngIf="x_3.hours">
@@ -207,7 +220,7 @@
 						<tr>
 							<td class="title">
 								<div style="width: 200px;">
-									<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
+									<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
 										<div class="empty">&nbsp;</div>
 										<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
 									</div>
@@ -220,12 +233,12 @@
 										<td class="blank">&nbsp;</td>
 										<td *ngFor="let day_i of days;" [class]="x_3.hours[day_i] > 0 || x_3.focus[day_i] ? 'day' : 'day_zero'">
 											<input type="text" value="{{ x_3.hours[day_i] > 0 ? x_3.hours[day_i] : '' }}" (focus)="x_3.focus[day_i] = true;" (keyup)="updateHours($event,x_3.hours, day_i)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
+											 (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 										</td>
 										<td class="blank">&nbsp;</td>
 										<td class="sum hour_sum">
 											<div style="position:absolute;margin-left:100px;margin-top:5px;">
-												<div title="Note" (click)="notesToggle(x_3)" (mouseover)="x_3.show_note=true"  (mouseout)="x_3.show_note=false" [class]="(x_3.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+												<div *ngIf="(!this.entry_vars.timesheet_submitted) || (this.entry_vars.timesheet_submitted && x_3.note.length > 0)" title="Note" (click)="(this.entry_vars.timesheet_submitted) ? '' : notesToggle(x_3)" (mouseover)="x_3.show_note=true"  (mouseout)="x_3.show_note=false" [class]="(x_3.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
 											</div>
 											<div>{{ (x_3.hours[1] + x_3.hours[2] + x_3.hours[3] + x_3.hours[4] + x_3.hours[5] + x_3.hours[6] + x_3.hours[0]) | number : '1.2-2'}}</div>
 										</td>
@@ -248,14 +261,15 @@
 					
 				</div>
 				<div *ngIf="x_3.cat_key == 6 && x_1.cat_key == 0">
-					<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
-						<div (click)="addLineShow([x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="plus">&nbsp;</div>
+					<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">						
+						<div (click)="(x_3.show_add_line) ? timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false) : timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false);x_3.show_add_line  = true;resetDropdowns();entry_vars.projectTask=x_3.cat_key" class="plus">&nbsp;</div>
 						<div (click)="removeLineItem(x_2.children, i_2,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
-					</div>					
+					</div>
 					<div>{{titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}</div>
-					<!-- Add new row options -->
-					<div class="addRowOption" style="margin-bottom:5px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key }}">
-						<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3])">
+					
+					<!-- Add new row options -->					
+					<div *ngIf="x_3.show_add_line" class="addRowOption" style="margin-bottom:5px;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key }}">
+						<select [(ngModel)]="entry_vars.productionTask" class="addRowOption_productionTask" (change)="addRowOptionChange([x_1,x_2,x_3])">
 							<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
 						</select>
 					</div>
@@ -265,7 +279,7 @@
 							<tr>
 								<td class="title">
 									<div style="width: 200px;">
-										<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
+										<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
 											<div class="empty">&nbsp;</div>
 											<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
 										</div>
@@ -278,12 +292,12 @@
 											<td class="blank">&nbsp;</td>
 											<td *ngFor="let day_i of days;" [class]="x_4.hours[day_i] > 0 || x_4.focus[day_i] ? 'day' : 'day_zero'">
 												<input type="text" value="{{ x_4.hours[day_i] > 0 ? x_4.hours[day_i] : '' }}" (focus)="x_4.focus[day_i] = true;" (keyup)="updateHours($event,x_4.hours, day_i)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
+												 (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 											</td>
 											<td class="blank">&nbsp;</td>
 											<td class="sum hour_sum">
 												<div style="position:absolute;margin-left:100px;margin-top:5px;">
-													<div title="Note" (click)="notesToggle(x_4)" (mouseover)="x_4.show_note=true"  (mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+													<div  *ngIf="(!this.entry_vars.timesheet_submitted) || (this.entry_vars.timesheet_submitted && x_4.note.length > 0)" title="Note" (click)="(this.entry_vars.timesheet_submitted) ? '' : notesToggle(x_4)" (mouseover)="x_4.show_note=true"  (mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
 												</div>
 												<div> {{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) | number : '1.2-2'}}</div>
 											</td>
@@ -308,20 +322,18 @@
 
 				<div *ngIf="x_3.cat_key == 4 || x_3.cat_key == 5">
 					<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'" [class]="(!x_4.indicateRemoval) ? '' : 'indicateRemoval'">
-						<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
-							<div (click)="addLineShow([x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="plus">&nbsp;</div>
+						<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">							
+							<div (click)="(x_4.show_add_line) ? timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false) : timesheet = serviceService.hideShowDivs(timesheet,'show_add_line', false);x_4.show_add_line  = true;resetDropdowns();entry_vars.projectTask=x_3.cat_key;shot_selected=x_4" class="plus">&nbsp;</div>
 							<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
 						</div>
 						<div>{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']+": " + titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</div>						
 						<!-- Add new row options -->
-						<div class="addRowOption" style="margin-left:15px;margin-bottom:0px;display:none;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key +'_' + x_4.cat_key }}">
-							<select class="addRowOption_productionTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3,x_4])">
-								<option *ngFor="let i of production_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
-							</select>
-							<select class="addRowOption_assetTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3,x_4])">
+						<div *ngIf="x_4.show_add_line" class="addRowOption" style="margin-left:15px;margin-bottom:0px;" id="{{'addRow_'+x_1.cat_key +'_' + x_2.cat_key +'_' + x_3.cat_key +'_' + x_4.cat_key }}">
+
+							<select *ngIf="x_3.cat_key == 4" [(ngModel)]="entry_vars.assetTask" class="addRowOption_assetTask" (change)="addRowOptionChange([x_1,x_2,x_3,x_4])">
 								<option *ngFor="let i of asset_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
 							</select>
-							<select class="addRowOption_shotTask" style="display:none;" (change)="addRowOptionChange($event,[x_1,x_2,x_3,x_4])">
+							<select  *ngIf="x_3.cat_key == 5" [(ngModel)]="entry_vars.shotTask" class="addRowOption_shotTask" (change)="addRowOptionChange([x_1,x_2,x_3,x_4])">
 								<option *ngFor="let i of shot_tasks" value="{{i.Cat_key}}">{{i.Cat_Title}}</option>
 							</select>
 						</div>
@@ -330,7 +342,7 @@
 								<tr>
 									<td class="title">
 										<div style="width:  200px;">
-											<div class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">
+											<div *ngIf="!entry_vars.timesheet_submitted" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
 												<div class="empty">&nbsp;</div>
 												<div (click)="removeLineItem(x_4.children, i_4,[+x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="minus" (mouseover)="x_5.indicateRemoval=true" (mouseout)="x_5.indicateRemoval=false">&nbsp;</div>
 											</div>											
@@ -343,12 +355,12 @@
 												<td class="blank">&nbsp;</td>
 												<td *ngFor="let day_i of days;" [class]="x_5.hours[day_i] > 0 || x_5.focus[day_i] ? 'day' : 'day_zero'">
 													<input type="text" value="{{ x_5.hours[day_i] > 0 ? x_5.hours[day_i] : '' }}" (focus)="x_5.focus[day_i] = true;" (keyup)="updateHours($event,x_5.hours, day_i)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" />
+													 (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 												</td>
 												<td class="blank">&nbsp;</td>
 												<td class="sum hour_sum">
 													<div style="position:absolute;margin-left:100px;margin-top:5px;">
-														<div title="Note" (click)="notesToggle(x_5)"  (mouseover)="x_5.show_note=true"  (mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+														<div *ngIf="(!this.entry_vars.timesheet_submitted) || (this.entry_vars.timesheet_submitted && x_5.note.length > 0)" title="Note" (click)="(this.entry_vars.timesheet_submitted) ? '' : notesToggle(x_5)"  (mouseover)="x_5.show_note=true"  (mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
 													</div>
 													{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) |
 													number : '1.2-2'}}</td>
@@ -406,7 +418,7 @@
 								<td>Regular Time</td>
 							</tr>
 							<tr *ngIf="show_ot">
-								<td>Over Time</td>
+								<td>Overtime</td>
 							</tr>
 							<tr *ngIf="show_dt">
 								<td>Double Time</td>
@@ -450,10 +462,10 @@
 <div class="spacer">&nbsp;</div>
 
 <!-- Footers -->
-<div id="timesheet_footer">
+<div *ngIf="!entry_vars.timesheet_submitted" class="timesheet_footer">
 	<div class="submit_btn" (click)="submitTimesheet()">Submit</div>
 </div>
 
-<div id="timesheet_submitted_footer">
-	<div>Time Sheet Submitted on {{ submit_date }}</div>
+<div *ngIf="entry_vars.timesheet_submitted" class="timesheet_submitted_footer">
+	<div>Time Sheet Submitted on {{ entry_vars.submit_date }}</div>
 </div>
