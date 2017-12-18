@@ -475,24 +475,11 @@ export class EntryComponent {
 				} catch (err) { }
 
 			} else {
-				try{
+				try {
 					this.entry_vars.department = els[1].cat_key;
-				} catch(err){ }
-				
+				} catch (err) { }
 			}
 		}
-
-		console.log('Project Task');
-		console.log(this.entry_vars.projectTask);
-
-		console.log("Department Selection");
-		console.log(this.entry_vars.department);
-
-		console.log("Asset Task");
-		console.log(this.entry_vars.assetTask);
-
-		console.log("Shot Task");
-		console.log(this.entry_vars.shotTask);
 	}
 
 	searchShotAsset(event, cat) {
@@ -569,7 +556,7 @@ export class EntryComponent {
 				}
 
 			} else if (this.entry_vars.projectTask == 6) {
-				
+
 				if (this.entry_vars.productionTask != -1) {
 					this.addLineItem(cats);
 				}
@@ -698,18 +685,15 @@ export class EntryComponent {
 		this.updateTimesheetTotals();
 	}
 
-	scrollBug() {
-		var cur_scroll = document.documentElement.scrollTop;
-		window.scrollTo(0, 0); // values are x,y-offset
-		window.scrollTo(0, cur_scroll); // values are x,y-offset		
-	}
-
 	removeLineItem(obj_parent, obj_i, cats) {
 		var obj = obj_parent[(parseInt(obj_i))];
 		obj_parent.splice(parseInt(obj_i), 1);
 
+
+		var incl = Array();
 		for (var i = 0; i < this.lines.length; i++) {
 			var el = this.lines[i];
+			var incl_el = true;
 
 			if (cats.length == 5) {
 				if (el['Cat_1'] == parseInt(cats[0])
@@ -717,30 +701,53 @@ export class EntryComponent {
 					&& el['Cat_3'] == parseInt(cats[2])
 					&& el['Cat_4'] == parseInt(cats[3])
 					&& el['Cat_5'] == parseInt(cats[4])) {
-					this.lines.splice(i, 1);
+					incl_el = false;
 				}
 			} else if (cats.length == 4) {
 				if (el['Cat_1'] == parseInt(cats[0])
 					&& el['Cat_2'] == parseInt(cats[1])
 					&& el['Cat_3'] == parseInt(cats[2])
 					&& el['Cat_4'] == parseInt(cats[3])) {
-					this.lines.splice(i, 1);
+					incl_el = false;
 				}
 			} else if (cats.length == 3) {
-				if (el['Cat_1'] == parseInt(cats[0])
-					&& el['Cat_2'] == parseInt(cats[1])
-					&& el['Cat_3'] == parseInt(cats[2])) {
-					this.lines.splice(i, 1);
+
+
+				if (parseInt(el['Cat_1']) == 0) {
+					if (el['Cat_1'] == parseInt(cats[0])
+						&& el['Cat_2'] == parseInt(cats[1])
+						&& el['Cat_3'] == parseInt(cats[2])) {
+						incl_el = false;
+					}
+				} else if (parseInt(el['Cat_1']) == 1) {
+					console.log('here...')
+					console.log(el['Cat_1'])
+					console.log(el['Cat_2'])
+					if (el['Cat_1'] == parseInt(cats[0]) && el['Cat_2'] == parseInt(cats[1]) && el['Cat_3'] == parseInt(cats[2]) && el['Cat_3'] != 11) {
+						console.log('nope')
+						incl_el = false;
+					}
 				}
 
 			} else if (cats.length == 2) {
 				if (el['Cat_1'] == parseInt(cats[0])
 					&& el['Cat_2'] == parseInt(cats[1])) {
-					this.lines.splice(i, 1);
+					incl_el = false;
 				}
 			}
+
+			if (incl_el === true) {
+				incl.push(el);
+			}
 		}
+
+		this.lines = incl;
+
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
+		this.titles = convertLinesToTimeSheet['titles'];
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
 		this.updateTimesheetTotals();
+
 	}
 
 	resetDropdowns() {
@@ -908,6 +915,12 @@ export class EntryComponent {
 			}
 		}
 		return label;
+	}
+
+	scrollBug() {
+		var cur_scroll = document.documentElement.scrollTop;
+		window.scrollTo(0, 0); // values are x,y-offset
+		window.scrollTo(0, cur_scroll); // values are x,y-offset		
 	}
 
 }

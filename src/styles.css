@@ -14,7 +14,7 @@ body {
 								supported by Chrome and Opera */
 	cursor: default;
 
-	overflow: scroll;
+	overflow-y: scroll;
 }
 
 
@@ -209,9 +209,14 @@ input::-webkit-inner-spin-button {
 	background-image: url("/assets/plus.png");
 }
 
-.plus_sel{
-	opacity: 1.0;
+.plus:active, .plus_sel:active{
+	background-image: url("/assets/plus_sel.png");
 }
+
+.plus_sel{
+	opacity: 1.0;	
+}
+
 
 .reject{
 	background-image: url("/assets/reject.png");	
@@ -468,20 +473,26 @@ td{
 .hideAddRemove{
 	overflow: hidden;
 	max-height:0px;
-	transition: max-height .5s ease-out;
+	
+	opacity:0;
+	transition:opacity 0.5s linear, max-height .5s ease-out;
+	transition-delay: .15s;
 }
 
 
 .showAddRemove{
 	overflow: hidden;
     max-height:40px;
-	transition: max-height .5s ease-out;
+	
+	opacity:1;
+	transition:opacity 0.5s linear, max-height .5s ease-out;	
 }
 
 .hideNote{
 	overflow: hidden;
 	max-height:0px;
-	transition: max-height .5s ease-out;
+	
+	transition: max-height .5s ease-out;	
 }
 
 

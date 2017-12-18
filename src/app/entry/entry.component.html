@@ -146,7 +146,8 @@
 						<td style="width: 200px;" class="cat_0_title" (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()">
 							<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">								
 								<div (mouseover)="x_2.show_add_line_force = true;entry_vars.projectTask=x_2.cat_key;resetDropdowns();scrollBug();" (mouseout)="x_2.show_add_line_force = false;scrollBug();" (click)="showHideAddRow([x_1,x_2]);" class="plus" [class.plus_sel]="x_2.show_add_line || x_2.show_add_line_force">&nbsp;</div>								
-								<div class="empty">&nbsp;</div>
+								<div *ngIf="x_1.cat_key == 1" class="empty">&nbsp;</div>
+								<div *ngIf="x_1.cat_key == 0" (click)="removeLineItem(x_1.children, i_2,[x_1.cat_key, x_2.cat_key])" class="minus" (mouseover)="x_2.indicateRemoval=true" (mouseout)="x_2.indicateRemoval=false">&nbsp;</div>
 							</div>
 							<div>{{ titles[x_1.cat_key][x_2.cat_key]['Title'] }}</div>							
 						</td>
@@ -206,7 +207,9 @@
 								<div style="width: 200px;">
 									<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
 										<div class="empty">&nbsp;</div>
-										<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
+										
+										<div *ngIf="(x_1.cat_key == 0 || (x_1.cat_key == 1 && x_3.cat_key != 11))" (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
+										<div *ngIf="!(x_1.cat_key == 0 || (x_1.cat_key == 1 && x_3.cat_key != 11))" class="empty">&nbsp;</div>
 									</div>
 									<div>{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title'] }}</div>
 								</div>
@@ -247,7 +250,7 @@
 					<div (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()" style="display:inline-block;margin-bottom:5px;">
 						<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;">						
 							<div (mouseover)="x_3.show_add_line_force = true;entry_vars.projectTask=x_3.cat_key;resetDropdowns();scrollBug();" (mouseout)="x_3.show_add_line_force = false;scrollBug();" (click)="showHideAddRow([x_1,x_2,x_3]);" class="plus" [class.plus_sel]="x_3.show_add_line || x_3.show_add_line_force">&nbsp;</div>
-							<div (click)="removeLineItem(x_2.children, i_2,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
+							<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_3.indicateRemoval=true" (mouseout)="x_3.indicateRemoval=false">&nbsp;</div>
 						</div>
 						<div>{{titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}</div>
 					</div>
@@ -265,8 +268,8 @@
 								<td class="title" (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()">
 									<div style="width: 200px;">
 										<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
-											<div class="empty">&nbsp;</div>
-											<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
+											<div class="empty">&nbsp;</div>											
+											<div (click)="removeLineItem(x_3.children, i_3,[x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
 										</div>
 										<div>&nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</div>
 									</div>
@@ -311,7 +314,7 @@
 						<div style="margin-bottom:5px;">
 							<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-80px;margin-top:0px;" (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()">							
 								<div (mouseover)="x_4.show_add_line_force = true;scrollBug()" (mouseout)="x_4.show_add_line_force = false;scrollBug();" (click)="showHideAddRow([x_1,x_2,x_3,x_4]);" class="plus" [class.plus_sel]="x_4.show_add_line || x_4.show_add_line_force">&nbsp;</div>
-								<div (click)="removeLineItem(x_3.children, i_3,[+x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
+								<div (click)="removeLineItem(x_3.children, i_3,[x_1.cat_key,x_2.cat_key,x_3.cat_key, x_4.cat_key])" class="minus" (mouseover)="x_4.indicateRemoval=true" (mouseout)="x_4.indicateRemoval=false">&nbsp;</div>
 							</div>
 
 							<div><span (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()">{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']+"s: " + titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</span></div>						
@@ -338,7 +341,7 @@
 										<div style="width:  200px;">
 											<div *ngIf="!entry_vars.timesheet_submitted" [class.hideAddRemoveRow]="!entry_vars.show_add_remove" [class.showAddRemoveRow]="entry_vars.show_add_remove" class="addRemove_btns" style="position:absolute;margin-left:-81px;margin-top:0px;">
 												<div class="empty">&nbsp;</div>
-												<div (click)="removeLineItem(x_4.children, i_4,[+x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="minus" (mouseover)="x_5.indicateRemoval=true" (mouseout)="x_5.indicateRemoval=false">&nbsp;</div>
+												<div (click)="removeLineItem(x_4.children, i_4,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key,x_5.cat_key])" class="minus" (mouseover)="x_5.indicateRemoval=true" (mouseout)="x_5.indicateRemoval=false">&nbsp;</div>
 											</div>											
 											<div (mouseover)="showAddRemoveButtons();" (mouseout)="hideAddRemoveButtons()">&nbsp;&nbsp;{{ titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key][x_5.cat_key]['Title']}}</div>
 										</div>

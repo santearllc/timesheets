@@ -568,7 +568,7 @@ export class ServiceService {
         Cat_5_Title: '',
         Hours: null,
         OT: null
-      },      
+      },
       {
         UserKey: 0,
         Cat_1: 1,
@@ -727,6 +727,21 @@ export class ServiceService {
 
 
     this.lines_sample = [
+      {
+        UserKey: 0,
+        Cat_1: 1,
+        Cat_1_Title: 'Studio',
+        Cat_2: 8,
+        Cat_2_Title: 'Production',
+        Cat_3: 11,
+        Cat_3_Title: 'Work',
+        Cat_4: null,
+        Cat_4_Title: '',
+        Cat_5: null,
+        Cat_5_Title: '',
+        Hours: [0, 0, 0, 0, 0, 0, 0],
+        OT: null
+      },
       {
         UserKey: 0,
         Cat_1: 0,
