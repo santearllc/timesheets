@@ -1,34 +1,4 @@
-<div id="rejected_note_popup" class="popup">
-    <div>
-        <div class="popup_title">Dialog Box Title</div>
-        <div class="popup_text">Dialog Box Text</div>
-        <div style="font-style:italic;font-size:0.8em;">Note will be emailed to user &amp; posted to time sheet to assist in correction.</div>
-        <div class="popup_buttons">
-            <button (click)="saveRejectionNote($event)">Save &amp; Close</button>
-            <!-- <button (click)="closePopup($event)">Confirm</button>  -->
-        </div>
-    </div>
-</div>
-<div class="popup" id="confirm_unapproval_popup">
-    <div>
-        <div class="popup_title">Confirm Unapproval</div>
-        <div class="popup_text">Are you sure you want to unapprove this time sheet row?</div>
-        <div class="popup_buttons">
-            <button (click)="unapprovalConfirmed($event)">Confirm</button>
-            <button (click)="closePopup($event)">Cancel</button>
-        </div>
-    </div>
-</div>
-<div class="debug_settings" *ngIf="true">
-    <div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Info</div>
-    <div style="font-size:0.8em;">OT indicator is not fully implemented</div>
-    <div class="debug_items" style="display:none;">
-        <div class="alt_btn" (click)="(current_office==1) ? current_office=0 : current_office=1;updateTimeSheetTotals();">Toggle Location: {{ (current_office == 1) ? 'CAN' : 'US'}}</div>
-        <div class="alt_btn" (click)="loadInitSheet()">Clear Timesheet (reset)</div>
-        <div class="alt_btn" (click)="timesheetToLines()" *ngIf="false">TimeSheet to Lines</div>
-        <div class="alt_btn" (click)="loadSampleTimeSheet()">Load Sample Time Sheet</div>
-    </div>
-</div>
+
 <div style="margin-bottom: 10px;margin-top:20px;">
     <div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{status_date}}</div>
     <div *ngIf="save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
@@ -39,7 +9,7 @@
     </div>
 
     <!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> -->
-    <div id="cal">
+    <div id="cal" style="display:none;"> 
         <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
             <table width="100%;">
                 <tr>

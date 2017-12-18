@@ -9,7 +9,10 @@
       "outDir": "dist",
       "assets": [
         "assets",
-        "favicon.ico"
+        "favicon.ico",
+        ".htaccess",
+        "entry",
+        "approval"
       ],
       "index": "index.html",
       "main": "main.ts",

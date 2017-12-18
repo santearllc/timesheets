@@ -13,11 +13,18 @@ body {
 		  user-select: none; /* Non-prefixed version, currently
 								supported by Chrome and Opera */
 	cursor: default;
+
+	overflow: scroll;
 }
 
 
+
+
 input{
-	-webkit-appearance:none
+	-webkit-appearance:none;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 }
 
 h1{
@@ -200,6 +207,10 @@ input::-webkit-inner-spin-button {
 
 .plus{
 	background-image: url("/assets/plus.png");
+}
+
+.plus_sel{
+	opacity: 1.0;
 }
 
 .reject{
@@ -424,6 +435,7 @@ select{
 	margin-top:5px;
 	margin-bottom: 20px;
 	box-shadow: 5px 5px 10px #888888;	
+	overflow: hidden;
 }
 
 .note_text div{
@@ -436,4 +448,51 @@ select{
 
 td{
 	vertical-align: top;
+}
+
+
+
+.hideAddRemoveRow{
+	opacity:0;
+	transition:opacity 0.5s linear;
+}
+
+
+.showAddRemoveRow{
+	
+    opacity:1;
+    transition:opacity 0.5s linear;
+}
+
+
+.hideAddRemove{
+	overflow: hidden;
+	max-height:0px;
+	transition: max-height .5s ease-out;
+}
+
+
+.showAddRemove{
+	overflow: hidden;
+    max-height:40px;
+	transition: max-height .5s ease-out;
+}
+
+.hideNote{
+	overflow: hidden;
+	max-height:0px;
+	transition: max-height .5s ease-out;
+}
+
+
+.showNote{
+	overflow: hidden;
+    max-height:40px;
+	transition: max-height .5s ease-out;
+}
+
+.projects, .departments{
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 }

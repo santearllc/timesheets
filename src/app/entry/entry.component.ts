@@ -20,6 +20,7 @@ import { SafeHtml } from '@angular/platform-browser';
 export class EntryComponent {
 	// misc variables
 	username = 'Your Name';
+	user_department = 1;
 	timesheet_date = 'Nov 27 - Dec 3 (this week)';
 	lines: Object[];
 
@@ -30,6 +31,7 @@ export class EntryComponent {
 	save_status;
 	save_status_color;
 	save_timeout;
+	show_add_remove_buttons_timeout;
 	current_office = 1;  // 0 = Oakland   1 = Montreal
 	submit_date;
 	popup = Object();
@@ -55,7 +57,7 @@ export class EntryComponent {
 	departments;
 	results;
 	project_selected;
-	shot_selected;	
+	shot_selected;
 	show_ot;
 	show_dt;
 	current_hover_el;
@@ -436,10 +438,63 @@ export class EntryComponent {
 	//
 
 
+	showAddRemoveButtons() {
+		this.entry_vars.show_add_remove = true
+		clearTimeout(this.show_add_remove_buttons_timeout);
+	}
 
+	hideAddRemoveButtons() {
+		let loc_this = this;
+		clearTimeout(this.show_add_remove_buttons_timeout);
 
+		// return state back to saved after a certain period. 
+		this.show_add_remove_buttons_timeout = setTimeout(function () {
+			loc_this.entry_vars.show_add_remove = false;
+		}, 1500);
+	}
 
-	// ALL GOOD - DON'T TOUCH
+	showHideAddRow(els) {
+
+		console.log(els)
+		console.log('Len: ' + els.length)
+		if (els[els.length - 1].show_add_line) {
+			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false)
+		} else {
+			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false);
+			els[els.length - 1].show_add_line = true;
+			this.resetDropdowns();
+
+			// set cat 1
+			if (els.length > 2) {
+				this.entry_vars.projectTask = els[2].cat_key;
+				this.entry_vars.department = els[2].cat_key;
+
+				try {
+					this.entry_vars.assetTask = els[3].cat_key;
+					this.entry_vars.shotTask = els[3].cat_key;
+				} catch (err) { }
+
+			} else {
+				try{
+					this.entry_vars.department = els[1].cat_key;
+				} catch(err){ }
+				
+			}
+		}
+
+		console.log('Project Task');
+		console.log(this.entry_vars.projectTask);
+
+		console.log("Department Selection");
+		console.log(this.entry_vars.department);
+
+		console.log("Asset Task");
+		console.log(this.entry_vars.assetTask);
+
+		console.log("Shot Task");
+		console.log(this.entry_vars.shotTask);
+	}
+
 	searchShotAsset(event, cat) {
 		if (cat == 1) {
 			var search_array = this.projects;
@@ -474,7 +529,6 @@ export class EntryComponent {
 	}
 
 
-	// ALL GOOD - DON'T TOUCH
 	selectProject(event, el) {
 		if (el.Cat_key > 0) {
 			this.shot_selected = el;
@@ -483,7 +537,6 @@ export class EntryComponent {
 		}
 	}
 
-	// ALL GOOD - DON'T TOUCH
 	selectShotAsset(el, cats) {
 		if (el.Cat_key > 0) {
 			this.shot_selected = el;
@@ -492,19 +545,15 @@ export class EntryComponent {
 		this.addRowOptionChange(cats);
 	}
 
-	// ALL GOOD - DON'T TOUCH
 	addRowOptionChange(cats) {
-		
-		if (parseInt(cats[0].cat_key) == 1) { // Departments
-
-			if (cats.length == 1) {
-				if (this.entry_vars.department > 0 && this.entry_vars.departmentTask > 0) {
-					this.addLineItem(cats);
-				}
-			} else {
-				if (this.entry_vars.departmentTask > 0) {
-					this.addLineItem(cats);
-				}
+		console.log('here...!')
+		console.log(this.entry_vars.projectTask)
+		console.log(this.entry_vars.department)
+		console.log(parseInt(cats[0].cat_key))
+		if (parseInt(cats[0].cat_key) == 1) { // Departments		
+			console.log('here...')
+			if (this.entry_vars.department > 0 && this.entry_vars.departmentTask > 0) {
+				this.addLineItem(cats);
 			}
 		} else { // Projects
 
@@ -520,6 +569,7 @@ export class EntryComponent {
 				}
 
 			} else if (this.entry_vars.projectTask == 6) {
+				
 				if (this.entry_vars.productionTask != -1) {
 					this.addLineItem(cats);
 				}
@@ -531,7 +581,7 @@ export class EntryComponent {
 
 
 	addLineItem(cats) {
-	
+
 		var cat_array = [];
 		var hours = [0, 0, 0, 0, 0, 0, 0];
 
@@ -558,7 +608,7 @@ export class EntryComponent {
 				};
 			} else {  // Departments
 				cat_array[1] = {
-					title: this.label(this.entry_vars.department, this.departments),					
+					title: this.label(this.entry_vars.department, this.departments),
 					cat_key: this.entry_vars.department
 				};
 				cat_array[2] = {
@@ -568,31 +618,32 @@ export class EntryComponent {
 			}
 
 		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
+			console.log('hererere.rer')
 			cat_array[2] = {
-				title: this.label(this.entry_vars.projectTask, this.project_tasks),
-				cat_key: this.entry_vars.projectTask
+				title: this.label(this.entry_vars.departmentTask, this.department_tasks),
+				cat_key: this.entry_vars.departmentTask
 			};
 
 		} else if (cats.length == 4) {
-
 			if (cat_array[2]['cat_key'] == 5) {
 				cat_array[4] = {
-					title: this.label(this.entry_vars.shotTask, this.shot_tasks),					
-					cat_key: this.entry_vars.shotTask
+					title: this.shot_selected.Cat_Title,
+					cat_key: this.shot_selected.Cat_key
 				};
 			} else {
 				cat_array[4] = {
-					title: this.label(this.entry_vars.assetTask, this.asset_tasks),					
-					cat_key: this.entry_vars.assetTask
+					title: this.shot_selected.Cat_Title,
+					cat_key: this.shot_selected.Cat_key
 				};
 			}
 		} else if (cats.length == 3) {
 			cat_array[3] = {
-				title: this.label(this.entry_vars.productionTask, this.production_tasks),				
+				title: this.label(this.entry_vars.productionTask, this.production_tasks),
 				cat_key: this.entry_vars.productionTask
 			};
 
-		} else {			
+		} else {
+
 			cat_array[2] = {
 				title: this.label(this.entry_vars.projectTask, this.project_tasks),
 				cat_key: this.entry_vars.projectTask
@@ -600,7 +651,7 @@ export class EntryComponent {
 
 
 			if (cat_array[2]['cat_key'] == 5 || cat_array[2]['cat_key'] == 4) {
-				cat_array[3] = {
+				cat_array[4] = {
 					title: this.shot_selected.Cat_Title,
 					cat_key: this.shot_selected.Cat_key
 				};
@@ -609,19 +660,19 @@ export class EntryComponent {
 				cat_array[2]['title'] = cat_array[2]['title'].slice(0, -1);
 
 				if (cat_array[2]['cat_key'] == 5) {
-					cat_array[4] = {
-						title: this.label(this.entry_vars.shotTask, this.shot_tasks),						
+					cat_array[3] = {
+						title: this.label(this.entry_vars.shotTask, this.shot_tasks),
 						cat_key: this.entry_vars.shotTask
 					};
 				} else {
-					cat_array[4] = {
-						title: this.label(this.entry_vars.assetTask, this.asset_tasks),						
+					cat_array[3] = {
+						title: this.label(this.entry_vars.assetTask, this.asset_tasks),
 						cat_key: this.entry_vars.assetTask
 					};
 				}
 			} else if (cat_array[2]['cat_key'] == 6) {
 				cat_array[3] = {
-					title: this.label(this.entry_vars.productionTask, this.production_tasks),					
+					title: this.label(this.entry_vars.productionTask, this.production_tasks),
 					cat_key: this.entry_vars.productionTask
 				};
 			}
@@ -645,6 +696,12 @@ export class EntryComponent {
 		this.titles = convertLinesToTimeSheet['titles'];
 		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
 		this.updateTimesheetTotals();
+	}
+
+	scrollBug() {
+		var cur_scroll = document.documentElement.scrollTop;
+		window.scrollTo(0, 0); // values are x,y-offset
+		window.scrollTo(0, cur_scroll); // values are x,y-offset		
 	}
 
 	removeLineItem(obj_parent, obj_i, cats) {
@@ -686,7 +743,7 @@ export class EntryComponent {
 		this.updateTimesheetTotals();
 	}
 
-	resetDropdowns() {		
+	resetDropdowns() {
 		this.entry_vars.projectTask = -1;
 		this.entry_vars.projectTask = -1;
 		this.entry_vars.productionTask = -1;
@@ -694,7 +751,7 @@ export class EntryComponent {
 		this.entry_vars.shotTask = -1;
 		this.entry_vars.department = -1;
 		this.entry_vars.departmentTask = -1;
-		this.shot_selected = null;		
+		this.shot_selected = null;
 		this.results = [];
 	}
 
@@ -843,10 +900,10 @@ export class EntryComponent {
 	}
 
 
-	label(cat_key, in_array){
+	label(cat_key, in_array) {
 		var label = 'Label';
-		for(var i = 0; i < in_array.length; i++){
-			if(in_array[i]['Cat_key'] == cat_key){
+		for (var i = 0; i < in_array.length; i++) {
+			if (in_array[i]['Cat_key'] == cat_key) {
 				label = in_array[i]['Cat_Title'];
 			}
 		}
