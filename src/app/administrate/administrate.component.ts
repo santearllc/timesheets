@@ -10,6 +10,8 @@ import { Component, OnInit } from '@angular/core';
 
 export class AdministrateComponent {
 
+  admin_vars = Object(); 
+
   ngOnInit() {
   
   } 

@@ -41,7 +41,7 @@
 			<table width="100%;">
 				<tr>					
 					<td>&larr;</td>
-					<td style="text-align:center;">December 2015</td>
+					<td style="text-align:center;">December 2017</td>
 					<td>&rarr;</td>
 				</tr>
 			</table>
@@ -125,7 +125,7 @@
 			</tr>
 		</table>
 		<!-- Add new row options -->
-		<div [class.showAddRemove]="x_1.show_add_line || x_1.show_add_line_force" [class.hideAddRemove]="!x_1.show_add_line && !x_1.show_add_line_force" class="addRowOption" style="margin-top:10px;" id="{{'addRow_'+x_1.cat_key }}">
+		<div [class.showAddRemove]="(x_1.show_add_line || x_1.show_add_line_force) && !entry_vars.timesheet_submitted" [class.hideAddRemove]="(!x_1.show_add_line && !x_1.show_add_line_force) || entry_vars.timesheet_submitted" class="addRowOption" style="margin-top:10px;" id="{{'addRow_'+x_1.cat_key }}">
 			
 			<!-- This div is for project searching -->
 			<div *ngIf="x_1.cat_key == 0">				
@@ -155,8 +155,8 @@
 							<table style="width: 100%;" [class]="(entry_vars.timesheet_submitted) ? 'disable-clicks' : ''">
 								<tr>
 									<td class="blank">&nbsp;</td>																		
-									<td *ngFor="let day_i of days;" [class]="x_2.ot[day_i] ? 'ot_selected day' : 'ot day'">
-										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i]">OT</div>
+									<td *ngFor="let day_i of days;" [class]="x_2.ot[day_i] && x_2.ot_req[day_i] && entry_vars.ot_req[day_i] > 1 ? 'ot_selected day' : 'ot day'">
+										<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i] && x_2.sum_hours[day_i] > 0.0 && this.entry_vars.ot_req[day_i] > 1">OT</div>
 									</td>									
 									<td class="blank">&nbsp;</td>
 									<td class="sum">&nbsp;</td>
@@ -220,7 +220,7 @@
 										<td class="blank">&nbsp;</td>
 										<td *ngFor="let day_i of days;" [class]="x_3.hours[day_i] > 0 || x_3.focus[day_i] ? 'day' : 'day_zero'">
 											<input type="text" value="{{ x_3.hours[day_i] > 0 ? x_3.hours[day_i] : '' }}" (focus)="x_3.focus[day_i] = true;" (keyup)="updateHours($event,x_3.hours, day_i)" (keypress)="isNumberKey($event)"
-											 (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
+											 (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="x_2.ot[day_i] && x_2.ot_req[day_i] && entry_vars.ot_req[day_i] > 1 ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 										</td>
 										<td class="blank">&nbsp;</td>
 										<td class="sum hour_sum">
@@ -280,7 +280,7 @@
 											<td class="blank">&nbsp;</td>
 											<td *ngFor="let day_i of days;" [class]="x_4.hours[day_i] > 0 || x_4.focus[day_i] ? 'day' : 'day_zero'">
 												<input type="text" value="{{ x_4.hours[day_i] > 0 ? x_4.hours[day_i] : '' }}" (focus)="x_4.focus[day_i] = true;" (keyup)="updateHours($event,x_4.hours, day_i)" (keypress)="isNumberKey($event)"
-												 (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
+												 (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="x_2.ot[day_i] && x_2.ot_req[day_i] && entry_vars.ot_req[day_i] > 1 ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 											</td>
 											<td class="blank">&nbsp;</td>
 											<td class="sum hour_sum">
@@ -352,7 +352,7 @@
 												<td class="blank">&nbsp;</td>
 												<td *ngFor="let day_i of days;" [class]="x_5.hours[day_i] > 0 || x_5.focus[day_i] ? 'day' : 'day_zero'">
 													<input type="text" value="{{ x_5.hours[day_i] > 0 ? x_5.hours[day_i] : '' }}" (focus)="x_5.focus[day_i] = true;" (keyup)="updateHours($event,x_5.hours, day_i)" (keypress)="isNumberKey($event)"
-													 (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="x_2.ot[day_i] ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
+													 (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="x_2.ot[day_i] && x_2.ot_req[day_i] && entry_vars.ot_req[day_i] > 1 ? 'ot_cell' : ''" [disabled]="entry_vars.timesheet_submitted" [style.border]="(entry_vars.timesheet_submitted) ? 'none' : ''"/>
 												</td>
 												<td class="blank">&nbsp;</td>
 												<td class="sum hour_sum">
@@ -414,10 +414,10 @@
 							<tr>
 								<td>Regular Time</td>
 							</tr>
-							<tr *ngIf="show_ot">
+							<tr *ngIf="timesheet_totals['ot'][7] > 0.0">
 								<td>Overtime</td>
 							</tr>
-							<tr *ngIf="show_dt">
+							<tr *ngIf="timesheet_totals['dt'][7] > 0.0">
 								<td>Double Time</td>
 							</tr>
 						</table>
@@ -432,7 +432,7 @@
 								<td class="blank">&nbsp;</td>
 								<td class="sum" style="font-weight:700;">{{ timesheet_totals['rt'][7] | number : '1.2-2'}}</td>
 							</tr>
-							<tr *ngIf="show_ot">
+							<tr *ngIf="timesheet_totals['ot'][7] > 0.0">
 								<td class="blank">&nbsp;</td>
 								<td *ngFor="let day_i of days" class="day hour_sum" [style.opacity]="(timesheet_totals['ot'][day_i] <= 0) ? 0.25 : 1.0">
 									{{ timesheet_totals['ot'][day_i] | number : '1.2-2'}}
@@ -440,7 +440,7 @@
 								<td class="blank">&nbsp;</td>
 								<td class="sum" style="font-weight:700;">{{ timesheet_totals['ot'][7] | number : '1.2-2'}}</td>
 							</tr>
-							<tr *ngIf="show_dt">
+							<tr *ngIf="timesheet_totals['dt'][7] > 0.0">
 								<td class="blank">&nbsp;</td>
 								<td *ngFor="let day_i of days" class="day hour_sum" [style.opacity]="(timesheet_totals['dt'][day_i] <= 0) ? 0.25 : 1.0">
 									{{ timesheet_totals['dt'][day_i] | number : '1.2-2'}}

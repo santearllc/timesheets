@@ -1,23 +1,41 @@
-.key > div{
-    display: inline-block;
-    padding:5px;
-    width: auto;
-    border:1px #999 solid;
-    box-shadow: 10px 10px 5px #888888;
-}
 
-.approved{
+.approved, .approved_icon{
     background-color: green;
+    color:#000;
 }   
 
-.partial_approved{
-    background-color: yellow;
+.approved_icon, .partial_approved_icon, .submitted_icon, .pending_submission_icon, .rejected_icon{
+    display: inline-block;
+    width: 10px;
+    height:25px;        
 }
 
-.submitted{
+.partial_approved, .partial_approved_icon{
+    background-color: yellow;
+    color:#000;
+}
+
+.submitted, .submitted_icon{
     background-color: black;
 }
 
-.pending_submission{
+.pending_submission, .pending_submission_icon{
+    background-color: gray;
+    color:#000;
+}
+
+.rejected, .rejected_icon{
     background-color: red;
+    color:#000;
+}
+
+
+.status_table tr:hover{
+    font-weight: 700;
+}
+
+.key_icon{
+    padding:5px;
+    width:20px;
+    height:35px;
 }

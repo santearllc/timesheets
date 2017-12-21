@@ -10,7 +10,7 @@ import { ApprovalComponent } from './approval/approval.component';
 import { ExportComponent } from './export/export.component';
 import { AdministrateComponent } from './administrate/administrate.component';
 import { NavigationComponent } from './navigation/navigation.component';
-import { UserDetailsComponent } from './user-details/user-details.component';
+
 
 import { DataService } from './services/data.service';
 import { ServiceService } from './services/service.service';
@@ -20,10 +20,11 @@ import { routes } from './app.routes'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatDatepickerModule } from '@angular/material';
 import 'hammerjs';
-import { EntryRowComponent } from './entry-row/entry-row.component';
+
 import { CalendarComponent } from './calendar/calendar.component';
 import { StatusComponent } from './status/status.component';
 import { SafeHtmlPipe } from './pipes/safeHtml.pipe';
+import { TimesheetBreakdownComponent } from './timesheet-breakdown/timesheet-breakdown.component';
 
 
 @NgModule({
@@ -33,12 +34,11 @@ import { SafeHtmlPipe } from './pipes/safeHtml.pipe';
     ApprovalComponent,
     ExportComponent,
     AdministrateComponent,
-    NavigationComponent,
-    UserDetailsComponent,
-    EntryRowComponent,
+    NavigationComponent,    
     CalendarComponent,
     StatusComponent,
-    SafeHtmlPipe
+    SafeHtmlPipe,
+    TimesheetBreakdownComponent
   ],
   imports: [
     BrowserModule,

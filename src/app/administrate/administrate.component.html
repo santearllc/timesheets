@@ -1,1 +1,288 @@
-admin page
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Scheduled Actions</div>
+    <div class="content_a1">
+        <table width="100%" style="color:#AAA">
+            <tr>
+                <td style="color:#000;">Overtime Report</td>
+                <td>Weekly</td>
+                <td>Tuesday 9am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Time Sheet Status</td>
+                <td>Weekly</td>
+                <td>Monday 9am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Time Sheet Status</td>
+                <td>Weekly</td>
+                <td>Monday 9am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Time Sheet Reminder</td>
+                <td>Weekly</td>
+                <td>Monday 9am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Time Sheet Reminder</td>
+                <td>Weekly</td>
+                <td>Monday 10am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Time Sheet Status</td>
+                <td>Weekly</td>
+                <td>Monday 11am local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+            <tr>
+                <td style="color:#000;">Disable Accounts</td>
+                <td>Weekly</td>
+                <td>Monday 12pm local</td>
+                <td style="text-align:right;">2017-10-10 09:00</td>
+                <td>&nbsp;</td>
+                <td>success</td>
+                <td style="text-align:right;">
+                    <input type="checkbox" checked>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Manual Actions</div>
+    <div class="content_a1">
+        <table width="100%;" style="color:#AAA;">
+            <tr>
+                <td style="width:1%">
+                    <button>Run</button>
+                </td>
+                <td style="color:#000;vertical-align:middle;">&nbsp;Fill Out Time Sheet Reminder</td>
+                <td style="vertical-align:middle;width:1%;white-space:nowrap;">last executed on: Dec 1 2017</td>
+            </tr>
+            <tr>
+                <td style="width:1%">
+                    <button>Run</button>
+                </td>
+                <td style="color:#000;vertical-align:middle;">&nbsp;Approve Time Sheet Reminder</td>
+                <td style="vertical-align:middle;width:1%;white-space:nowrap;">last executed on: Nov 17 2017</td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Custom Start of Week</div>
+    <div class="content_a1">
+        <div style="display:inline-block;float:right;;">
+            <button>add new</button>
+        </div>
+        <div style="font-weight:700;border-bottom:1px #777 solid;padding-bottom:10px;margin-bottom:10px;">
+            <span style="font-size:1.3em;">&#8249;</span>&nbsp;December 2017&nbsp;
+            <span style="font-size:1.3em;">&#8250;</span>
+        </div>
+        <div>
+            <div>
+                Week of
+                <span style="font-weight:700;">Dec 25 - Jan 1st</span>: Dec 26
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Set Approvers
+        <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to approve a show or department.</div>
+    </div>
+    <div class="content_a1">
+        <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Project/Department" (click)="$event.target.value='';admin_vars.approval_sel = false;"
+            (keypress)="admin_vars.approval_sel = true" />
+
+        <div *ngIf="admin_vars.approval_sel" style="margin-top:20px;">
+            <div style="font-weight:700;font-size:1em;">Project Title/ Department Name</div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px #777 solid;">
+                <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person to Add" />
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Set Delegates
+        <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to fill out another person's time sheet on their behalf.</div>
+    </div>
+    <div class="content_a1">
+        <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person" (click)="$event.target.value='';admin_vars.delegate_sel = false;"
+            (keypress)="admin_vars.delegate_sel = true" />
+
+        <div *ngIf="admin_vars.delegate_sel" style="margin-top:20px;">
+            <div style="font-weight:700;font-size:1em;">Last Name, First Name</div>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px #777 solid;">
+                <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person to Add" />
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:inline-block;float:right;;">
+                    <button>remove</button>
+                </div>
+                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+    <div class="header_a1">Overtime Report</div>
+    <div class="content_a1">
+        <div style="margin-bottom:20px;">
+            <div class="subheader_a1">Overview</div>
+            <div>Generates report indicating which employees worked over 60 hours and multiple back to back weekends</div>
+        </div>
+        <div style="margin-bottom:20px;">
+            <div class="subheader_a1">Schedule</div>
+            <div>WEEKLY on Tuesdays at 9amm local time</div>
+        </div>
+        <div style="margin-bottom:20px;">
+            <div class="subheader_a1">Email To:</div>
+            <div>Carsten Sorensen (carsten@atomicfiction.com)</div>
+            <div>Shawn Wallbridge (swallbridge@atomicfiction.com)</div>
+            <div>Tyler Cote (tyler@santear.com)</div>
+        </div>
+        <div>
+            <div class="subheader_a1">Recent Reports:</div>
+            <table width="100%">
+
+                <tr>
+                    <td>Dec 19</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Dec 12</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Dec 5</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nov 28</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nov 21</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nov 14</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nov 7</td>
+                    <td style="text-align:right;">
+                        <button>download</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

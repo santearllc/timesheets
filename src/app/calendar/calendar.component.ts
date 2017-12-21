@@ -10,6 +10,7 @@ import { EntryComponent } from '../entry/entry.component'
 export class CalendarComponent implements OnInit {
   @Input() entryComponent: EntryComponent;
   calendar_name = "This is a test";
+  
 
   constructor() { }
 
@@ -17,6 +18,8 @@ export class CalendarComponent implements OnInit {
     console.log('calendar loaded')
   }
 
+  weekSelected(el){
 
+  }
 
 }

@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EntryRowComponent } from './entry-row.component';
+import { TimesheetBreakdownComponent } from './timesheet-breakdown.component';
 
-describe('EntryRowComponent', () => {
-  let component: EntryRowComponent;
-  let fixture: ComponentFixture<EntryRowComponent>;
+describe('TimesheetBreakdownComponent', () => {
+  let component: TimesheetBreakdownComponent;
+  let fixture: ComponentFixture<TimesheetBreakdownComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ EntryRowComponent ]
+      declarations: [ TimesheetBreakdownComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(EntryRowComponent);
+    fixture = TestBed.createComponent(TimesheetBreakdownComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

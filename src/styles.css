@@ -20,12 +20,15 @@ body {
 
 
 
-input{
-	-webkit-appearance:none;
+input{	
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
 }
+
+
+
+
 
 h1{
 	font-size:2em;
@@ -81,7 +84,11 @@ h1{
 	color:#999;
 }
 
-.day_zero, .day, .blank, .sum, .sum_approval{
+.hour_sum_breakdown{
+	color:#333;
+}
+
+.day_zero, .day, .blank, .sum, .sum_approval, .sum_break_down, .hour_sum_breakdown{
 	width: 10%;	
 	text-align: center;
 	font-size: 1em;
@@ -224,11 +231,12 @@ input::-webkit-inner-spin-button {
 
 .reject:hover{
 	background-image: url("/assets/reject_sel.png");	
-	opacity: 0.25;
+	opacity: 0.50;
 }
 
 .reject_sel{
 	background-image: url("/assets/reject_sel.png");
+	opacity: 0.5;
 }
 
 .approval{

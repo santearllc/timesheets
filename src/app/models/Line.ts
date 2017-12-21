@@ -12,4 +12,5 @@ export interface Line{
     Cat_5_Title:String;
     Hours:any;
     OT:any;
+    Note:any;
 }

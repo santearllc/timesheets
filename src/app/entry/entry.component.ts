@@ -21,7 +21,7 @@ export class EntryComponent {
 	// misc variables
 	username = 'Your Name';
 	user_department = 1;
-	timesheet_date = 'Nov 27 - Dec 3 (this week)';
+	timesheet_date = 'Dec 18 - Dec 24 (this week)';
 	lines: Object[];
 
 	timesheet = Array();
@@ -36,8 +36,7 @@ export class EntryComponent {
 	submit_date;
 	popup = Object();
 	entry_vars = Object();
-
-
+	
 	// Month and Day of Week Text
 	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 	days = [0, 1, 2, 3, 4, 5, 6];
@@ -80,6 +79,10 @@ export class EntryComponent {
 			'dt': [0, 0, 0, 0, 0, 0, 0, 0]
 		};
 
+		this.entry_vars.ot_req = [0,0,0,0,0,0,0]
+
+		this.entry_vars.show_add_lines = Object();
+
 		this.shot_tasks = this.serviceService.getShotTasks();
 		this.asset_tasks = this.serviceService.getAssetTasks();
 		this.production_tasks = this.serviceService.getProductionTasks();
@@ -95,7 +98,7 @@ export class EntryComponent {
 		let converted = this.convertLinesToObject(this.lines);
 
 		this.titles = converted['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'], this.titles)
+		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'], this.titles, this.entry_vars.show_add_lines)
 
 		// sum hours
 		this.timesheet = this.serviceService.sumHours(this.timesheet);
@@ -114,6 +117,9 @@ export class EntryComponent {
 		for (var i = 0; i < lines.length; i++) {
 			var element = this.lines[i];
 
+
+			
+
 			// Go through all of the tTime records and creates a JSON
 			try {
 				if (!timesheet.hasOwnProperty(element['Cat_1']) && element['Cat_1'] != null) {
@@ -123,7 +129,7 @@ export class EntryComponent {
 			} catch (err) { }
 
 			try {
-				if (!timesheet[element['Cat_1']].hasOwnProperty(element['Cat_2']) && element['Cat_2'] != null) {
+				if (!timesheet[element['Cat_1']].hasOwnProperty(element['Cat_2']) && element['Cat_2'] != null) {					
 					timesheet[element['Cat_1']][element['Cat_2']] = {};
 					titles[element['Cat_1']][element['Cat_2']] = {};
 				}
@@ -163,7 +169,7 @@ export class EntryComponent {
 			} else if (element['Cat_1'] != null) {
 				timesheet[element['Cat_1']]['Hours'] = element['Hours'];
 			}
-
+	
 			// Add titles to this.titles object; Will most likely change how titles are collected in the future 
 			try {
 				titles[element['Cat_1']][element['Cat_2']][element['Cat_3']][element['Cat_4']][element['Cat_5']]['Title'] = element['Cat_5_Title'];
@@ -234,6 +240,8 @@ export class EntryComponent {
 	}
 
 	updateTimesheetTotals() {
+		
+		
 		// Reset timehseet totals before running function
 		this.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
@@ -284,7 +292,7 @@ export class EntryComponent {
 			+ this.timesheet_totals['rt'][5]
 			+ this.timesheet_totals['rt'][6];
 
-		this.determineOvertimeBreakdown();
+		this.timesheet_totals = this.serviceService.determineOvertimeBreakdown(this.timesheet_totals, this.current_office);
 		this.validateOvertime();
 	}
 
@@ -295,121 +303,7 @@ export class EntryComponent {
 		}
 	}
 
-	determineOvertimeBreakdown() {
-		//Reset OT Totals
-		this.timesheet_totals['rt'][7] = 0;
-		this.timesheet_totals['ot'][7] = 0;
-		this.timesheet_totals['dt'][7] = 0;
-
-		if (this.current_office == 0) { // California Rules 
-			var cons_days = 0;  // counter for continous days 
-
-			for (var x = 0; x < this.days.length; x++) {
-				var i = this.days[x];
-				var d_h = this.timesheet_totals['rt'][i];  // hours for the current day
-
-				if (d_h > 0.0) {
-					cons_days++;
-				} else {
-					cons_days = 0;
-				}
-
-				if (cons_days == 7) {
-					this.timesheet_totals['rt'][i] = 0;
-
-					if (d_h <= 8) {
-						this.timesheet_totals['ot'][i] = d_h;
-
-						// Update grand Totals
-						this.timesheet_totals['ot'][7] += d_h;
-
-					} else {
-						this.timesheet_totals['dt'][i] = d_h - 8;
-						this.timesheet_totals['ot'][i] = 8;
-
-						//Update Grand Totals
-						this.timesheet_totals['ot'][7] += this.timesheet_totals['ot'][i];
-						this.timesheet_totals['dt'][7] += this.timesheet_totals['dt'][i];
-					}
-				} else {
-					if (d_h > 8 && d_h <= 12) {
-						this.timesheet_totals['ot'][i] = this.timesheet_totals['rt'][i] - 8;
-						this.timesheet_totals['rt'][i] = 8;
-
-						// Update grand Totals
-						this.timesheet_totals['ot'][7] += this.timesheet_totals['ot'][i];
-						this.timesheet_totals['rt'][7] += this.timesheet_totals['rt'][i];
-
-					} else if (d_h > 12) {
-						this.timesheet_totals['dt'][i] = this.timesheet_totals['rt'][i] - 12;
-						this.timesheet_totals['ot'][i] = 4;
-						this.timesheet_totals['rt'][i] = 8;
-
-						//Update Grand Totals
-						this.timesheet_totals['rt'][7] += this.timesheet_totals['rt'][i];
-						this.timesheet_totals['ot'][7] += this.timesheet_totals['ot'][i];
-						this.timesheet_totals['dt'][7] += this.timesheet_totals['dt'][i];
-					} else {
-						// Update Grand Totals
-						this.timesheet_totals['rt'][7] += this.timesheet_totals['rt'][i];
-					}
-				}
-			}
-		} else {  // Canada Rules
-			let cur_total = 0;
-			let ot_triggerd = false;
-
-			for (var x = 0; x < this.days.length; x++) {
-				var i = this.days[x];
-
-				var d_h = this.timesheet_totals['rt'][i];
-				cur_total += d_h
-				var hours_rt = 0;
-				var hours_ot = 0;
-
-				// Check to see if the current total hours are greater than 40 and that there are hours record for the current day				
-				if (cur_total > 40 && this.timesheet_totals['rt'][i] > 0) {
-					hours_rt = 0;
-					hours_ot = 0;
-
-					if (ot_triggerd) {  // This day is all OT hours
-						this.timesheet_totals['rt'][i] = 0.0;
-						hours_ot = d_h;
-					} else {
-						hours_ot = cur_total - 40;
-
-						if (hours_ot < d_h) { //This day has both RT and OT
-							hours_rt = d_h - hours_ot;
-						}
-
-						// Update the timesheet_totals
-						this.timesheet_totals['rt'][i] = hours_rt;
-
-						// Next day will be all OT hours
-						ot_triggerd = true;
-					}
-					this.timesheet_totals['ot'][i] = hours_ot;
-					this.timesheet_totals['ot'][7] += hours_ot;
-				} else {
-					this.timesheet_totals['rt'][i] = d_h;
-					hours_rt = d_h
-				}
-				this.timesheet_totals['rt'][7] += hours_rt;
-			}
-		}
-
-		if (this.timesheet_totals['ot'][7] > 0.0) {
-			this.show_ot = true;
-		} else {
-			this.show_ot = false;
-		}
-
-		if (this.timesheet_totals['dt'][7] > 0.0) {
-			this.show_dt = true;
-		} else {
-			this.show_dt = false;
-		}
-	}
+	
 
 	setOvertimeChoice(cat_1, cat_2, day) {
 		this.timesheet.forEach(element => {
@@ -428,6 +322,16 @@ export class EntryComponent {
 			});
 		});
 		this.saveTimesheet();
+	}
+
+	clearOvertimeChoice(){
+		this.timesheet.forEach(element => {
+			element.children.forEach(element_2 => {
+				for (var i = 0; i < element_2.ot.length; i++) {
+					element_2.ot[i] = false;					
+				}
+			});
+		});
 	}
 
 
@@ -454,9 +358,7 @@ export class EntryComponent {
 	}
 
 	showHideAddRow(els) {
-
-		console.log(els)
-		console.log('Len: ' + els.length)
+		
 		if (els[els.length - 1].show_add_line) {
 			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false)
 		} else {
@@ -519,8 +421,8 @@ export class EntryComponent {
 	selectProject(event, el) {
 		if (el.Cat_key > 0) {
 			this.shot_selected = el;
-			this.addLineItem([{ cat_key: 0, title: 'Projects' }]);
-			this.resetDropdowns();
+			this.addLineItem([{ cat_key: 0, title: 'Projects' }]);			
+			this.resetDropdowns();			
 		}
 	}
 
@@ -532,13 +434,8 @@ export class EntryComponent {
 		this.addRowOptionChange(cats);
 	}
 
-	addRowOptionChange(cats) {
-		console.log('here...!')
-		console.log(this.entry_vars.projectTask)
-		console.log(this.entry_vars.department)
-		console.log(parseInt(cats[0].cat_key))
-		if (parseInt(cats[0].cat_key) == 1) { // Departments		
-			console.log('here...')
+	addRowOptionChange(cats) {		
+		if (parseInt(cats[0].cat_key) == 1) { // Departments					
 			if (this.entry_vars.department > 0 && this.entry_vars.departmentTask > 0) {
 				this.addLineItem(cats);
 			}
@@ -571,6 +468,7 @@ export class EntryComponent {
 
 		var cat_array = [];
 		var hours = [0, 0, 0, 0, 0, 0, 0];
+		var show_add_line_force = false;
 
 		for (var i = 0; i < 5; i++) {
 			try {
@@ -593,6 +491,14 @@ export class EntryComponent {
 					title: this.shot_selected.Cat_Title,
 					cat_key: this.shot_selected.Cat_key
 				};
+
+
+				// Force show add new line
+				show_add_line_force = true;
+
+				this.entry_vars.show_add_lines[cats[0]['cat_key']]  = {} 
+				this.entry_vars.show_add_lines[cats[0]['cat_key']][this.shot_selected.Cat_key] = true;
+
 			} else {  // Departments
 				cat_array[1] = {
 					title: this.label(this.entry_vars.department, this.departments),
@@ -604,8 +510,7 @@ export class EntryComponent {
 				};
 			}
 
-		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
-			console.log('hererere.rer')
+		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {			
 			cat_array[2] = {
 				title: this.label(this.entry_vars.departmentTask, this.department_tasks),
 				cat_key: this.entry_vars.departmentTask
@@ -665,6 +570,8 @@ export class EntryComponent {
 			}
 		}
 
+
+
 		this.lines.push({
 			Cat_1: cat_array[0]['cat_key'],
 			Cat_1_Title: cat_array[0]['title'],
@@ -681,8 +588,9 @@ export class EntryComponent {
 
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.updateTimesheetTotals();
+		this.entry_vars.show_add_lines = {}
 	}
 
 	removeLineItem(obj_parent, obj_i, cats) {
@@ -719,12 +627,8 @@ export class EntryComponent {
 						&& el['Cat_3'] == parseInt(cats[2])) {
 						incl_el = false;
 					}
-				} else if (parseInt(el['Cat_1']) == 1) {
-					console.log('here...')
-					console.log(el['Cat_1'])
-					console.log(el['Cat_2'])
-					if (el['Cat_1'] == parseInt(cats[0]) && el['Cat_2'] == parseInt(cats[1]) && el['Cat_3'] == parseInt(cats[2]) && el['Cat_3'] != 11) {
-						console.log('nope')
+				} else if (parseInt(el['Cat_1']) == 1) {					
+					if (el['Cat_1'] == parseInt(cats[0]) && el['Cat_2'] == parseInt(cats[1]) && el['Cat_3'] == parseInt(cats[2]) && el['Cat_3'] != 11) {						
 						incl_el = false;
 					}
 				}
@@ -745,7 +649,7 @@ export class EntryComponent {
 
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.updateTimesheetTotals();
 
 	}
@@ -773,7 +677,7 @@ export class EntryComponent {
 		this.lines = this.serviceService.getInitLines()
 		var convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.updateTimesheetTotals();
 		this.submit_date = false;
 	}
@@ -784,7 +688,7 @@ export class EntryComponent {
 				'Pressing confirm below indicates that you have completed your timesheet for the currently displayed week. Please contact your manager if you need to make any changes after submission.',
 				[{ label: 'Confirm', action: 'confirmTimesheet' }, { label: 'Cancel', action: 'closePopup' }]);
 		} else {
-			console.log('...>')
+			// else option
 		}
 	}
 
@@ -795,6 +699,20 @@ export class EntryComponent {
 		var ot_check = ['ot', 'dt'];
 		var tot = [];
 		var can_ot = false;
+
+		this.entry_vars.ot_req  = [0,0,0,0,0,0,0]
+
+		for(var x = 0; x < this.timesheet.length; x++){
+			for(var x_1 = 0; x_1 < this.timesheet[x].children.length; x_1++){
+				for(var x_2 = 0; x_2 < 7; x_2++){
+					if(this.timesheet[x].children[x_1].sum_hours[x_2] > 0.0){
+						this.entry_vars.ot_req[x_2]++;
+					}					
+				}			
+			}
+		}
+
+		console.log(this.entry_vars.ot_req)
 
 		for (var x = 0; x < ot_check.length; x++) {
 			var ot = ot_check[x];
@@ -814,7 +732,7 @@ export class EntryComponent {
 							}
 						}
 					}
-				}
+				}	
 			}
 		}
 
@@ -826,23 +744,25 @@ export class EntryComponent {
 
 		this.timesheet.forEach(element => {
 			element.children.forEach(element_2 => {
+				console.log(element_2)
 				for (var i = 0; i < element_2.ot.length; i++) {
 
 					if (element_2.ot[i]) {
 						ot_selected[i] = element_2.ot[i];
 					}
 
-					if (ot_required[i]) {
+					if (ot_required[i] && element_2.sum_hours[i] > 0.0) {
 						element_2.ot_req[i] = true;
 					} else {
 						element_2.ot_req[i] = false;
+						element_2.ot[i] = false;
 					}
 				}
 			});
 		});
 
 		for (var i = 0; i < ot_required.length; i++) {
-			if (ot_required[i] != ot_selected[i]) {
+			if (ot_required[i] && ot_required[i] != ot_selected[i]) {
 				missing.push(i);
 			}
 		}
@@ -889,14 +809,14 @@ export class EntryComponent {
 		this.lines = this.serviceService.getSampleLines();
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines);
 		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles);
+		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.submit_date = false;
 
 		this.updateTimesheetTotals();
 	}
 
-	popupFunction(functionName) {
-		console.log(functionName);
+	// Testing out this funciton - currently not being used. 
+	popupFunction(functionName) {		
 		this.entry_vars.showPopup = false;
 
 		if (functionName == 'confirmTimesheet') {
@@ -905,7 +825,6 @@ export class EntryComponent {
 			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_note_force', false);
 		}
 	}
-
 
 	label(cat_key, in_array) {
 		var label = 'Label';
