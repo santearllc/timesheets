@@ -36,7 +36,7 @@ export class EntryComponent {
 	submit_date;
 	popup = Object();
 	entry_vars = Object();
-	
+
 	// Month and Day of Week Text
 	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 	days = [0, 1, 2, 3, 4, 5, 6];
@@ -79,7 +79,7 @@ export class EntryComponent {
 			'dt': [0, 0, 0, 0, 0, 0, 0, 0]
 		};
 
-		this.entry_vars.ot_req = [0,0,0,0,0,0,0]
+		this.entry_vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
 
 		this.entry_vars.show_add_lines = Object();
 
@@ -118,7 +118,7 @@ export class EntryComponent {
 			var element = this.lines[i];
 
 
-			
+
 
 			// Go through all of the tTime records and creates a JSON
 			try {
@@ -129,7 +129,7 @@ export class EntryComponent {
 			} catch (err) { }
 
 			try {
-				if (!timesheet[element['Cat_1']].hasOwnProperty(element['Cat_2']) && element['Cat_2'] != null) {					
+				if (!timesheet[element['Cat_1']].hasOwnProperty(element['Cat_2']) && element['Cat_2'] != null) {
 					timesheet[element['Cat_1']][element['Cat_2']] = {};
 					titles[element['Cat_1']][element['Cat_2']] = {};
 				}
@@ -169,7 +169,7 @@ export class EntryComponent {
 			} else if (element['Cat_1'] != null) {
 				timesheet[element['Cat_1']]['Hours'] = element['Hours'];
 			}
-	
+
 			// Add titles to this.titles object; Will most likely change how titles are collected in the future 
 			try {
 				titles[element['Cat_1']][element['Cat_2']][element['Cat_3']][element['Cat_4']][element['Cat_5']]['Title'] = element['Cat_5_Title'];
@@ -212,6 +212,12 @@ export class EntryComponent {
 
 
 	updateHours(event, e, day) {
+
+		// Hide remove buttons
+		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
+		this.entry_vars.edit_line_items = false;
+		this.entry_vars.show_edit_line_items = false;
+
 		day = parseInt(day);
 
 		if (isNaN(event.target.value) || event.target.value.trim() == '') {
@@ -240,8 +246,8 @@ export class EntryComponent {
 	}
 
 	updateTimesheetTotals() {
-		
-		
+
+
 		// Reset timehseet totals before running function
 		this.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
@@ -303,7 +309,7 @@ export class EntryComponent {
 		}
 	}
 
-	
+
 
 	setOvertimeChoice(cat_1, cat_2, day) {
 		this.timesheet.forEach(element => {
@@ -321,14 +327,15 @@ export class EntryComponent {
 				}
 			});
 		});
+		console.log(this.timesheet)
 		this.saveTimesheet();
 	}
 
-	clearOvertimeChoice(){
+	clearOvertimeChoice() {
 		this.timesheet.forEach(element => {
 			element.children.forEach(element_2 => {
 				for (var i = 0; i < element_2.ot.length; i++) {
-					element_2.ot[i] = false;					
+					element_2.ot[i] = false;
 				}
 			});
 		});
@@ -358,13 +365,13 @@ export class EntryComponent {
 	}
 
 	showHideAddRow(els) {
-		
+
 		if (els[els.length - 1].show_add_line) {
 			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false)
 		} else {
 			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false);
 			els[els.length - 1].show_add_line = true;
-			this.resetDropdowns();
+			this.resetDropdowns(els);
 
 			// set cat 1
 			if (els.length > 2) {
@@ -384,11 +391,11 @@ export class EntryComponent {
 		}
 	}
 
-	searchShotAsset(event, cat) {
+	searchShotAsset(event, cat, projectTask, element) {
 		if (cat == 1) {
 			var search_array = this.projects;
 		} else if (cat == 2) {
-			var search_array = (this.entry_vars.projectTask == 5) ? this.shots : this.assets;
+			var search_array = (projectTask == 5) ? this.shots : this.assets;
 		}
 
 		var results = [];
@@ -414,47 +421,58 @@ export class EntryComponent {
 				results.push({ Cat_Title: "More (Refine Search)", Cat_key: -1 })
 			}
 		}
-		this.results = results
+		element.results = results
 	}
 
 
-	selectProject(event, el) {
+	selectProject(event, el, cat) {
 		if (el.Cat_key > 0) {
-			this.shot_selected = el;
-			this.addLineItem([{ cat_key: 0, title: 'Projects' }]);			
-			this.resetDropdowns();			
+			cat.shot_selected = el;
+
+			this.addLineItem([cat]);
+			this.resetDropdowns(cat);
 		}
 	}
 
 	selectShotAsset(el, cats) {
+		var cat = cats[cats.length - 1];
+
 		if (el.Cat_key > 0) {
-			this.shot_selected = el;
-			this.results = [];
+			cat.shot_selected = el;
+			cat.results = [];
+
+			this.addRowOptionChange(cats);
 		}
-		this.addRowOptionChange(cats);
+
 	}
 
-	addRowOptionChange(cats) {		
+	addRowOptionChange(cats) {
+		var cat = cats[cats.length - 1];
+
+		cat.results = [];
+
+		console.log(cats)
+		console.log(cat);
+
+
+
 		if (parseInt(cats[0].cat_key) == 1) { // Departments					
-			if (this.entry_vars.department > 0 && this.entry_vars.departmentTask > 0) {
+			if (cat.department > 0 && cat.departmentTask > 0) {
 				this.addLineItem(cats);
 			}
 		} else { // Projects
-
-			if (this.entry_vars.projectTask == -1) {
+			if (cat.projectTask == -1) {
 				return false;
-			} else if (this.entry_vars.projectTask == 4) {
-				if (this.entry_vars.assetTask != -1 && this.shot_selected) {
+			} else if (cat.projectTask == 4) {
+				if (cat.assetTask != -1 && cat.shot_selected) {
 					this.addLineItem(cats);
 				}
-			} else if (this.entry_vars.projectTask == 5) {
-				if (this.entry_vars.shotTask != -1 && this.shot_selected) {
+			} else if (cat.projectTask == 5) {
+				if (cat.shotTask != -1 && cat.shot_selected) {
 					this.addLineItem(cats);
 				}
-
-			} else if (this.entry_vars.projectTask == 6) {
-
-				if (this.entry_vars.productionTask != -1) {
+			} else if (cat.projectTask == 6) {
+				if (cat.productionTask != -1) {
 					this.addLineItem(cats);
 				}
 			} else {
@@ -465,6 +483,9 @@ export class EntryComponent {
 
 
 	addLineItem(cats) {
+		var cat = cats[cats.length - 1];
+
+
 
 		var cat_array = [];
 		var hours = [0, 0, 0, 0, 0, 0, 0];
@@ -488,64 +509,57 @@ export class EntryComponent {
 			if (cats[0]['cat_key'] == 0) {  // Projects
 				hours = null;
 				cat_array[1] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
+					title: cat.shot_selected.Cat_Title,
+					cat_key: cat.shot_selected.Cat_key
 				};
-
-
-				// Force show add new line
-				show_add_line_force = true;
-
-				this.entry_vars.show_add_lines[cats[0]['cat_key']]  = {} 
-				this.entry_vars.show_add_lines[cats[0]['cat_key']][this.shot_selected.Cat_key] = true;
 
 			} else {  // Departments
 				cat_array[1] = {
-					title: this.label(this.entry_vars.department, this.departments),
-					cat_key: this.entry_vars.department
+					title: this.label(cat.department, this.departments),
+					cat_key: cat.department
 				};
 				cat_array[2] = {
-					title: this.label(this.entry_vars.departmentTask, this.department_tasks),
-					cat_key: this.entry_vars.departmentTask
+					title: this.label(cat.departmentTask, this.department_tasks),
+					cat_key: cat.departmentTask
 				};
 			}
 
-		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {			
+		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
 			cat_array[2] = {
-				title: this.label(this.entry_vars.departmentTask, this.department_tasks),
-				cat_key: this.entry_vars.departmentTask
+				title: this.label(cat.departmentTask, this.department_tasks),
+				cat_key: cat.departmentTask
 			};
 
 		} else if (cats.length == 4) {
 			if (cat_array[2]['cat_key'] == 5) {
 				cat_array[4] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
+					title: cat.shot_selected.Cat_Title,
+					cat_key: cat.shot_selected.Cat_key
 				};
 			} else {
 				cat_array[4] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
+					title: cat.shot_selected.Cat_Title,
+					cat_key: cat.shot_selected.Cat_key
 				};
 			}
 		} else if (cats.length == 3) {
 			cat_array[3] = {
-				title: this.label(this.entry_vars.productionTask, this.production_tasks),
-				cat_key: this.entry_vars.productionTask
+				title: this.label(cat.productionTask, this.production_tasks),
+				cat_key: cat.productionTask
 			};
 
 		} else {
 
 			cat_array[2] = {
-				title: this.label(this.entry_vars.projectTask, this.project_tasks),
-				cat_key: this.entry_vars.projectTask
+				title: this.label(cat.projectTask, this.project_tasks),
+				cat_key: cat.projectTask
 			};
 
 
 			if (cat_array[2]['cat_key'] == 5 || cat_array[2]['cat_key'] == 4) {
 				cat_array[4] = {
-					title: this.shot_selected.Cat_Title,
-					cat_key: this.shot_selected.Cat_key
+					title: cat.shot_selected.Cat_Title,
+					cat_key: cat.shot_selected.Cat_key
 				};
 
 				// Slice off the 's' so that it's not plural. 
@@ -553,47 +567,80 @@ export class EntryComponent {
 
 				if (cat_array[2]['cat_key'] == 5) {
 					cat_array[3] = {
-						title: this.label(this.entry_vars.shotTask, this.shot_tasks),
-						cat_key: this.entry_vars.shotTask
+						title: this.label(cat.shotTask, this.shot_tasks),
+						cat_key: cat.shotTask
 					};
 				} else {
 					cat_array[3] = {
-						title: this.label(this.entry_vars.assetTask, this.asset_tasks),
-						cat_key: this.entry_vars.assetTask
+						title: this.label(cat.assetTask, this.asset_tasks),
+						cat_key: cat.assetTask
 					};
 				}
 			} else if (cat_array[2]['cat_key'] == 6) {
 				cat_array[3] = {
-					title: this.label(this.entry_vars.productionTask, this.production_tasks),
-					cat_key: this.entry_vars.productionTask
+					title: this.label(cat.productionTask, this.production_tasks),
+					cat_key: cat.productionTask
 				};
 			}
 		}
 
 
+		// Determine which input should be highlighted
+		this.entry_vars.cur_sel = '';
+		var tmp_cats = Array();
 
-		this.lines.push({
-			Cat_1: cat_array[0]['cat_key'],
-			Cat_1_Title: cat_array[0]['title'],
-			Cat_2: cat_array[1]['cat_key'],
-			Cat_2_Title: cat_array[1]['title'],
-			Cat_3: cat_array[2]['cat_key'],
-			Cat_3_Title: cat_array[2]['title'],
-			Cat_4: cat_array[3]['cat_key'],
-			Cat_4_Title: cat_array[3]['title'],
-			Cat_5: cat_array[4]['cat_key'],
-			Cat_5_Title: cat_array[4]['title'],
-			Hours: hours
-		});
+		for(var i = 0; i < cat_array.length; i++){
+			if(cat_array[i]['cat_key'] != null){
+				tmp_cats.push(cat_array[i]['cat_key'])
+			}			
+		}
+		this.entry_vars.cur_sel = tmp_cats.join('_');
+		
+
+		if (!this.checkLineExists(cat_array)) {
+			this.lines.push({
+				Cat_1: cat_array[0]['cat_key'],
+				Cat_1_Title: cat_array[0]['title'],
+				Cat_2: cat_array[1]['cat_key'],
+				Cat_2_Title: cat_array[1]['title'],
+				Cat_3: cat_array[2]['cat_key'],
+				Cat_3_Title: cat_array[2]['title'],
+				Cat_4: cat_array[3]['cat_key'],
+				Cat_4_Title: cat_array[3]['title'],
+				Cat_5: cat_array[4]['cat_key'],
+				Cat_5_Title: cat_array[4]['title'],
+				Hours: hours, 
+				Focus: this.entry_vars.cur_sel
+			});
+		}
+
+		
 
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
 		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.updateTimesheetTotals();
 		this.entry_vars.show_add_lines = {}
+		this.resetDropdowns(cat)
+
+	}
+
+	checkLineExists(ca) {
+
+		for (var i = 0; i < this.lines.length; i++) {
+			var li = this.lines[i];
+
+			if (li['Cat_1'] == ca[0]['cat_key'] && li['Cat_2'] == ca[1]['cat_key'] && li['Cat_3'] == ca[2]['cat_key'] && li['Cat_4'] == ca[3]['cat_key'] && li['Cat_5'] == ca[4]['cat_key']) {
+				console.log('Already in the list... ')
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	removeLineItem(obj_parent, obj_i, cats) {
+
 		var obj = obj_parent[(parseInt(obj_i))];
 		obj_parent.splice(parseInt(obj_i), 1);
 
@@ -627,8 +674,8 @@ export class EntryComponent {
 						&& el['Cat_3'] == parseInt(cats[2])) {
 						incl_el = false;
 					}
-				} else if (parseInt(el['Cat_1']) == 1) {					
-					if (el['Cat_1'] == parseInt(cats[0]) && el['Cat_2'] == parseInt(cats[1]) && el['Cat_3'] == parseInt(cats[2]) && el['Cat_3'] != 11) {						
+				} else if (parseInt(el['Cat_1']) == 1) {
+					if (el['Cat_1'] == parseInt(cats[0]) && el['Cat_2'] == parseInt(cats[1]) && el['Cat_3'] == parseInt(cats[2]) && el['Cat_3'] != 11) {
 						incl_el = false;
 					}
 				}
@@ -647,23 +694,69 @@ export class EntryComponent {
 
 		this.lines = incl;
 
+		var exists = [false, false]
+
+		for (var i = 0; i < this.lines.length; i++) {
+			exists[this.lines[i]['Cat_1']] = true;
+		}
+
+		for (var i = 0; i < exists.length; i++) {
+			if (i == 0 && !exists[i]) {
+				this.lines.push({
+					UserKey: 0,
+					Cat_1: 0,
+					Cat_1_Title: 'Shows',
+					Cat_2: null,
+					Cat_2_Title: '',
+					Cat_3: null,
+					Cat_3_Title: '',
+					Cat_4: null,
+					Cat_4_Title: '',
+					Cat_5: null,
+					Cat_5_Title: '',
+					Hours: null,
+					OT: null,
+					Note: null
+				})
+			}
+		}
+
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
 		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
 		this.updateTimesheetTotals();
+	}
+
+	resetDropdowns(cat) {
+		cat.projectTask = -1;
+		cat.productionTask = -1;
+		cat.assetTask = -1;
+		cat.shotTask = -1;
+		cat.department = -1;
+		cat.departmentTask = -1;
+	}
+
+
+	showEditLineItems(cats) {
+		var cat = cats[cats.length - 1];
+		cat.show_menu = false;
+
+		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
+
+		if (this.entry_vars.show_edit_line_items) {
+			this.entry_vars.show_edit_line_items = false;
+			this.entry_vars.edit_line_items = false
+		} else {
+			this.entry_vars.show_edit_line_items = true;
+			this.entry_vars.edit_line_items = true
+		}
 
 	}
 
-	resetDropdowns() {
-		this.entry_vars.projectTask = -1;
-		this.entry_vars.projectTask = -1;
-		this.entry_vars.productionTask = -1;
-		this.entry_vars.assetTask = -1;
-		this.entry_vars.shotTask = -1;
-		this.entry_vars.department = -1;
-		this.entry_vars.departmentTask = -1;
-		this.shot_selected = null;
-		this.results = [];
+
+	deleteProject(cats) {
+		var cat = cats[cats.length - 1];
+		cat.show_menu = false;
 	}
 
 	//
@@ -682,7 +775,12 @@ export class EntryComponent {
 		this.submit_date = false;
 	}
 
-	submitTimesheet() {
+	submitTimesheet(window) {
+		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
+		this.entry_vars.edit_line_items = false;
+		this.entry_vars.show_edit_line_items = false;
+
+
 		if (this.validateOvertime(true)) {
 			this.openPopup('Confirm Time Sheet Submission',
 				'Pressing confirm below indicates that you have completed your timesheet for the currently displayed week. Please contact your manager if you need to make any changes after submission.',
@@ -700,19 +798,18 @@ export class EntryComponent {
 		var tot = [];
 		var can_ot = false;
 
-		this.entry_vars.ot_req  = [0,0,0,0,0,0,0]
+		this.entry_vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
 
-		for(var x = 0; x < this.timesheet.length; x++){
-			for(var x_1 = 0; x_1 < this.timesheet[x].children.length; x_1++){
-				for(var x_2 = 0; x_2 < 7; x_2++){
-					if(this.timesheet[x].children[x_1].sum_hours[x_2] > 0.0){
+		for (var x = 0; x < this.timesheet.length; x++) {
+			for (var x_1 = 0; x_1 < this.timesheet[x].children.length; x_1++) {
+				for (var x_2 = 0; x_2 < 7; x_2++) {
+					if (this.timesheet[x].children[x_1].sum_hours[x_2] > 0.0) {
 						this.entry_vars.ot_req[x_2]++;
-					}					
-				}			
+					}
+				}
 			}
 		}
 
-		console.log(this.entry_vars.ot_req)
 
 		for (var x = 0; x < ot_check.length; x++) {
 			var ot = ot_check[x];
@@ -732,7 +829,7 @@ export class EntryComponent {
 							}
 						}
 					}
-				}	
+				}
 			}
 		}
 
@@ -744,7 +841,6 @@ export class EntryComponent {
 
 		this.timesheet.forEach(element => {
 			element.children.forEach(element_2 => {
-				console.log(element_2)
 				for (var i = 0; i < element_2.ot.length; i++) {
 
 					if (element_2.ot[i]) {
@@ -816,7 +912,7 @@ export class EntryComponent {
 	}
 
 	// Testing out this funciton - currently not being used. 
-	popupFunction(functionName) {		
+	popupFunction(functionName) {
 		this.entry_vars.showPopup = false;
 
 		if (functionName == 'confirmTimesheet') {

@@ -439,12 +439,12 @@ export class ServiceService {
         Cat_Title: "Down Time"
       },
       {
-        Cat_key: 1,
-        Cat_Title: "Training"
-      },
-      {
         Cat_key: 3,
         Cat_Title: "R&D "
+      },      
+      {
+        Cat_key: 1,
+        Cat_Title: "Training"
       }
     ];
 
@@ -2410,6 +2410,8 @@ export class ServiceService {
               hours: timesheet_in[prop_1][prop_2]['Hours'],
               focus: [false, false, false, false, false, false, false],
               children: children[2],
+              projectTask : -1,
+              departmentTask : -1,
               show_add_line: show_add_line
             });
             for (var prop_3 in timesheet_in[prop_1][prop_2]) {
@@ -2421,7 +2423,8 @@ export class ServiceService {
                   note: '',
                   hours: timesheet_in[prop_1][prop_2][prop_3]['Hours'],
                   focus: [false, false, false, false, false, false, false],
-                  children: children[3]
+                  children: children[3],
+                  productionTask : -1
                 });
                 for (var prop_4 in timesheet_in[prop_1][prop_2][prop_3]) {
                   if (prop_4 != 'Hours') {
@@ -2431,7 +2434,8 @@ export class ServiceService {
                       cat_key: prop_4, note: '',
                       hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours'],
                       focus: [false, false, false, false, false, false, false],
-                      children: children[4]
+                      children: children[4],
+                      productionTask : -1
                     });
                     for (var prop_5 in timesheet_in[prop_1][prop_2][prop_3][prop_4]) {
                       if (prop_5 != 'Hours') {
@@ -2440,7 +2444,8 @@ export class ServiceService {
                           cat_key: prop_5, note: '',
                           hours: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours'],
                           focus: [false, false, false, false, false, false, false],
-                          children: []
+                          children: [],
+                          productionTask : -1
                         });
                       }
                     }

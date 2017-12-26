@@ -20,12 +20,21 @@ body {
 
 
 
-input{	
+input, select{	
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
+	padding:5px;
 }
 
+
+select, input, .shot_asset_sel {
+    background-color: #eee;
+}
+
+td{
+    vertical-align: middle;
+}
 
 
 
@@ -136,7 +145,7 @@ h1{
 }
 
 .ot:hover{
-	color:#F00;
+	color:#1f54dc;
 	font-weight: 700;
 }
 
@@ -199,13 +208,23 @@ input::-webkit-inner-spin-button {
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
 
-.note_sel_sm, .note_sm, .note_sel, .note, .plus, .minus, .empty, .approval, .approval_sel, .reject, .reject_sel{
+.note_sel_sm, .note_sm, .note_sel, .note, .plus, .minus, .empty, .approval, .approval_sel, .reject, .reject_sel, .menu{
 	width: 24px;
 	height: 24px;
-	opacity: .25;
+	opacity: 0.25;
 	display: inline-block;	
 	cursor: pointer;
 }
+
+.menu{
+	background-image: url("/assets/menu.png");
+}
+
+.menu:hover{
+	background-image: url("/assets/menu_sel.png");
+}
+
+
 
 .note_sel_sm, .note_sm{
 	width: 20px;
@@ -254,8 +273,13 @@ input::-webkit-inner-spin-button {
 }
 
 .minus{
-	background-image: url("/assets/minus.png");
+	background-image: url("/assets/reject_sel.png");
+	opacity: 0.5
 }
+
+.minus:hover{	
+	opacity: 1.0
+} 
 
 .note{
 	background-image: url("/assets/note.png");	
@@ -266,8 +290,8 @@ input::-webkit-inner-spin-button {
 }
 
 .note_sel{
-	background-image: url("/assets/note_sel.png");
-	opacity: 0.5;
+	background-image: url("/assets/note_sel.png");	
+	opacity: .75;
 }
 
 .note_sel_sm{
@@ -327,12 +351,12 @@ select{
 
 .addRowOption_shotAssetList, .addRowOption_ProjectList{	
 	overflow-x: hidden;
-	position:absolute;
-	max-width:150px;
-	width:150px;
+	position: absolute;	
 	background-color:#000;
 	color:#FFF;
 	font-size: 0.8em;
+	width:285px;
+	box-sizing: border-box;
 }
 
 .addRowOption_shotAssetList div, .addRowOption_ProjectList div{
@@ -478,23 +502,7 @@ td{
 }
 
 
-.hideAddRemove{
-	overflow: hidden;
-	max-height:0px;
-	
-	opacity:0;
-	transition:opacity 0.5s linear, max-height .5s ease-out;
-	transition-delay: .15s;
-}
 
-
-.showAddRemove{
-	overflow: hidden;
-    max-height:40px;
-	
-	opacity:1;
-	transition:opacity 0.5s linear, max-height .5s ease-out;	
-}
 
 .hideNote{
 	overflow: hidden;
@@ -514,4 +522,95 @@ td{
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 	border-radius: 5px;
+}
+
+.addRowOption_searchShotAsset, .addRowOption_productionTask{
+	opacity: .4;
+}
+
+.addRowOption_searchShotAsset:focus, .addRowOption_productionTask:focus{
+	opacity: 1.0;
+}
+
+
+.menu_div{
+	position: absolute;
+	background-color:#FFF;
+	box-shadow: 5px 5px 5px #000;	
+	padding:5px;
+	z-index: 1000;	
+}
+
+
+.menu_div div{
+	white-space: nowrap;
+	padding:2px;
+	cursor: pointer;
+}
+
+.menu_div div:hover{
+	color:#1f54dc;
+}
+
+
+.close_btn{
+	padding:10px;
+	text-align:center;	
+	cursor: pointer;
+	font-style: italic;
+	border: 2px #888888 solid;
+}
+
+.close_btn:hover{
+	color:#677ef3;
+}
+
+
+.showAddRemove, .hideAddRemove{
+	width:800px;
+	z-index:1000;
+	position:fixed;
+	background-color:#555;
+	top:0;
+	
+}
+
+.hideAddRemove{
+	overflow: hidden;
+	max-height:0px;	
+	transition:max-height .5s ease-out;	
+}
+
+
+.showAddRemove{
+	overflow: hidden;
+    max-height:50px;
+	transition: max-height .5s ease-out;	
+}
+
+
+
+
+.addedLine{
+	background-color:#c9d0f7;
+
+	animation:addedLine-response 2.5s 1;
+    -webkit-animation:addedLine-response 2.5s 1;
+    animation-fill-mode: forwards;
+
+    animation-delay:2.5s;
+    -webkit-animation-delay:2.5s; /* Safari and Chrome */
+	-webkit-animation-fill-mode: forwards;
+	
+}
+
+
+@keyframes addedLine-response{
+    from {background-color:#c9d0f7;}
+    to {background-color:#D8D8D8;}
+}
+
+@-webkit-keyframes addedLine-response{
+    from {background-color:#c9d0f7;}
+    to {background-color:#D8D8D8;}
 }
