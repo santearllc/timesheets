@@ -117,9 +117,6 @@ export class EntryComponent {
 		for (var i = 0; i < lines.length; i++) {
 			var element = this.lines[i];
 
-
-
-
 			// Go through all of the tTime records and creates a JSON
 			try {
 				if (!timesheet.hasOwnProperty(element['Cat_1']) && element['Cat_1'] != null) {
@@ -425,7 +422,7 @@ export class EntryComponent {
 	}
 
 
-	selectProject(event, el, cat) {
+	selectProject(el, cat) {		
 		if (el.Cat_key > 0) {
 			cat.shot_selected = el;
 
@@ -436,43 +433,35 @@ export class EntryComponent {
 
 	selectShotAsset(el, cats) {
 		var cat = cats[cats.length - 1];
-
 		if (el.Cat_key > 0) {
 			cat.shot_selected = el;
 			cat.results = [];
-
 			this.addRowOptionChange(cats);
 		}
-
 	}
 
-	addRowOptionChange(cats) {
+	addRowOptionChange(cats, option_sel=Object()) {		
 		var cat = cats[cats.length - 1];
-
 		cat.results = [];
 
-		console.log(cats)
-		console.log(cat);
-
-
-
-		if (parseInt(cats[0].cat_key) == 1) { // Departments					
-			if (cat.department > 0 && cat.departmentTask > 0) {
+		if (parseInt(cats[0].cat_key) == 1) { // Departments
+			if (cat.cat_key > 0 && option_sel.Cat_key >= 0) {				
+				cat.departmentTask = option_sel.Cat_key;
 				this.addLineItem(cats);
 			}
-		} else { // Projects
+		} else { // Projects			
 			if (cat.projectTask == -1) {
 				return false;
 			} else if (cat.projectTask == 4) {
-				if (cat.assetTask != -1 && cat.shot_selected) {
+				if (cat.assetTask != -1 && cat.shot_selected && cat.shot_selected.Cat_key >= 0) {
 					this.addLineItem(cats);
 				}
 			} else if (cat.projectTask == 5) {
-				if (cat.shotTask != -1 && cat.shot_selected) {
+				if (cat.shotTask != -1 && cat.shot_selected && cat.shot_selected.Cat_key >= 0) {
 					this.addLineItem(cats);
 				}
 			} else if (cat.projectTask == 6) {
-				if (cat.productionTask != -1) {
+				if (cat.productionTask != -1 && cat.productionTask != undefined) {
 					this.addLineItem(cats);
 				}
 			} else {
@@ -484,8 +473,6 @@ export class EntryComponent {
 
 	addLineItem(cats) {
 		var cat = cats[cats.length - 1];
-
-
 
 		var cat_array = [];
 		var hours = [0, 0, 0, 0, 0, 0, 0];
@@ -513,7 +500,7 @@ export class EntryComponent {
 					cat_key: cat.shot_selected.Cat_key
 				};
 
-			} else {  // Departments
+			} else {  // Departments				
 				cat_array[1] = {
 					title: this.label(cat.department, this.departments),
 					cat_key: cat.department
@@ -543,7 +530,11 @@ export class EntryComponent {
 				};
 			}
 		} else if (cats.length == 3) {
-			cat_array[3] = {
+			console.log('you are here');
+			console.log(cat.productionTask);
+			console.log(this.production_tasks);
+
+			cat_array[3] = {				
 				title: this.label(cat.productionTask, this.production_tasks),
 				cat_key: cat.productionTask
 			};
@@ -589,13 +580,13 @@ export class EntryComponent {
 		this.entry_vars.cur_sel = '';
 		var tmp_cats = Array();
 
-		for(var i = 0; i < cat_array.length; i++){
-			if(cat_array[i]['cat_key'] != null){
+		for (var i = 0; i < cat_array.length; i++) {
+			if (cat_array[i]['cat_key'] != null) {
 				tmp_cats.push(cat_array[i]['cat_key'])
-			}			
+			}
 		}
 		this.entry_vars.cur_sel = tmp_cats.join('_');
-		
+
 
 		if (!this.checkLineExists(cat_array)) {
 			this.lines.push({
@@ -609,12 +600,12 @@ export class EntryComponent {
 				Cat_4_Title: cat_array[3]['title'],
 				Cat_5: cat_array[4]['cat_key'],
 				Cat_5_Title: cat_array[4]['title'],
-				Hours: hours, 
+				Hours: hours,
 				Focus: this.entry_vars.cur_sel
 			});
 		}
 
-		
+
 
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
 		this.titles = convertLinesToTimeSheet['titles'];
@@ -764,6 +755,172 @@ export class EntryComponent {
 	//	LOAD/SUBMIT TIMESHEET
 	//
 	//
+
+
+
+	searchDropDown(phrase, arr, cats) {
+		console.log('search drop down menu')		
+		var results = Array();
+		
+		if(phrase != undefined){
+			phrase = phrase.trim().toLowerCase()
+		} else {
+			phrase = '';
+		}
+		
+		if (phrase.length <= 0) {
+			return results;
+		}
+
+		for (var i = 0; i < arr.length; i++) {
+			if (arr[i].Cat_Title.toLowerCase().indexOf(phrase) != -1 && arr[i].Cat_key != -1) {				
+				arr[i].cats = cats
+				results.push(arr[i]);
+			}
+		}
+
+		if (results.length == 0) {
+			results.push({ Cat_Title: 'No Results', Cat_key: -1 })
+		}
+
+		return results;
+	}
+
+	resetNewLine(event, el){	
+		
+		el.assetTask = -1;
+		el.dd_results_assetTask = false;
+		el.searchDD_assetTask = '';
+	
+		el.shotTask = -1;
+		el.dd_results_shotTask = false;
+		el.searchDD_shotTask = '';
+	
+		el.productionTask = -1;
+		el.dd_results_productionTask = false;
+		el.searchDD_productionTask = '';
+	
+		el.projectTask = -1;
+		el.dd_results_projectTask = false;
+		el.searchDD_projectTask = '';	
+
+		el.shot_selected = null;
+		el.dd_results_shot = false;
+		el.searchDD_shot = '';	
+
+	}
+
+	dropDownReset(event, dd_results){		
+		if(event != false){			
+			console.log(event.target.innerHTML)
+			if(event.target.innerHTML.indexOf('&#9660;') != -1 || event.target.innerHTML.indexOf('▼') != -1){
+				event.target.innerHTML = '&#9650;';				
+				event = false;
+			} else {
+				event.target.innerHTML = '&#9660;';
+				event = true;
+			}
+		}
+
+		if(event){			
+			dd_results = Array();
+		}
+		
+		for(var i = 0; i < dd_results.length; i++) {			
+			dd_results[i].selected = false;
+		}
+		
+		return dd_results;
+	}
+
+	dropDownKey(event, el, dd_results, cats, level='') {
+		
+		var k_code = event.keyCode;
+		var cur_i = -1;
+
+
+		for (var i = 0; i < dd_results.length; i++) {
+			if (dd_results[i].selected == true) {
+				cur_i = i;
+			}
+			dd_results[i].selected = false;
+		}
+
+		
+		
+		if (k_code == 13) { // Enter Key  (9 = tab)
+			if(cur_i >= 0){
+				if(dd_results[cur_i].cats.length == 1){ // add project
+					
+					if (dd_results[cur_i].Cat_key > 0) {
+						
+						this.dropDownReset(false,dd_results);					
+						cats[0].shot_selected = dd_results[cur_i];					
+						this.addLineItem(cats);
+					}
+				} else {
+					
+					if(level == 'assetTask'){
+						cats[cats.length-1].assetTask = dd_results[cur_i].Cat_key
+						cats[cats.length-1].dd_results_assetTask = false;
+						cats[cats.length-1].searchDD_assetTask = dd_results[cur_i].Cat_Title
+					} else if(level == 'shotTask'){
+						cats[cats.length-1].shotTask = dd_results[cur_i].Cat_key
+						cats[cats.length-1].dd_results_shotTask = false;
+						cats[cats.length-1].searchDD_shotTask = dd_results[cur_i].Cat_Title
+					} else if(level == 'productionTask'){
+						cats[cats.length-1].productionTask = dd_results[cur_i].Cat_key
+						cats[cats.length-1].dd_results_productionTask = false;
+						cats[cats.length-1].searchDD_productionTask = dd_results[cur_i].Cat_Title
+					} else if(level == 'projectTask'){
+						cats[cats.length-1].projectTask = dd_results[cur_i].Cat_key
+						cats[cats.length-1].dd_results_projectTask = false;
+						cats[cats.length-1].searchDD_projectTask = dd_results[cur_i].Cat_Title	
+					}  else if(level == 'shot'){
+						cats[cats.length-1].shot_selected = dd_results[cur_i]
+						cats[cats.length-1].dd_results_shot = false;
+						cats[cats.length-1].searchDD_shot = dd_results[cur_i].Cat_Title	
+					}
+				
+
+					this.addRowOptionChange( dd_results[cur_i].cats, dd_results[cur_i])
+				}
+			}
+		} else {
+			this.dropDownReset(false,dd_results)
+			
+			for (var i = 0; i < dd_results.length; i++) {
+				if (dd_results[i].selected == true) {
+					cur_i = i;
+				}
+				dd_results[i].selected = false;
+			}
+			if (k_code == 40) { //Key Down				
+				if (cur_i + 1 < dd_results.length) {
+					cur_i += 1;
+				} else {
+					cur_i = 0;
+				}
+				try{
+					dd_results[cur_i].selected = true;
+				} catch(err){ }
+			} else if (k_code == 38) { //Key Up
+				if (cur_i == 0) {
+					cur_i = dd_results.length-1;					
+				} else {
+					cur_i -= 1;					
+				}
+				try{
+					dd_results[cur_i].selected = true;
+				} catch(err){ }
+			} else {
+				try{
+					dd_results[0].selected = true;
+				} catch(err){ }				
+			}			
+		}
+		
+	}
 
 	loadInitTimeheet() {
 		this.entry_vars.timesheet_submitted = false;

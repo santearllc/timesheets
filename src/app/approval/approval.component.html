@@ -220,11 +220,11 @@
                                 <div *ngIf="x_3.breakdown_show" class="breakdown_div">
                                     <div *ngFor="let b_1 of timesheet_by_user[x_3.cat_key]">
 
-                                        <div style="font-weight:700;font-size:1.2em;">
+                                        <div style="font-weight:700;font-size:1.2em;opacity:0.3">
                                             &nbsp;{{item[1][b_1.cat_key]['Title']}}
                                         </div>
 
-                                        <div *ngFor="let b_2 of b_1.children">
+                                        <div *ngFor="let b_2 of b_1.children" [style.opacity]="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) ? 1.0: 0.3">
                                             <div style="font-size:1em;font-weight:700;">&nbsp;{{item[1][b_1.cat_key][b_2.cat_key]['Title']}}</div>
 
                                             <div *ngFor="let b_3 of b_2.children">
@@ -233,7 +233,7 @@
                                                     <div style="position:absolute;margin-left:800px;margin-top:7px;">
                                                         <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
                                                     </div>
-                                                    <table style="width:100%;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
+                                                    <table style="width:100%;" [style.opacity]="(x_3.approved) ? 0.3 : 1.0">
                                                         <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                             <td style="width: 200px;">
                                                                 <div>&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
@@ -409,14 +409,14 @@
                                         <div *ngIf="x_4.breakdown_show" class="breakdown_div">
                                             <div *ngFor="let b_1 of timesheet_by_user[x_4.cat_key]">
 
-                                                <div style="font-weight:700;font-size:1.2em;">
+                                                <div style="font-weight:700;font-size:1.2em;opacity:0.3;">
                                                     &nbsp;{{titles[b_1.cat_key]['Title']}}
                                                 </div>
 
                                                 <div *ngFor="let b_2 of b_1.children">
-                                                    <div style="font-size:1em;font-weight:700;">&nbsp;{{titles[b_1.cat_key][b_2.cat_key]['Title']}}</div>
+                                                    <div style="font-size:1em;font-weight:700;" [style.opacity]="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) ? 1.0: 0.3">&nbsp;{{titles[b_1.cat_key][b_2.cat_key]['Title']}}</div>
 
-                                                    <div *ngFor="let b_3 of b_2.children">
+                                                    <div *ngFor="let b_3 of b_2.children" [style.opacity]="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key && b_3.cat_key == x_3.cat_key) ? 1.0: 0.3">
 
                                                         <div *ngIf="b_3.hours">
                                                             <div style="position:absolute;margin-left:800px;margin-top:7px;">

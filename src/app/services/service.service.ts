@@ -204,11 +204,7 @@ export class ServiceService {
     }
 
 
-    this.department_tasks = [
-      {
-        Cat_key: -1,
-        Cat_Title: "Select Task"
-      },
+    this.department_tasks = [      
       {
         Cat_key: 1,
         Cat_Title: "Bereavement"
@@ -417,11 +413,7 @@ export class ServiceService {
 
 
 
-    this.project_tasks = [
-      {
-        Cat_key: -1,
-        Cat_Title: "Select Category"
-      },
+    this.project_tasks = [      
       {
         Cat_key: 5,
         Cat_Title: "Shots"
@@ -495,11 +487,7 @@ export class ServiceService {
       }
     ];
 
-    this.shot_tasks = [
-      {
-        Cat_key: -1,
-        Cat_Title: 'Select Step'
-      },
+    this.shot_tasks = [      
       {
         Cat_key: 1,
         Cat_Title: 'Animation'
@@ -563,11 +551,7 @@ export class ServiceService {
     ];
 
 
-    this.asset_tasks = [
-      {
-        Cat_key: -1,
-        Cat_Title: "Select Step"
-      },
+    this.asset_tasks = [      
       {
         Cat_key: 1,
         Cat_Title: "3D Enviro Build"

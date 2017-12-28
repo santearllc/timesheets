@@ -1,1 +1,64 @@
 
+.dd_div{
+width: 100%;
+box-sizing: border-box;
+}   
+
+
+
+.dd_search input{
+    background: transparent;
+    border:1px #000 solid;
+    height:auto;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    
+}
+
+.dd_search input:focus{
+    border: none;
+    outline: none;
+}
+
+
+
+.dd_search{
+    padding:5px;
+    border-bottom:2px #666 solid;
+}
+
+
+.dd_reveal{
+    font-size:0.75em;
+    cursor: pointer;
+    
+}
+
+
+.dd_results{
+    position: absolute;
+    z-index:10;
+    border: 1px #677ef3 solid;
+}
+
+.dd_search:focus-within{
+    background-color: #EEE;
+}
+
+.dd_result_sel{
+    background-color: #677ef3 !Important;
+}
+
+.dd_results div{
+    background-color:#EEE;
+    padding:5px;    
+    cursor: pointer;
+    font-size:0.8em;
+}
+
+.dd_results div:hover{
+    color:#DDD;
+    background-color: #677ef3
+}
+

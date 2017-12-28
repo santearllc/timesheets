@@ -229,7 +229,9 @@ input::-webkit-inner-spin-button {
 .note_sel_sm, .note_sm{
 	width: 20px;
 	height: 20px;
+	
 }
+
 
 .plus{
 	background-image: url("/assets/plus.png");
