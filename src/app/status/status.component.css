@@ -47,5 +47,19 @@
     font-size:0.8em;
     font-weight: 700;
     padding:5px;
+    cursor: pointer;    
 }
+
+.icon_inactive{
+    border-bottom: 4px #DDD solid;
+}
+
+.icon_active{
+    border-bottom: 4px rgb(56, 230, 12) solid;
+}
+
+#legend td:hover{
+    border-bottom: 4px lightgreen outset;    
+}
+
 

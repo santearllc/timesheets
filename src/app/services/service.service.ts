@@ -41,6 +41,7 @@ export class ServiceService {
         TimeSheetStatus: 0,        
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -59,6 +60,7 @@ export class ServiceService {
         TimeSheetStatus: 1,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -77,6 +79,7 @@ export class ServiceService {
         TimeSheetStatus: 0,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -95,6 +98,7 @@ export class ServiceService {
         TimeSheetStatus: 3,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -113,6 +117,7 @@ export class ServiceService {
         TimeSheetStatus: 0,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -131,6 +136,7 @@ export class ServiceService {
         TimeSheetStatus: 4,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -149,6 +155,7 @@ export class ServiceService {
         TimeSheetStatus: 4,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -167,6 +174,7 @@ export class ServiceService {
         TimeSheetStatus: 4,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -185,6 +193,7 @@ export class ServiceService {
         TimeSheetStatus: 0,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -203,6 +212,7 @@ export class ServiceService {
         TimeSheetStatus: 2,
         ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
+          WorkedOn: [],
           TotalHours: 0,
           TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],

@@ -1,116 +1,111 @@
 <div style="margin-bottom: 10px;margin-top:20px;">
-    <div class="alt_btn" style="display:inline-block;" onClick="$('#cal').toggle()">{{status_date}}</div>
-
+    <div class="alt_btn" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.status_date}}</div>
 
     <!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> -->
-
-    <!-- 
-    <div id="cal" style="display:none;"> 
+    <div id="cal" *ngIf="vars.showCal">
         <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
             <table width="100%;">
                 <tr>
                     <td>&larr;</td>
-                    <td style="text-align:center;">December 2015</td>
+                    <td style="text-align:center;">January 2018</td>
                     <td>&rarr;</td>
                 </tr>
             </table>
         </div>
         <table class="cal_weeks" width="100%;">
             <tr class="disable-clicks">
-                <td *ngFor="let day_i of days_label" style="font-weight:700;">{{ day_i }}</td>
+                <td *ngFor="let day_i of vars.days_label" style="font-weight:700;">{{ day_i }}</td>
             </tr>
-            <tr (click)="weekSelected(0)">
-                <td class="cal_dif_mo">27</td>
-                <td class="cal_dif_mo">28</td>
-                <td class="cal_dif_mo">29</td>
-                <td class="cal_dif_mo">30</td>
+            <tr (click)="weekSelected(0)">                
                 <td>1</td>
                 <td>2</td>
                 <td>3</td>
-            </tr>
-            <tr class="cal_days" (click)="weekSelected(1)">
                 <td>4</td>
                 <td>5</td>
                 <td>6</td>
                 <td>7</td>
+            </tr>
+            <tr class="cal_days" (click)="weekSelected(1)">
                 <td>8</td>
                 <td>9</td>
                 <td>10</td>
-            </tr>
-            <tr (click)="weekSelected(2)">
                 <td>11</td>
                 <td>12</td>
                 <td>13</td>
                 <td>14</td>
+            </tr>
+            <tr (click)="weekSelected(2)">
                 <td>15</td>
                 <td>16</td>
                 <td>17</td>
-            </tr>
-            <tr (click)="weekSelected(3)">
                 <td>18</td>
                 <td>19</td>
                 <td>20</td>
                 <td>21</td>
+            </tr>
+            <tr (click)="weekSelected(3)">
                 <td>22</td>
                 <td>23</td>
                 <td>24</td>
-            </tr>
-            <tr (click)="weekSelected(4)">
                 <td>25</td>
                 <td>26</td>
                 <td>27</td>
                 <td>28</td>
+            </tr>
+            <tr (click)="weekSelected(4)">
                 <td>29</td>
                 <td>30</td>
                 <td>31</td>
+                <td class="cal_dif_mo">1</td>
+                <td class="cal_dif_mo">2</td>
+                <td class="cal_dif_mo">3</td>
+                <td class="cal_dif_mo">4</td>
             </tr>
         </table>
-    </div>
-
-    -->
-
+    </div>    
 
 </div>
 <div class="cat_1 projects" style="margin-bottom: 10px;">
     <table width="100%">
         <tr>
             <td width="50%">
-                <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="searchName=$event.target.value.toLowerCase()"
-                    (click)="$event.target.value='';searchName=''">
+                <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_name=$event.target.value.toLowerCase()"
+                    (click)="$event.target.value='';vars.search_name=''">
             </td>
             <td width="50%">
-                <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="searchProject=$event.target.value.toLowerCase()"
-                    (click)="$event.target.value='';searchProject=''">
+                <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_project=$event.target.value.toLowerCase()"
+                    (click)="$event.target.value='';vars.search_project=''">
             </td>
         </tr>
     </table>
 </div>
-
-
 
 <div class="cat_1_title">
     <table id="legend" width="100%">
         <tr>
-            <td class="pending_submission">Pending Submission</td>
-            <td class="submitted">Submitted</td>
-            <td class="rejected">Rejected</td>
-            <td class="partial_approved">Partial Approved</td>
-            <td class="approved">Approved</td>
+            <td class="pending_submission" [class.icon_active]="vars.filter[0]" [class.icon_inactive]="!vars.filter[0]" (click)="(vars.filter[0]) ? vars.filter[0] = false: vars.filter[0] = true">Pending Submission<br> {{ vars.total[0] }}</td>
+            <td class="submitted" [class.icon_active]="vars.filter[1]" [class.icon_inactive]="!vars.filter[1]" (click)="(vars.filter[1]) ? vars.filter[1] = false: vars.filter[1] = true">Submitted<br> {{ vars.total[1] }}</td>
+            <td class="rejected" [class.icon_active]="vars.filter[2]" [class.icon_inactive]="!vars.filter[2]" (click)="(vars.filter[2]) ? vars.filter[2] = false: vars.filter[2] = true">Rejected<br> {{ vars.total[2] }}</td>
+            <td class="partial_approved" [class.icon_active]="vars.filter[3]" [class.icon_inactive]="!vars.filter[3]" (click)="(vars.filter[3]) ? vars.filter[3] = false: vars.filter[3] = true">Partial Approved<br> {{ vars.total[3] }}</td>
+            <td class="approved" [class.icon_active]="vars.filter[4]" [class.icon_inactive]="!vars.filter[4]" (click)="(vars.filter[4]) ? vars.filter[4] = false: vars.filter[4] = true">Approved<br> {{ vars.total[4] }}</td>
         </tr>
     </table>
 </div>
 
 
+
 <div class="cat_1" style="padding:10px;">
-    <table class="status_table" width="100%">
-        <tr *ngFor="let user of users_array;" style="padding:5px;">
-            <td>
-                <div [class]="status_class[user.TimeSheetStatus]">&nbsp;</div>
+    <div *ngFor="let user of users_array;">
+        <div style="border-bottom:1px #BBB solid;" *ngIf="vars.filter[user.TimeSheetStatus] && (vars.search_name.length == 0 || user.FullName_r.toLowerCase().indexOf(vars.search_name) != -1)    && (vars.search_project.length == 0 || searchProject(user.Data.WorkedOn))">
+            <div [class]="status_class[user.TimeSheetStatus]">&nbsp;</div>
+            <div style="padding:5px;display:inline-block;">
                 {{ user.FullName_r}}
-            </td>
-            <td style="text-align:right;color:#555;font-style:italic;font-size:0.8em;">
-                Project Name(s) / Department Name(s)
-            </td>
-        </tr>
-    </table>
+            </div>
+            <div style="float:right;text-align:right;color:#555;font-style:italic;font-size:0.8em;margin-top:5px;">
+                <div *ngFor="let item of user.Data.WorkedOn; let last=last" style="display:inline-block;">
+                    {{ item }} <span *ngIf="!last">&nbsp;|&nbsp;</span>
+                </div>
+            </div>            
+        </div>        
+    </div>    
 </div>
