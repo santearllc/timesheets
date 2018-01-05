@@ -208,22 +208,24 @@ input::-webkit-inner-spin-button {
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
 
-.note_sel_sm, .note_sm, .note_sel, .note, .plus, .minus, .empty, .approval, .approval_sel, .reject, .reject_sel, .menu{
+.note_sel_sm, .note_sm, .note_sel, .note, .empty, .approval, .approval_sel, .reject, .reject_sel, .menu, .minus{
 	width: 24px;
-	height: 24px;
-	opacity: 0.25;
+	height: 24px;	
 	display: inline-block;	
 	cursor: pointer;
 }
 
 .menu{
-	background-image: url("/assets/menu.png");
+	background-image: url("/assets/menu_link.png");
 }
 
 .menu:hover{
-	background-image: url("/assets/menu_sel.png");
+	background-image: url("/assets/menu_hover.png");
 }
 
+.menu:active{
+	background-image: url("/assets/menu_active.png");
+}
 
 
 .note_sel_sm, .note_sm{
@@ -233,58 +235,43 @@ input::-webkit-inner-spin-button {
 }
 
 
-.plus{
-	background-image: url("/assets/plus.png");
-}
-
-.plus:active, .plus_sel:active{
-	background-image: url("/assets/plus_sel.png");
-}
-
-.plus_sel{
-	opacity: 1.0;	
-}
-
-
-.reject{
-	background-image: url("/assets/reject.png");	
+.reject, .minus{
+	background-image: url("/assets/reject_link.png");	
 } 
 
-.reject:hover{
-	background-image: url("/assets/reject_sel.png");	
-	opacity: 0.50;
+.reject:hover, .minus:hover{
+	background-image: url("/assets/reject_hover.png");	
 }
 
 .reject_sel{
 	background-image: url("/assets/reject_sel.png");
-	opacity: 0.5;
+	
 }
 
 .approval{
-	background-image: url("/assets/approval.png");
+	background-image: url("/assets/approve_link.png");
 }
 
 .approval:hover{
-	background-image: url("/assets/approval_sel.png");
-	opacity: 0.25;
-}
-
-.approval_sel{
-	background-image: url("/assets/approval_sel.png");
+	background-image: url("/assets/approve_sel.png");
 	opacity: 0.5;
 }
 
-.minus{
-	background-image: url("/assets/reject_sel.png");
-	opacity: 0.5
+.approval_sel{
+	background-image: url("/assets/approve_sel.png");
 }
 
-.minus:hover{	
-	opacity: 1.0
-} 
-
 .note{
-	background-image: url("/assets/note.png");	
+	background-image: url("/assets/note_link.png");	
+}
+
+.note:hover{
+	background-image: url("/assets/note_sel.png");	
+	opacity: 0.5;
+}
+
+.note:active{
+	background-image: url("/assets/note_active.png");	
 }
 
 .note_sm{
@@ -390,7 +377,7 @@ select{
 	background-color: rgba(0, 0, 0, .50);
 	left:0;
 	top:0;
-	z-index:2;	
+	z-index:1000000;	
 }
 
 .popup > div{
@@ -466,19 +453,37 @@ select{
 	color:#F00;
 }
 
-.note_text{	
+
+.hideNote{
+	overflow: hidden;
+	max-height:0px;
+	opacity: 0.0;
+	transition: max-height .1s ease-out .2s, opacity .1s linear;
+}
+
+.showNote{
+	overflow: hidden;
+    max-height:1000px;
+	opacity: 1.0;
+	transition: max-height .1s ease-out, opacity .1s linear .1s;	
+	transition-delay: 0.1s;
+}
+
+
+.note_text{
+	position:absolute;
+	width:770px;
+	z-index:1000;	
 	font-size:0.8em;
-	background-color:rgb(160, 160, 160);
-	padding:10px;	
-	margin:0px 10px;
-	margin-top:5px;
-	margin-bottom: 20px;
+	background-color:rgb(160, 160, 160);	
+	margin-top:0px;	
 	box-shadow: 5px 5px 10px #888888;	
 	overflow: hidden;
 }
 
 .note_text div{
-	white-space: pre;
+	/* white-space: pre;  */
+	padding:10px;
 }
 
 .show_full_opacity{
@@ -491,34 +496,8 @@ td{
 
 
 
-.hideAddRemoveRow{
-	opacity:0;
-	transition:opacity 0.5s linear;
-}
 
 
-.showAddRemoveRow{
-	
-    opacity:1;
-    transition:opacity 0.5s linear;
-}
-
-
-
-
-.hideNote{
-	overflow: hidden;
-	max-height:0px;
-	
-	transition: max-height .5s ease-out;	
-}
-
-
-.showNote{
-	overflow: hidden;
-    max-height:40px;
-	transition: max-height .5s ease-out;
-}
 
 .projects, .departments{
 	-webkit-border-radius: 5px;
@@ -559,8 +538,7 @@ td{
 	padding:10px;
 	text-align:center;	
 	cursor: pointer;
-	font-style: italic;
-	border: 2px #888888 solid;
+	font-style: italic;	
 }
 
 .close_btn:hover{
@@ -580,17 +558,14 @@ td{
 .hideAddRemove{
 	overflow: hidden;
 	max-height:0px;	
-	transition:max-height .5s ease-out;	
+	transition:max-height .1s linear;	
 }
-
 
 .showAddRemove{
 	overflow: hidden;
     max-height:50px;
-	transition: max-height .5s ease-out;	
+	transition: max-height .1s linear;	
 }
-
-
 
 
 .addedLine{

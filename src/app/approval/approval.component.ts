@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Pipe } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 import { TimesheetBreakdownComponent } from '../timesheet-breakdown/timesheet-breakdown.component';
 
@@ -15,92 +15,102 @@ import { forEach } from '@angular/router/src/utils/collection';
 })
 export class ApprovalComponent implements OnInit {
 
-  // variables
-  approval_date = 'Dec 18 - Dec 24 (this week)';
-  approvals = []
-  users = {};
-  lines: Object[];
-  titles = {};
-  timesheet = Array();
-
-  titles_studio = {};
-  timesheet_studio = Array();
-
-  timesheet_by_user = Object();
-  results;
-  save_status;
-  save_status_color;
-  search_name = '';
-  search_project = '';
-  user_focused: any = false;
-  user_focused_el = false;
-  save_timeout;
-  days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  days = [0, 1, 2, 3, 4, 5, 6]; // Order of days
-  approval_vars = Object();
-
+  // store all variables, objects, arrays in this object
+  vars = Object();
 
   // temporary variables used during development
-  week_labels = ['Nov 27 - Dec 3',
-    'Dec 4 - Dec 10 (this week)',
-    'Dec 11 - Dec 17',
-    'Dec 18 - Dec 24',
-    'Dec 25 - Dec 31']
+  week_labels = ['Jan 1 - Jan 7 (this week)',
+    'Jan 8 - Jan 14',
+    'Jan 15 - Jan 21',
+    'Jan 22 - Jan 28',
+    'Jan 29 - Feb 4'
+  ]
 
   constructor(public serviceService: ServiceService) {
     // connection to database functions
   }
 
   ngOnInit() {
+
+    // set some variables
+    this.vars.approval_date = 'Jan 1 - Jan 7 (this week)';
+    this.vars.save_status;
+    this.vars.save_status_color;
+    this.vars.search_name = '';
+    this.vars.search_project = '';
+    this.vars.user_focused = false;
+    this.vars.user_focused_el = false;
+    this.vars.days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    this.vars.days = [0, 1, 2, 3, 4, 5, 6]; // Order of days    
+    this.vars.day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     // get data from database
-    this.users = this.serviceService.getUsers();
-    this.lines = this.serviceService.getApprovalLines();
+    this.vars.users = this.serviceService.getUsers();
+    this.vars.lines = this.serviceService.getApprovalLines();
 
     // convert rows from database into object
-    var converted = this.convertLinesToObject(this.lines)
-    var converted_studio = this.convertLinesToObject_studio(this.lines);
+    var converted = this.convertLinesToObject(this.vars.lines)
+    var converted_studio = this.convertLinesToObject_studio(this.vars.lines);
 
     // set titles object 
-    this.titles = converted['titles'];
-    this.titles_studio = converted_studio['titles'];
+    this.vars.titles = converted['titles'];
+    this.vars.titles_studio = converted_studio['titles'];
+
+    this.vars.timesheet = Array();
+    this.vars.timesheet_by_user = Object();
+
+    this.vars.save_timeout;
 
     // Reset User's Total Hours
-    for (var user in this.users) {      
-      this.users[user]['Data']['TotalHours'] = 0;
-      this.users[user]['Data']['TotalHours_ByDay']['t'] = [0,0,0,0,0,0,0,0];
+    for (var user in this.vars.users) {
+      this.vars.users[user]['Data']['TotalHours'] = 0;
+      this.vars.users[user]['Data']['TotalHours_byDay']['t'] = [0, 0, 0, 0, 0, 0, 0, 0];
     }
 
     // generate timesheet structure from timesheet obj
-    this.timesheet = this.generateApprovalLayoutObject(converted['timesheet'], this.titles, true);
+    this.vars.timesheet = this.generateApprovalLayoutObject(converted['timesheet'], this.vars.titles, true);
 
 
     // generate timesheet_studio structure from timesheet obj
-    this.timesheet_studio = this.generateApprovalLayoutObject(converted_studio['timesheet'], this.titles_studio, false);
+    this.vars.timesheet_studio = this.generateApprovalLayoutObject(converted_studio['timesheet'], this.vars.titles_studio, false);
 
 
     // generate timesheet breakdown for every user
     for (var x in converted['timesheet_by_user']) {
-      this.timesheet_by_user[x] = this.serviceService.generateTimesheetByUser(converted['timesheet_by_user'][x], this.titles, null)
+      this.vars.timesheet_by_user[x] = this.serviceService.generateTimesheetByUser(converted['timesheet_by_user'][x], this.vars.titles, null)
+
+      var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(this.vars.timesheet_by_user[x], this.vars.users[x].Data.TotalHours_byDay, this.vars.users[x].OfficeKey);
+      this.vars.users[x].Data.timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];
+      
+      var tmp_vars = {
+        timesheet_totals_byShow: this.vars.users[x].Data.timesheet_totals_byShow,
+        timesheet_totals: this.vars.users[x].Data.TotalHours_byDay,
+        ot_sel: this.vars.users[x].ot_sel,
+        current_office: this.vars.users[x].OfficeKey,
+        show_ot_breakdown: false
+      }
+
+      this.vars.users[x].Data.ot_assignment = this.serviceService.overtimeBreakdown(tmp_vars, true);      
     }
 
     // Sum hours
-    this.timesheet = this.serviceService.sumHours(this.timesheet);
+    this.vars.timesheet = this.serviceService.sumHours(this.vars.timesheet);
 
   }
 
   // save changes made to approval page (approvals and rejections)
   save() {
-    this.save_status = "saving"
-    this.save_status_color = "yellow"
+    this.vars.save_status = "saving"
+    this.vars.save_status_color = "yellow"
     let loc_this = this;
 
-    clearTimeout(this.save_timeout);
+    clearTimeout(this.vars.save_timeout);
 
     // post to script will occur here once developed
 
-    this.save_timeout = setTimeout(function () {
-      loc_this.save_status = "saved";
-      loc_this.save_status_color = "green"
+    this.vars.save_timeout = setTimeout(function () {
+      loc_this.vars.save_status = "saved";
+      loc_this.vars.save_status_color = "green"
     }, 1500)
   }
 
@@ -112,7 +122,7 @@ export class ApprovalComponent implements OnInit {
     let titles_by_user = {};
 
     for (var i = 0; i < lines.length; i++) {
-      var element = this.lines[i];
+      var element = this.vars.lines[i];
 
 
 
@@ -252,7 +262,7 @@ export class ApprovalComponent implements OnInit {
     let titles_by_user = {};
 
     for (var i = 0; i < lines.length; i++) {
-      var element = this.lines[i];
+      var element = this.vars.lines[i];
 
 
       // Go through all of the tTime records and creates a JSON
@@ -341,6 +351,7 @@ export class ApprovalComponent implements OnInit {
                   rejected: false,
                   rejected_by: false,
                   rejected_note: '',
+                  rejected_note_department: '',
                   rejected_hover: false,
                   approved: false,
                   approved_by: false,
@@ -350,7 +361,7 @@ export class ApprovalComponent implements OnInit {
                 })
 
                 if (sum_user_hours) {
-                  this.users[prop_3] = this.sumArrayHours(this.users[prop_3], timesheet_in[prop_1][prop_2][prop_3]['Hours']);
+                  this.vars.users[prop_3] = this.sumArrayHours(this.vars.users[prop_3], timesheet_in[prop_1][prop_2][prop_3]['Hours']);
                 }
 
                 for (var prop_4 in timesheet_in[prop_1][prop_2][prop_3]) {
@@ -362,11 +373,19 @@ export class ApprovalComponent implements OnInit {
                       hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours'],
                       children: children[4],
                       showNote: false,
-                      ot: ot
+                      ot: ot,
+                      rejected: false,
+                      rejected_by: false,
+                      rejected_note: '',
+                      rejected_note_department: '',
+                      rejected_hover: false,
+                      approved: false,
+                      approved_by: false,
+                      approved_dated: false
                     });
 
                     if (sum_user_hours) {
-                      this.users[prop_3] = this.sumArrayHours(this.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours']);
+                      this.vars.users[prop_3] = this.sumArrayHours(this.vars.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours']);
                     }
                     for (var prop_5 in timesheet_in[prop_1][prop_2][prop_3][prop_4]) {
                       if (prop_5 != 'Hours') {
@@ -381,7 +400,7 @@ export class ApprovalComponent implements OnInit {
                         });
 
                         if (sum_user_hours) {
-                          this.users[prop_3] = this.sumArrayHours(this.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours']);
+                          this.vars.users[prop_3] = this.sumArrayHours(this.vars.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours']);
                         }
                         for (var prop_6 in timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]) {
                           if (prop_6 != 'Hours') {
@@ -394,7 +413,7 @@ export class ApprovalComponent implements OnInit {
                               ot: ot
                             });
                             if (sum_user_hours) {
-                              this.users[prop_3] = this.sumArrayHours(this.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5][prop_6]['Hours']);
+                              this.vars.users[prop_3] = this.sumArrayHours(this.vars.users[prop_3], timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5][prop_6]['Hours']);
                             }
                           }
                         }
@@ -412,7 +431,7 @@ export class ApprovalComponent implements OnInit {
         cat_key: prop_1,
         children: children[1]
       });
-    }    
+    }
     return timesheet_out;
   }
 
@@ -423,28 +442,27 @@ export class ApprovalComponent implements OnInit {
     try {
       for (var i = 0; i < array_in.length; i++) {
         user_data_out['Data']['TotalHours'] += array_in[i];
-        user_data_out['Data']['TotalHours_ByDay']['t'][i] += array_in[i];  // untouched hours
-        user_data_out['Data']['TotalHours_ByDay']['rt'][i] += array_in[i];
-        user_data_out['Data']['TotalHours_ByDay']['rt'][7] += array_in[i];
+        user_data_out['Data']['TotalHours_byDay']['t'][i] += array_in[i];  // untouched hours
+        user_data_out['Data']['TotalHours_byDay']['rt'][i] += array_in[i];
+        user_data_out['Data']['TotalHours_byDay']['rt'][7] += array_in[i];
       }
     } catch (err) { }
 
-
-    // this.serviceService.determineOvertimeBreakdown(user_data_out['Data']['TotalHours_ByDay'], user_data_out['OfficeKey'])
-    this.serviceService.determineOvertimeBreakdown(user_data_out['Data'], user_data_out['OfficeKey'])
-
+    var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(false, user_data_out['Data'], user_data_out['OfficeKey']);
+    user_data_out['Data'].timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];
+    
     return user_data_out
   }
 
   // approves selected row item 
   rowApproved(event, el) {
-    this.user_focused_el = el;
-    this.user_focused = false;
-    
+    this.vars.user_focused_el = el;
+    this.vars.user_focused = false;
+
     this.hideBreakdowns();
 
     if (el['approved']) {
-      this.approval_vars.showPopup_unapproval = true;
+      this.vars.showPopup_unapproval = true;
     } else {
       this.save();
       el['approved'] = true;
@@ -452,33 +470,33 @@ export class ApprovalComponent implements OnInit {
     }
   }
 
-  hideBreakdowns(){
-    this.user_focused = false;
-    this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'breakdown_show', false)
-    this.timesheet_studio = this.serviceService.hideShowDivs(this.timesheet_studio, 'breakdown_show', false)
+  hideBreakdowns() {
+    this.vars.user_focused = false;
+    this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'breakdown_show', false)
+    this.vars.timesheet_studio = this.serviceService.hideShowDivs(this.vars.timesheet_studio, 'breakdown_show', false)
   }
 
   // rejects selected row item
-  rowRejectedConfirm(el) {    
+  rowRejectedConfirm(el) {
     if (!el.rejected) {
-      this.approval_vars.showPopup_reject_text_artist = false;
-      this.approval_vars.showPopup_reject_text_department = false;
-      this.user_focused_el = el;
-      this.approval_vars.showPopup_reject = true;
+      this.vars.showPopup_reject_text_artist = false;
+      this.vars.showPopup_reject_text_department = false;
+      this.vars.user_focused_el = el;
+      this.vars.showPopup_reject = true;
     }
   }
 
   // rejects selected row item
   rowRejected() {
     // Set all rows for this user to rejected
-    var timesheet_array = [this.timesheet, this.timesheet_studio];
+    var timesheet_array = [this.vars.timesheet, this.vars.timesheet_studio];
 
     for (var i = 0; i < timesheet_array.length; i++) {
       for (var x_1 in timesheet_array[i]) {
         for (var x_2 in timesheet_array[i][x_1]['children']) {
           for (var x_3 in timesheet_array[i][x_1]['children'][x_2]['children']) {
             try {
-              if (timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['cat_key'] == this.user_focused_el['cat_key']) {
+              if (timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['cat_key'] == this.vars.user_focused_el['cat_key']) {
                 timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['rejected'] = true;
                 timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['approved'] = false;
                 timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['approved_by'] = '';
@@ -486,7 +504,7 @@ export class ApprovalComponent implements OnInit {
             } catch (err) { }
             for (var x_4 in timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children']) {
               try {
-                if (timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children'][x_4]['cat_key'] == this.user_focused_el['cat_key']) {
+                if (timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children'][x_4]['cat_key'] == this.vars.user_focused_el['cat_key']) {
                   timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children'][x_4]['rejected'] = true;
                   timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children'][x_4]['approved'] = false;
                   timesheet_array[i][x_1]['children'][x_2]['children'][x_3]['children'][x_4]['approved_by'] = '';
@@ -498,61 +516,85 @@ export class ApprovalComponent implements OnInit {
       }
     }
 
-    var el = this.user_focused_el;
+    var el = this.vars.user_focused_el;
     el['rejected'] = true;
     el['rejected_by'] = 'Your Name';
 
-    if (this.approval_vars.showPopup_reject_text_artist != false) {
-      this.user_focused_el['rejected_note'] = this.approval_vars.showPopup_reject_text_artist.trim();
+    if (this.vars.showPopup_reject_text_artist != false) {
+      this.vars.user_focused_el['rejected_note'] = this.vars.showPopup_reject_text_artist.trim();
     }
 
-    if (this.approval_vars.showPopup_reject_text_department != false) {
-      this.user_focused_el['rejected_note_department'] = this.approval_vars.showPopup_reject_text_department.trim();
+    if (this.vars.showPopup_reject_text_department != false) {
+      this.vars.user_focused_el['rejected_note_department'] = this.vars.showPopup_reject_text_department.trim();
     }
 
-    this.approval_vars.showPopup_reject = false;
+    this.vars.showPopup_reject = false;
     this.save();
   }
 
   // toggle the timesheet view for the selected user
   toggleBreakdown(event, UserKey, el) {
-    var cur_state = el.breakdown_show;    
+    var cur_state = el.breakdown_show;
     this.hideBreakdowns();
 
     if (cur_state) {
       el.breakdown_show = false;
-      this.user_focused = false;
+      this.vars.user_focused = false;
     } else {
       el.breakdown_show = true;
-      this.user_focused = UserKey;
+      this.vars.user_focused = UserKey;
     }
   }
 
 
   updateNote(event, to) {
     if (to == 'artist') {
-      this.approval_vars.showPopup_reject_text_artist = event.target.value;
+      this.vars.showPopup_reject_text_artist = event.target.value;
     } else {
-      this.approval_vars.showPopup_reject_text_department = event.target.value;
+      this.vars.showPopup_reject_text_department = event.target.value;
     }
   }
 
   // close popup window that opened when the user pressed the rejection button
   unapprovalConfirmed(event) {
-    this.approval_vars.showPopup_unapproval = false;
-    this.user_focused_el['approved'] = false;
-    this.user_focused_el['approved_by'] = false;
+    this.vars.showPopup_unapproval = false;
+    this.vars.user_focused_el['approved'] = false;
+    this.vars.user_focused_el['approved_by'] = false;
     this.save();
   }
 
   closePopup() {
-    this.approval_vars.showPopup_unapproval = false;
+    this.vars.showPopup_unapproval = false;
   }
 
 
   // temp function during dev
   weekSelected(week_i) {
-    this.approval_date = this.week_labels[week_i];
-    this.approval_vars.showCal = false;
+    this.vars.approval_date = this.week_labels[week_i];
+    this.vars.showCal = false;
   }
+
+
+  sumArray(in_array){
+    var total = 0;
+    in_array[7] = 0;
+
+    for(var i_i=0;i_i < 7; i_i++){
+      total += in_array[i_i];
+      in_array[7] += in_array[i_i];
+    }
+
+    return total;
+  }
+
+  hasOT(array_in, cat_1, cat_2, day){    
+    for(var i =0; i < array_in.length; i++){
+
+      if(array_in[i].day == day && array_in[i].cat_1 == cat_1 && array_in[i].cat_2 == cat_2) {
+        
+        return array_in[i].hours;
+      }
+    }
+    return false
+  } 
 }

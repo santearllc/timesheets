@@ -13,13 +13,14 @@ import { Line } from '../models/Line'
 
 @Injectable()
 export class ServiceService {
-  lines: Line[];  
+  lines: Line[];
   lines_sample: Line[];
   lines_init: Line[];
   lines_approval: Line[];
   shot_tasks = [];
   asset_tasks = [];
   production_tasks = [];
+  supervision_tasks = [];
   project_tasks = [];
   department_tasks = [];
   shots = [];
@@ -37,10 +38,11 @@ export class ServiceService {
         FirstName: 'Violet',
         LastName: 'Rogerson',
         OfficeKey: 1,
-        TimeSheetStatus: 0,
+        TimeSheetStatus: 0,        
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -55,9 +57,10 @@ export class ServiceService {
         LastName: 'Donaldson',
         OfficeKey: 1,
         TimeSheetStatus: 1,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -72,9 +75,10 @@ export class ServiceService {
         LastName: 'Stacie',
         OfficeKey: 1,
         TimeSheetStatus: 0,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -89,9 +93,10 @@ export class ServiceService {
         LastName: 'Kelley',
         OfficeKey: 1,
         TimeSheetStatus: 3,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -106,9 +111,10 @@ export class ServiceService {
         LastName: 'Cross',
         OfficeKey: 1,
         TimeSheetStatus: 0,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -123,9 +129,10 @@ export class ServiceService {
         LastName: 'Fleming',
         OfficeKey: 1,
         TimeSheetStatus: 4,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -140,9 +147,10 @@ export class ServiceService {
         LastName: 'Townsend',
         OfficeKey: 1,
         TimeSheetStatus: 4,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -157,9 +165,10 @@ export class ServiceService {
         LastName: 'Layton',
         OfficeKey: 1,
         TimeSheetStatus: 4,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -174,9 +183,10 @@ export class ServiceService {
         LastName: 'Simonson',
         OfficeKey: 1,
         TimeSheetStatus: 0,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -191,9 +201,10 @@ export class ServiceService {
         LastName: 'Chandler',
         OfficeKey: 1,
         TimeSheetStatus: 2,
+        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
         Data: {
           TotalHours: 0,
-          TotalHours_ByDay: {
+          TotalHours_byDay: {
             t: [0, 0, 0, 0, 0, 0, 0, 0],
             rt: [0, 0, 0, 0, 0, 0, 0, 0],
             ot: [0, 0, 0, 0, 0, 0, 0, 0],
@@ -204,7 +215,7 @@ export class ServiceService {
     }
 
 
-    this.department_tasks = [      
+    this.department_tasks = [
       {
         Cat_key: 1,
         Cat_Title: "Bereavement"
@@ -362,10 +373,6 @@ export class ServiceService {
 
     this.departments = [
       {
-        Cat_key: -1,
-        Cat_Title: "Select Department"
-      },
-      {
         Cat_key: 1,
         Cat_Title: "Executive"
       },
@@ -413,7 +420,7 @@ export class ServiceService {
 
 
 
-    this.project_tasks = [      
+    this.project_tasks = [
       {
         Cat_key: 5,
         Cat_Title: "Shots"
@@ -427,13 +434,17 @@ export class ServiceService {
         Cat_Title: "Production Staff"
       },
       {
+        Cat_key: 7,
+        Cat_Title: "Supervision"
+      },
+      {
         Cat_key: 2,
         Cat_Title: "Down Time"
       },
       {
         Cat_key: 3,
         Cat_Title: "R&D "
-      },      
+      },
       {
         Cat_key: 1,
         Cat_Title: "Training"
@@ -442,24 +453,12 @@ export class ServiceService {
 
     this.production_tasks = [
       {
-        Cat_key: -1,
-        Cat_Title: 'Select Role'
-      },
-      {
         Cat_key: 1,
         Cat_Title: 'Assistant Editor'
       },
       {
-        Cat_key: 2,
-        Cat_Title: 'CG Supervisor'
-      },
-      {
         Cat_key: 3,
         Cat_Title: 'Coordinator'
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: 'DFX Supervisor'
       },
       {
         Cat_key: 5,
@@ -476,6 +475,18 @@ export class ServiceService {
       {
         Cat_key: 8,
         Cat_Title: 'Production Manager'
+      }
+    ];
+
+
+    this.supervision_tasks = [
+      {
+        Cat_key: 2,
+        Cat_Title: 'CG Supervisor'
+      },
+      {
+        Cat_key: 4,
+        Cat_Title: 'DFX Supervisor'
       },
       {
         Cat_key: 9,
@@ -487,7 +498,7 @@ export class ServiceService {
       }
     ];
 
-    this.shot_tasks = [      
+    this.shot_tasks = [
       {
         Cat_key: 1,
         Cat_Title: 'Animation'
@@ -551,7 +562,7 @@ export class ServiceService {
     ];
 
 
-    this.asset_tasks = [      
+    this.asset_tasks = [
       {
         Cat_key: 1,
         Cat_Title: "3D Enviro Build"
@@ -623,8 +634,7 @@ export class ServiceService {
         Cat_4_Title: '',
         Cat_5: null,
         Cat_5_Title: '',
-        Hours: null,
-        OT: null,
+        Hours: null,        
         Note: null
       },
       {
@@ -639,8 +649,7 @@ export class ServiceService {
         Cat_4_Title: '',
         Cat_5: null,
         Cat_5_Title: '',
-        Hours: [0, 0, 0, 0, 0, 0, 0],
-        OT: null,
+        Hours: [0, 0, 0, 0, 0, 0, 0],        
         Note: null
       }
     ];
@@ -659,8 +668,7 @@ export class ServiceService {
         Cat_4_Title: '',
         Cat_5: null,
         Cat_5_Title: '',
-        Hours: [0, 0, 0, 0, 0, 0, 0],
-        OT: null,
+        Hours: [0, 0, 0, 0, 0, 0, 0],        
         Note: null
       },
       {
@@ -676,7 +684,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "ST001_001_003",
         Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -692,7 +699,6 @@ export class ServiceService {
         Cat_5: 3,
         Cat_5_Title: "ST001_001_003",
         Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -708,7 +714,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "ST001_001_004",
         Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -724,7 +729,6 @@ export class ServiceService {
         Cat_5: 5,
         Cat_5_Title: "ST001_001_005",
         Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -740,7 +744,6 @@ export class ServiceService {
         Cat_5: 3,
         Cat_5_Title: "ST001_001_003",
         Hours: [0, 2, 0, 3, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -756,7 +759,6 @@ export class ServiceService {
         Cat_5: 2,
         Cat_5_Title: "ST002",
         Hours: [0, 2, 0, 2.5, 4, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -772,7 +774,6 @@ export class ServiceService {
         Cat_5: 3,
         Cat_5_Title: "ST003",
         Hours: [0, 2, 0, 2.5, 4, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -788,7 +789,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 2, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -804,7 +804,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "ST001_001_001",
         Hours: [0, 0, 7, 0, 5, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -820,7 +819,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 0, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -836,7 +834,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 0, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -852,7 +849,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [8, 0, 0, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       }
     ]
@@ -874,7 +870,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [0, 0, 0, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: 'This is a note from the user.'
       },
       {
@@ -890,7 +885,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 0, 1, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -906,7 +900,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 1, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -922,7 +915,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -938,7 +930,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [2, 0, 1, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -954,7 +945,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [0, 1, 0, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -970,7 +960,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 0, 0, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -986,7 +975,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [2, 2, 2, 0, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1002,7 +990,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 2, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1018,7 +1005,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [2, 2, 0, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1034,7 +1020,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1050,7 +1035,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1066,7 +1050,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1082,7 +1065,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [0, 1, 1, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1098,7 +1080,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [2, 0, 0, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1114,7 +1095,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 1, 2, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1130,7 +1110,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [2, 2, 2, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1146,7 +1125,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 0, 2, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1162,7 +1140,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [0, 2, 0, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1178,7 +1155,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 2, 1, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1194,7 +1170,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1210,7 +1185,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1226,7 +1200,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1242,7 +1215,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1258,7 +1230,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [0, 2, 2, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1274,7 +1245,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [0, 1, 0, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1290,7 +1260,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 0, 1, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1306,7 +1275,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [2, 1, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1322,7 +1290,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 0, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1338,7 +1305,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [2, 1, 0, 0, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1354,7 +1320,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1370,7 +1335,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 1, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1386,7 +1350,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 2, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1402,7 +1365,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [1, 0, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1418,7 +1380,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [0, 1, 2, 0, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1434,7 +1395,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 2, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1450,7 +1410,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [2, 0, 0, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1466,7 +1425,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 0, 2, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1482,7 +1440,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [0, 0, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1498,7 +1455,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 0, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1514,7 +1470,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1530,7 +1485,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 0, 1, 0, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1546,7 +1500,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [2, 2, 2, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1562,7 +1515,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [1, 1, 2, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1578,7 +1530,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 2, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1594,7 +1545,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [1, 0, 2, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1610,7 +1560,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 0, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1626,7 +1575,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [0, 1, 1, 0, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1642,7 +1590,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 1, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1658,7 +1605,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 2, 2, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1674,7 +1620,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1690,7 +1635,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [2, 1, 1, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1706,7 +1650,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [1, 1, 0, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1722,7 +1665,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [2, 0, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1738,7 +1680,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [1, 2, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1754,7 +1695,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 1, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1770,7 +1710,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [0, 0, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1786,7 +1725,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 1, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1802,7 +1740,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 2, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1818,7 +1755,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 0, 1, 0, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1834,7 +1770,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [1, 2, 2, 0, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1850,7 +1785,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [2, 1, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1866,7 +1800,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 0, 2, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1882,7 +1815,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [1, 0, 2, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1898,7 +1830,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 2, 1, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1914,7 +1845,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [1, 2, 1, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1930,7 +1860,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 0, 2, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1946,7 +1875,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 0, 0, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1962,7 +1890,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 2, 0, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1978,7 +1905,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [2, 1, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -1994,7 +1920,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [0, 1, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2010,7 +1935,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [0, 2, 0, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2026,7 +1950,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [1, 2, 0, 2, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2042,7 +1965,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 2, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2058,7 +1980,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [1, 0, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2074,7 +1995,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 2, 0, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2090,7 +2010,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 1, 0, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2106,7 +2025,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [2, 1, 0, 0, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2122,7 +2040,6 @@ export class ServiceService {
         Cat_5: 1,
         Cat_5_Title: "Animation",
         Hours: [2, 0, 0, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2138,7 +2055,6 @@ export class ServiceService {
         Cat_5: 4,
         Cat_5_Title: "Cloth Simulation",
         Hours: [2, 2, 2, 1, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2154,7 +2070,6 @@ export class ServiceService {
         Cat_5: 6,
         Cat_5_Title: "Crowd Setup",
         Hours: [1, 1, 1, 1, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2170,7 +2085,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "Enviro Layout",
         Hours: [0, 1, 0, 0, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2186,7 +2100,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 1, 2, 0, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2202,7 +2115,6 @@ export class ServiceService {
         Cat_5: 7,
         Cat_5_Title: "FX",
         Hours: [2, 2, 0, 1, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2218,7 +2130,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 2, 2, 0, 1, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2234,7 +2145,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [1, 2, 1, 2, 0, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2250,7 +2160,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 1, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       },
       {
@@ -2266,7 +2175,6 @@ export class ServiceService {
         Cat_5: null,
         Cat_5_Title: "",
         Hours: [0, 0, 1, 2, 2, 0, 0],
-        OT: [false, false, false, false, false, false, false],
         Note: null
       }
     ]
@@ -2301,7 +2209,11 @@ export class ServiceService {
     return this.production_tasks;
   }
 
-  getProjectTasks() {
+  getSupervisionTasks() {
+    return this.supervision_tasks;
+  }
+
+  getShowTasks() {
     return this.project_tasks;
   }
 
@@ -2313,7 +2225,7 @@ export class ServiceService {
     return this.assets;
   }
 
-  getProjects() {
+  getShows() {
     return this.projects;
   }
 
@@ -2379,10 +2291,10 @@ export class ServiceService {
           if (prop_2 != 'Hours') {
             children[2] = [];  // reset children
             var show_add_line = false;
-            
-            try{
-              show_add_line = show_add_lines[prop_1][prop_2];               
-            } catch(err){ }
+
+            try {
+              show_add_line = show_add_lines[prop_1][prop_2];
+            } catch (err) { }
 
             children[1].push({
               title: titles[prop_1][prop_2].Title,
@@ -2394,9 +2306,10 @@ export class ServiceService {
               hours: timesheet_in[prop_1][prop_2]['Hours'],
               focus: [false, false, false, false, false, false, false],
               children: children[2],
-              projectTask : -1,
-              departmentTask : -1,
-              show_add_line: show_add_line
+              projectTask: -1,
+              departmentTask: -1,
+              show_add_line: show_add_line,
+              autofocus: null
             });
             for (var prop_3 in timesheet_in[prop_1][prop_2]) {
               if (prop_3 != 'Hours') {
@@ -2408,7 +2321,8 @@ export class ServiceService {
                   hours: timesheet_in[prop_1][prop_2][prop_3]['Hours'],
                   focus: [false, false, false, false, false, false, false],
                   children: children[3],
-                  productionTask : -1
+                  productionTask: -1,
+                  autofocus: null
                 });
                 for (var prop_4 in timesheet_in[prop_1][prop_2][prop_3]) {
                   if (prop_4 != 'Hours') {
@@ -2419,7 +2333,8 @@ export class ServiceService {
                       hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours'],
                       focus: [false, false, false, false, false, false, false],
                       children: children[4],
-                      productionTask : -1
+                      productionTask: -1,
+                      autofocus: null
                     });
                     for (var prop_5 in timesheet_in[prop_1][prop_2][prop_3][prop_4]) {
                       if (prop_5 != 'Hours') {
@@ -2429,7 +2344,8 @@ export class ServiceService {
                           hours: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours'],
                           focus: [false, false, false, false, false, false, false],
                           children: [],
-                          productionTask : -1
+                          productionTask: -1,
+                          autofocus: null
                         });
                       }
                     }
@@ -2445,7 +2361,8 @@ export class ServiceService {
         cat_key: prop_1,
         hours: timesheet_in[prop_1]['Hours'],
         children: children[1],
-        show_add_line: (children[1].length <= 0 && parseInt(prop_1) == 0) ? true : false
+        show_add_line: (children[1].length <= 0 && parseInt(prop_1) == 0) ? true : false,
+        autofocus: (children[1].length <= 0 && parseInt(prop_1) == 0) ? true : null,
       });
     }
     return timesheet_out;
@@ -2461,6 +2378,7 @@ export class ServiceService {
   }
 
   hideShowDivs(timesheet, prop_sel, bool_set) {
+
     for (var x_1 in timesheet) {
       try {
         timesheet[x_1][prop_sel] = bool_set;
@@ -2489,28 +2407,65 @@ export class ServiceService {
     return timesheet;
   }
 
-  determineOvertimeBreakdown(timesheet_in, office_key) {
-    var timesheet_out = Object.assign([], timesheet_in);
+  totalsOvertimeBreakdown(timesheet, totals_in, office_key) {
+    var totals_out = Object.assign([], totals_in);    
     var entry_page = false;
 
-    if (!timesheet_out.hasOwnProperty('TotalHours_ByDay')) {
-      timesheet_out['TotalHours_ByDay'] = timesheet_out;
-      timesheet_out['TotalHours_ByDay']['t'] = timesheet_out['TotalHours_ByDay']['rt'];
+
+    // Get totals by Show/Department
+    var by_show = { 0: {}, 1: {} };
+
+    for (var x_1 = 0; x_1 < timesheet.length; x_1++) {
+      for (var x_2 = 0; x_2 < timesheet[x_1]['children'].length; x_2++) {
+        by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']] = {};
+        by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'] = [0, 0, 0, 0, 0, 0, 0, 0];
+        by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['ot'] = timesheet[x_1]['children'][x_2]['ot'];
+
+        for (var x_3 = 0; x_3 < timesheet[x_1]['children'][x_2]['children'].length; x_3++) {
+          if (timesheet[x_1]['children'][x_2]['children'][x_3]['hours']) {
+            for (var d = 0; d < 7; d++) {
+              by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][d] += timesheet[x_1]['children'][x_2]['children'][x_3]['hours'][d];
+              by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][7] += timesheet[x_1]['children'][x_2]['children'][x_3]['hours'][d];
+            }
+          }
+          for (var x_4 = 0; x_4 < timesheet[x_1]['children'][x_2]['children'][x_3]['children'].length; x_4++) {
+            if (timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['hours']) {
+              for (var d = 0; d < 7; d++) {
+                by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][d] += timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['hours'][d];
+                by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][7] += timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['hours'][d];
+              }
+            }
+            for (var x_5 = 0; x_5 < timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children'].length; x_5++) {
+              if (timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children'][x_5]['hours']) {
+                for (var d = 0; d < 7; d++) {
+                  by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][d] += timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children'][x_5]['hours'][d];
+                  by_show[timesheet[x_1]['cat_key']][timesheet[x_1]['children'][x_2]['cat_key']]['hours'][7] += timesheet[x_1]['children'][x_2]['children'][x_3]['children'][x_4]['children'][x_5]['hours'][d];
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    totals_out['TotalHours_byShow']  = by_show;
+
+    if (!totals_out.hasOwnProperty('TotalHours_byDay')) {
+      totals_out['TotalHours_byDay'] = totals_out;
+      totals_out['TotalHours_byDay']['t'] = totals_out['TotalHours_byDay']['rt'];
       entry_page = true;
     }
 
     //Reset OT Totals
-    timesheet_out['TotalHours_ByDay']['rt'][7] = 0;
-    timesheet_out['TotalHours_ByDay']['ot'][7] = 0;
-    timesheet_out['TotalHours_ByDay']['dt'][7] = 0;
-
-
+    totals_out['TotalHours_byDay']['rt'][7] = 0;
+    totals_out['TotalHours_byDay']['ot'][7] = 0;
+    totals_out['TotalHours_byDay']['dt'][7] = 0;
 
     if (office_key == 0) { // California Rules 
       var cons_days = 0;  // counter for continous days 
 
       for (var i = 0; i < 7; i++) {
-        var d_h = timesheet_out['TotalHours_ByDay']['t'][i];  // hours for the current day
+        var d_h = totals_out['TotalHours_byDay']['t'][i];  // hours for the current day
 
         if (d_h > 0.0) {
           cons_days++;
@@ -2519,43 +2474,43 @@ export class ServiceService {
         }
 
         if (cons_days == 7) {
-          timesheet_out['TotalHours_ByDay']['rt'][i] = 0;
+          totals_out['TotalHours_byDay']['rt'][i] = 0;
 
           if (d_h <= 8) {
-            timesheet_out['TotalHours_ByDay']['ot'][i] = d_h;
+            totals_out['TotalHours_byDay']['ot'][i] = d_h;
 
             // Update grand Totals
-            timesheet_out['TotalHours_ByDay']['ot'][7] += d_h;
+            totals_out['TotalHours_byDay']['ot'][7] += d_h;
 
           } else {
-            timesheet_out['TotalHours_ByDay']['dt'][i] = d_h - 8;
-            timesheet_out['TotalHours_ByDay']['ot'][i] = 8;
+            totals_out['TotalHours_byDay']['dt'][i] = d_h - 8;
+            totals_out['TotalHours_byDay']['ot'][i] = 8;
 
             //Update Grand Totals
-            timesheet_out['TotalHours_ByDay']['ot'][7] += timesheet_out['TotalHours_ByDay']['ot'][i];
-            timesheet_out['TotalHours_ByDay']['dt'][7] += timesheet_out['TotalHours_ByDay']['dt'][i];
+            totals_out['TotalHours_byDay']['ot'][7] += totals_out['TotalHours_byDay']['ot'][i];
+            totals_out['TotalHours_byDay']['dt'][7] += totals_out['TotalHours_byDay']['dt'][i];
           }
         } else {
           if (d_h > 8 && d_h <= 12) {
-            timesheet_out['TotalHours_ByDay']['ot'][i] = timesheet_out['TotalHours_ByDay']['rt'][i] - 8;
-            timesheet_out['TotalHours_ByDay']['rt'][i] = 8;
+            totals_out['TotalHours_byDay']['ot'][i] = totals_out['TotalHours_byDay']['t'][i] - 8;
+            totals_out['TotalHours_byDay']['rt'][i] = 8;
 
             // Update grand Totals
-            timesheet_out['TotalHours_ByDay']['ot'][7] += timesheet_out['TotalHours_ByDay']['ot'][i];
-            timesheet_out['TotalHours_ByDay']['rt'][7] += timesheet_out['TotalHours_ByDay']['rt'][i];
+            totals_out['TotalHours_byDay']['ot'][7] += totals_out['TotalHours_byDay']['ot'][i];
+            totals_out['TotalHours_byDay']['rt'][7] += totals_out['TotalHours_byDay']['t'][i];
 
           } else if (d_h > 12) {
-            timesheet_out['TotalHours_ByDay']['dt'][i] = timesheet_out['TotalHours_ByDay']['rt'][i] - 12;
-            timesheet_out['TotalHours_ByDay']['ot'][i] = 4;
-            timesheet_out['TotalHours_ByDay']['rt'][i] = 8;
+            totals_out['TotalHours_byDay']['dt'][i] = totals_out['TotalHours_byDay']['t'][i] - 12;
+            totals_out['TotalHours_byDay']['ot'][i] = 4;
+            totals_out['TotalHours_byDay']['rt'][i] = 8;
 
             //Update Grand Totals
-            timesheet_out['TotalHours_ByDay']['rt'][7] += timesheet_out['TotalHours_ByDay']['rt'][i];
-            timesheet_out['TotalHours_ByDay']['ot'][7] += timesheet_out['TotalHours_ByDay']['ot'][i];
-            timesheet_out['TotalHours_ByDay']['dt'][7] += timesheet_out['TotalHours_ByDay']['dt'][i];
+            totals_out['TotalHours_byDay']['rt'][7] += totals_out['TotalHours_byDay']['rt'][i];
+            totals_out['TotalHours_byDay']['ot'][7] += totals_out['TotalHours_byDay']['ot'][i];
+            totals_out['TotalHours_byDay']['dt'][7] += totals_out['TotalHours_byDay']['dt'][i];
           } else {
             // Update Grand Totals
-            timesheet_out['TotalHours_ByDay']['rt'][7] += timesheet_out['TotalHours_ByDay']['rt'][i];
+            totals_out['TotalHours_byDay']['rt'][7] += totals_out['TotalHours_byDay']['rt'][i];
           }
         }
       }
@@ -2563,21 +2518,22 @@ export class ServiceService {
       let cur_total = 0;
       let ot_triggerd = false;
 
+      // go through every day... 
       for (var i = 0; i < 7; i++) {
 
-        var d_h = timesheet_out['TotalHours_ByDay']['t'][i];
+        var d_h = totals_out['TotalHours_byDay']['t'][i]; // set current day hours         
         cur_total += d_h
         var hours_rt = 0;
         var hours_ot = 0;
 
         // Check to see if the current total hours are greater than 40 and that there are hours record for the current day				
-        if (cur_total > 40 && timesheet_out['TotalHours_ByDay']['rt'][i] > 0) {
+        if (cur_total > 40 && totals_out['TotalHours_byDay']['rt'][i] > 0) {
           hours_rt = 0;
           hours_ot = 0;
 
           if (ot_triggerd) {  // This day is all OT hours
-            timesheet_out['TotalHours_ByDay']['rt'][i] = 0.0;
-            hours_ot = d_h;
+            totals_out['TotalHours_byDay']['rt'][i] = 0.0;
+            hours_ot = d_h;            
           } else {
             hours_ot = cur_total - 40;
 
@@ -2586,25 +2542,99 @@ export class ServiceService {
             }
 
             // Update the timesheet_totals
-            timesheet_out['TotalHours_ByDay']['rt'][i] = hours_rt;
+            totals_out['TotalHours_byDay']['rt'][i] = hours_rt;
 
             // Next day will be all OT hours
             ot_triggerd = true;
           }
-          timesheet_out['TotalHours_ByDay']['ot'][i] = hours_ot;
-          timesheet_out['TotalHours_ByDay']['ot'][7] += hours_ot;
+          totals_out['TotalHours_byDay']['ot'][i] = hours_ot;
+          totals_out['TotalHours_byDay']['ot'][7] += hours_ot;
         } else {
-          timesheet_out['TotalHours_ByDay']['rt'][i] = d_h;
+          totals_out['TotalHours_byDay']['rt'][i] = d_h;
           hours_rt = d_h
         }
-        timesheet_out['TotalHours_ByDay']['rt'][7] += hours_rt;
+        totals_out['TotalHours_byDay']['rt'][7] += hours_rt;
+      }      
+    }
+    return totals_out;
+  }
+
+
+  overtimeBreakdown(vars, return_values) {
+    // push show/dept to array with hours (that aren't the ot sel item)
+    var byHours = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+    for (var s_1 in vars.timesheet_totals_byShow) {
+      for (var s_2 in vars.timesheet_totals_byShow[s_1]) {
+        for (var i = 0; i < 7; i++) {
+          if (!(vars.ot_sel[i][0] == s_1 && vars.ot_sel[i][1] == s_2)) {
+            if (vars.timesheet_totals_byShow[s_1][s_2]['hours'][i] > 0.0) {
+              byHours[i].push({ hours: vars.timesheet_totals_byShow[s_1][s_2]['hours'][i], cat_1: s_1, cat_2: s_2 });
+            }
+          }
+        }
       }
     }
 
-    if(entry_page){
-      return timesheet_out['TotalHours_ByDay'];      
-    } else {
-      return timesheet_out;
+    // sort days' hour by show/dept hours (DESC)
+    for (var i = 0; i < 7; i++) {
+      byHours[i].sort(function (a, b) { return (a.hours < b.hours) ? 1 : ((b.hours < a.hours) ? -1 : 0); });
+    }
+
+    // prepend to the front the show/dept to array that is selected as the ot priority
+    for (var s_1 in vars.timesheet_totals_byShow) {
+      for (var s_2 in vars.timesheet_totals_byShow[s_1]) {
+        for (var i = 0; i < 7; i++) {
+          if (vars.ot_sel[i][0] == s_1 && vars.ot_sel[i][1] == s_2) {
+            byHours[i].unshift({ hours: vars.timesheet_totals_byShow[s_1][s_2]['hours'][i], cat_1: s_1, cat_2: s_2 });
+          }
+        }
+      }
+    }
+
+    var ot_assignment = { 'rt': [], 'ot': [], 'dt': [] };
+
+    
+    for (var i = 0; i < 7; i++) {
+      if (vars.timesheet_totals['ot'][i] > 0.0) {
+        var hours = vars.timesheet_totals['rt'][i];
+        var hours_ot = vars.timesheet_totals['ot'][i];
+        var hours_dt = vars.timesheet_totals['dt'][i];
+
+        // go through the projects in order of priorty
+        for (var x_1 in byHours[i]) {
+          var hours_byShow = byHours[i][x_1]['hours'];
+          
+          if (vars.current_office == 0) { // California Rules
+            
+            if (hours_dt > 0.0) {
+              ot_assignment['dt'].push({ day: i, hours: (hours_byShow > hours_dt) ? hours_dt : hours_byShow, cat_1: byHours[i][x_1]['cat_1'], cat_2: byHours[i][x_1]['cat_2'] });
+
+              // after assignment then we need to adjust the hours
+              var hours_byShow_tmp = hours_byShow;
+              hours_byShow = (hours_byShow > hours_dt) ? hours_byShow - hours_dt : 0;
+              hours_dt = (hours_byShow_tmp > hours_dt) ? 0 : hours_dt - hours_byShow_tmp;
+            }
+          }
+
+          if (hours_ot > 0.0 && hours_byShow > 0.0) {
+            ot_assignment['ot'].push({ day: i, hours: (hours_byShow > hours_ot) ? hours_ot : hours_byShow, cat_1: byHours[i][x_1]['cat_1'], cat_2: byHours[i][x_1]['cat_2'] });
+
+            // after assignment then we need to adjust the hours
+            var hours_byShow_tmp = hours_byShow;
+            hours_byShow = (hours_byShow > hours_ot) ? hours_byShow - hours_ot : 0;
+            hours_ot = (hours_byShow_tmp > hours_ot) ? 0 : hours_ot - hours_byShow_tmp;
+          }
+        }
+      }
+    }
+
+    vars.ot_assignment = ot_assignment;
+    vars.show_ot_breakdown = false;
+
+    
+    if(return_values){     
+      return vars.ot_assignment;
     }
   }
 

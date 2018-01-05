@@ -1,15 +1,18 @@
 .ot_bg{
 	background-color:#bfcced;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
 }
 
-.rejected_note{		
-	border:2px #c52727 solid;
+td{
+	vertical-align: middle;
 }
+
 
 .rejected_title{
 	font-size:1em;
-	font-weight: 800;
-
+	font-weight: 800;	
 }
 
 .rejected_text{
@@ -27,11 +30,113 @@
 .breakdown_div{
 	background-color:#BBB;
 	margin-bottom:20px;
+	margin-top:5px;
 	font-size:.8em;
 	box-shadow: 10px 10px 5px #888888;
 	padding:5px;
+	width:695px;
 }
 
 .note_text{
-	font-size:1em;
+	font-size:1.0em;
 }
+
+.rejected_note_text{
+	font-size:1em;
+	width:100%;
+	position: relative;
+	background: transparent;
+	box-shadow: 0px 0px 0px #888888;	
+}
+
+.rejected_note{		
+	border:2px #c52727 solid;
+	box-shadow: 5px 5px 10px #888888;	
+}
+
+.approved_note{
+	box-shadow: 5px 5px 10px #888888;	
+}
+
+
+.approved_by{
+	position: absolute;
+	background-color: #888888;
+	padding:5px;
+}
+
+
+.hideApprovedBy, .hideRejectedBy{
+	overflow: hidden;
+	max-height:0px;
+	opacity: 0;
+	transition: max-height .1s ease-out .11s, opacity .1s linear;	
+}
+
+
+.showApprovedBy{	
+    overflow: hidden;
+	max-height:100px;
+	opacity: 1.0;
+	transition: max-height .1s ease-out, opacity .1s linear .1s;	
+	transition-delay: 0.1s; 
+}
+
+.showRejectedBy{	
+    overflow: hidden;
+	max-height:700px;
+	opacity: 1.0;
+	transition: max-height .1s ease-out, opacity .1s linear .1s;	
+	transition-delay: 0.1s; 
+}
+
+.star{	
+	margin-top: -0.5em;
+	font-size: 80%;
+	color:#bfcced;
+	margin-right:-3px;
+	text-shadow:1px 1px #333;
+	background-color: #565656;
+	color: transparent;
+	text-shadow: 2px 2px 2px #bfcced;
+	-webkit-background-clip: text;
+	   -moz-background-clip: text;
+			background-clip: text;
+}
+
+.star_container{
+	position:absolute;
+	margin-top:-0.5em;
+	margin-left:3px;
+}
+
+.ot_popup{
+	display: inline-block;
+	white-space: nowrap;	
+	background-color:#333;
+	color:#BBB;
+	padding:5px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	margin-left: -15px;	
+}
+
+.ot_popup_container{
+	position: absolute;	
+	width: 20px;
+	height:20px;
+	display: inline-block;	
+	opacity: 0.0;
+	white-space: nowrap;
+	z-index: 1000;
+	margin-left:-3px;
+	margin-top:-5px;
+}
+
+.ot_popup_container:hover{
+	opacity: 1.0;
+	
+}
+
+

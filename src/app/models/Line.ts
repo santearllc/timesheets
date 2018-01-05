@@ -11,6 +11,5 @@ export interface Line{
     Cat_5:number;
     Cat_5_Title:String;
     Hours:any;
-    OT:any;
     Note:any;
 }

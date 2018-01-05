@@ -8,8 +8,9 @@
 
 import { Component } from '@angular/core';
 import { ServiceService } from '../services/service.service';
-import { forEach } from '@angular/router/src/utils/collection';
-import { SafeHtml } from '@angular/platform-browser';
+
+declare var jquery: any;
+declare var $: any;
 
 @Component({
 	selector: 'app-entry',
@@ -17,95 +18,71 @@ import { SafeHtml } from '@angular/platform-browser';
 	styleUrls: ['./entry.component.css']
 })
 
+
 export class EntryComponent {
-	// misc variables
-	username = 'Your Name';
-	user_department = 1;
-	timesheet_date = 'Dec 18 - Dec 24 (this week)';
-	lines: Object[];
+	// store all variables, objects, arrays in this object
+	vars = Object();
 
-	timesheet = Array();
-	titles = {};
-	timesheet_totals = {};
-	editList = true;
-	save_status;
-	save_status_color;
-	save_timeout;
-	show_add_remove_buttons_timeout;
-	current_office = 1;  // 0 = Oakland   1 = Montreal
-	submit_date;
-	popup = Object();
-	entry_vars = Object();
-
-	// Month and Day of Week Text
-	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-	days = [0, 1, 2, 3, 4, 5, 6];
+	// day of week text	
 	days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+	day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-	//dropdowns
-	shot_tasks;
-	asset_tasks;
-	production_tasks;
-	project_tasks;
-	department_tasks;
+	// temporary variables used during development	
+	user_department = 8;
+	week_labels = ['Jan 1 - Jan 7 (this week)',
+	'Jan 8 - Jan 14',
+	'Jan 15 - Jan 21',
+	'Jan 22 - Jan 28',
+	'Jan 29 - Feb 4'
+	]
 
-	// projects, shots, assets	
-	shots;
-	assets;
-	projects;
-	departments;
-	results;
-	project_selected;
-	shot_selected;
-	show_ot;
-	show_dt;
-	current_hover_el;
-
-	// temporary variables used during development
-	week_labels = ['Nov 27 - Dec 3 (this week)',
-		'Dec 4 - Dec 10 (this week)',
-		'Dec 11 - Dec 17 (this week)',
-		'Dec 18 - Dec 24 (this week)',
-		'Dec 25 - Dec 31 (this week)']
 
 	constructor(public serviceService: ServiceService) {
 		// connection to database functions
 	}
 
 	ngOnInit() {
-		this.timesheet_totals = {
+		this.vars.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
 			'ot': [0, 0, 0, 0, 0, 0, 0, 0],
 			'dt': [0, 0, 0, 0, 0, 0, 0, 0]
 		};
 
-		this.entry_vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
+		this.vars.days = [0, 1, 2, 3, 4, 5, 6]
+		this.vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
+		this.vars.ot_sel = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
+		this.vars.current_office = 1;  // 0 = Oakland   1 = Montreal		
+		this.vars.user_name = "Your Name"
+		this.vars.timesheet_date = 'Jan 1 - Jan 7 (this week)';	
 
-		this.entry_vars.show_add_lines = Object();
+		this.vars.show_add_lines = Object();
 
-		this.shot_tasks = this.serviceService.getShotTasks();
-		this.asset_tasks = this.serviceService.getAssetTasks();
-		this.production_tasks = this.serviceService.getProductionTasks();
-		this.project_tasks = this.serviceService.getProjectTasks();
-		this.shots = this.serviceService.getShots();
-		this.assets = this.serviceService.getAssets();
-		this.projects = this.serviceService.getProjects();
-		this.department_tasks = this.serviceService.getDepartmentTasks();
-		this.departments = this.serviceService.getDepartments();
-		this.lines = this.serviceService.getInitLines();
+		this.vars.shot_tasks = this.serviceService.getShotTasks();
+		this.vars.asset_tasks = this.serviceService.getAssetTasks();
+		this.vars.production_tasks = this.serviceService.getProductionTasks();
+		this.vars.supervision_tasks = this.serviceService.getSupervisionTasks();
+		this.vars.show_tasks = this.serviceService.getShowTasks();
+		this.vars.department_tasks = this.serviceService.getDepartmentTasks();
+
+		this.vars.shots = this.serviceService.getShots();
+		this.vars.assets = this.serviceService.getAssets();
+		this.vars.shows = this.serviceService.getShows();
+
+		this.vars.departments = this.serviceService.getDepartments();
+		this.vars.lines = this.serviceService.getInitLines();
 
 		// Convert rows queried from database to an object and then do some other tasks
-		let converted = this.convertLinesToObject(this.lines);
+		let converted = this.convertLinesToObject(this.vars.lines);
 
-		this.titles = converted['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'], this.titles, this.entry_vars.show_add_lines)
+		this.vars.titles = converted['titles'];
+		this.vars.timesheet = this.serviceService.generateTimesheetByUser(converted['timesheet'], this.vars.titles, this.vars.show_add_lines)
 
 		// sum hours
-		this.timesheet = this.serviceService.sumHours(this.timesheet);
+		this.vars.timesheet = this.serviceService.sumHours(this.vars.timesheet);
 	}
 
 	weekSelected(week_i) {
-		this.timesheet_date = this.week_labels[week_i];
+		this.vars.timesheet_date = this.week_labels[week_i];
 		//$('#cal').hide();
 		this.loadInitTimeheet();
 	}
@@ -115,7 +92,7 @@ export class EntryComponent {
 		let titles = {};
 
 		for (var i = 0; i < lines.length; i++) {
-			var element = this.lines[i];
+			var element = this.vars.lines[i];
 
 			// Go through all of the tTime records and creates a JSON
 			try {
@@ -167,7 +144,7 @@ export class EntryComponent {
 				timesheet[element['Cat_1']]['Hours'] = element['Hours'];
 			}
 
-			// Add titles to this.titles object; Will most likely change how titles are collected in the future 
+			// Add titles to this.vars.titles object; Will most likely change how titles are collected in the future 
 			try {
 				titles[element['Cat_1']][element['Cat_2']][element['Cat_3']][element['Cat_4']][element['Cat_5']]['Title'] = element['Cat_5_Title'];
 			} catch (err) { }
@@ -196,14 +173,14 @@ export class EntryComponent {
 		// add function to post data once database is setup
 
 		let loc_this = this;
-		this.save_status = "saving";
-		this.save_status_color = "yellow";
-		clearTimeout(this.save_timeout);
+		this.vars.save_status = "saving";
+		this.vars.save_status_color = "yellow";
+		clearTimeout(this.vars.save_timeout);
 
 		// return state back to saved after a certain period. 
-		this.save_timeout = setTimeout(function () {
-			loc_this.save_status = "saved";
-			loc_this.save_status_color = "green";
+		this.vars.save_timeout = setTimeout(function () {
+			loc_this.vars.save_status = "saved";
+			loc_this.vars.save_status_color = "green";
 		}, 1500);
 	}
 
@@ -211,9 +188,9 @@ export class EntryComponent {
 	updateHours(event, e, day) {
 
 		// Hide remove buttons
-		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
-		this.entry_vars.edit_line_items = false;
-		this.entry_vars.show_edit_line_items = false;
+		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_menu', false);
+		this.vars.edit_line_items = false;
+		this.vars.show_edit_line_items = false;
 
 		day = parseInt(day);
 
@@ -243,17 +220,15 @@ export class EntryComponent {
 	}
 
 	updateTimesheetTotals() {
-
-
 		// Reset timehseet totals before running function
-		this.timesheet_totals = {
+		this.vars.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
 			'ot': [0, 0, 0, 0, 0, 0, 0, 0],
 			'dt': [0, 0, 0, 0, 0, 0, 0, 0]
 		};
 
 		// Loop through cat_1 parents
-		this.timesheet.forEach(cat_1 => {
+		this.vars.timesheet.forEach(cat_1 => {
 			if (cat_1.hours != undefined) {
 				this.addToTotals(cat_1.hours, false);
 			}
@@ -287,49 +262,68 @@ export class EntryComponent {
 			});
 		});
 
-		this.timesheet_totals['rt'][7] = this.timesheet_totals['rt'][0]
-			+ this.timesheet_totals['rt'][1]
-			+ this.timesheet_totals['rt'][2]
-			+ this.timesheet_totals['rt'][3]
-			+ this.timesheet_totals['rt'][4]
-			+ this.timesheet_totals['rt'][5]
-			+ this.timesheet_totals['rt'][6];
+		this.vars.timesheet_totals['rt'][7] = this.vars.timesheet_totals['rt'][0]
+			+ this.vars.timesheet_totals['rt'][1]
+			+ this.vars.timesheet_totals['rt'][2]
+			+ this.vars.timesheet_totals['rt'][3]
+			+ this.vars.timesheet_totals['rt'][4]
+			+ this.vars.timesheet_totals['rt'][5]
+			+ this.vars.timesheet_totals['rt'][6];
 
-		this.timesheet_totals = this.serviceService.determineOvertimeBreakdown(this.timesheet_totals, this.current_office);
+		
+		var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(this.vars.timesheet, this.vars.timesheet_totals, this.vars.current_office);
+		this.vars.timesheet_totals = totalsOvertimeBreakdown['TotalHours_byDay'];
+
+		this.vars.timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];
+
 		this.validateOvertime();
+
+		this.serviceService.overtimeBreakdown(this.vars, false);
 	}
 
 	addToTotals(array_in, sum_hours) {
 		for (var i = 0; i < 7; i++) {
-			this.timesheet_totals['rt'][i] += array_in.hours[i];
+			this.vars.timesheet_totals['rt'][i] += array_in.hours[i];
 			sum_hours.sum_hours[i] += array_in.hours[i];
 		}
 	}
 
 
-
 	setOvertimeChoice(cat_1, cat_2, day) {
-		this.timesheet.forEach(element => {
-			element.children.forEach(element_2 => {
-				for (var i = 0; i < element_2.ot.length; i++) {
-					if (i == day && element.cat_key == parseInt(cat_1) && element_2.cat_key == parseInt(cat_2)) {
-						if (element_2.ot[i]) {
-							element_2.ot[i] = false;
-						} else {
-							element_2.ot[i] = true;
-						}
-					} else if (i == day) {
-						element_2.ot[i] = false;
-					}
+
+		if (this.vars.current_office == 0) {
+
+			if (this.vars.ot_sel[day][0] == cat_1 && this.vars.ot_sel[day][1] == cat_2) {
+				this.vars.ot_sel[day][0] = -1;
+				this.vars.ot_sel[day][1] = -1;
+			} else {
+				this.vars.ot_sel[day][0] = cat_1;
+				this.vars.ot_sel[day][1] = cat_2;
+			}
+
+		} else if (this.vars.current_office == 1) {
+			for (var i = 0; i < 7; i++) {
+				if (i != day) {
+					this.vars.ot_sel[i][0] = -1;
+					this.vars.ot_sel[i][1] = -1;
 				}
-			});
-		});
-		console.log(this.timesheet)
+			}
+
+			if (this.vars.ot_sel[day][0] == cat_1 && this.vars.ot_sel[day][1] == cat_2) {
+				this.vars.ot_sel[day][0] = -1;
+				this.vars.ot_sel[day][1] = -1;
+			} else {
+				this.vars.ot_sel[day][0] = cat_1;
+				this.vars.ot_sel[day][1] = cat_2;
+			}
+		}
+
+		this.serviceService.overtimeBreakdown(this.vars, false)
 		this.saveTimesheet();
 	}
 
 	clearOvertimeChoice() {
-		this.timesheet.forEach(element => {
+		this.vars.timesheet.forEach(element => {
 			element.children.forEach(element_2 => {
 				for (var i = 0; i < element_2.ot.length; i++) {
 					element_2.ot[i] = false;
@@ -346,53 +340,11 @@ export class EntryComponent {
 	//
 
 
-	showAddRemoveButtons() {
-		this.entry_vars.show_add_remove = true
-		clearTimeout(this.show_add_remove_buttons_timeout);
-	}
-
-	hideAddRemoveButtons() {
-		let loc_this = this;
-		clearTimeout(this.show_add_remove_buttons_timeout);
-
-		// return state back to saved after a certain period. 
-		this.show_add_remove_buttons_timeout = setTimeout(function () {
-			loc_this.entry_vars.show_add_remove = false;
-		}, 1500);
-	}
-
-	showHideAddRow(els) {
-
-		if (els[els.length - 1].show_add_line) {
-			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false)
-		} else {
-			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_add_line', false);
-			els[els.length - 1].show_add_line = true;
-			this.resetDropdowns(els);
-
-			// set cat 1
-			if (els.length > 2) {
-				this.entry_vars.projectTask = els[2].cat_key;
-				this.entry_vars.department = els[2].cat_key;
-
-				try {
-					this.entry_vars.assetTask = els[3].cat_key;
-					this.entry_vars.shotTask = els[3].cat_key;
-				} catch (err) { }
-
-			} else {
-				try {
-					this.entry_vars.department = els[1].cat_key;
-				} catch (err) { }
-			}
-		}
-	}
-
-	searchShotAsset(event, cat, projectTask, element) {
+	searchShotAsset(event, cat, showTask, element) {
 		if (cat == 1) {
-			var search_array = this.projects;
+			var search_array = this.vars.shows;
 		} else if (cat == 2) {
-			var search_array = (projectTask == 5) ? this.shots : this.assets;
+			var search_array = (showTask == 5) ? this.vars.shots : this.vars.assets;
 		}
 
 		var results = [];
@@ -421,8 +373,7 @@ export class EntryComponent {
 		element.results = results
 	}
 
-
-	selectProject(el, cat) {		
+	selectShow(el, cat) {
 		if (el.Cat_key > 0) {
 			cat.shot_selected = el;
 
@@ -440,28 +391,52 @@ export class EntryComponent {
 		}
 	}
 
-	addRowOptionChange(cats, option_sel=Object()) {		
+	addRowOptionChange(cats, option_sel = Object()) {
 		var cat = cats[cats.length - 1];
 		cat.results = [];
 
+
+
 		if (parseInt(cats[0].cat_key) == 1) { // Departments
-			if (cat.cat_key > 0 && option_sel.Cat_key >= 0) {				
+			if (cat.cat_key > 0 && option_sel.Cat_key >= 0) {
 				cat.departmentTask = option_sel.Cat_key;
 				this.addLineItem(cats);
 			}
-		} else { // Projects			
-			if (cat.projectTask == -1) {
+		} else { // Shows			
+			if (cat.showTask == -1) {
 				return false;
-			} else if (cat.projectTask == 4) {
+			} else if (cat.showTask == 4) {
 				if (cat.assetTask != -1 && cat.shot_selected && cat.shot_selected.Cat_key >= 0) {
 					this.addLineItem(cats);
+				} else {
+
+					if (cat.assetTask != undefined && cat.assetTask > -1) {
+						this.inputFocus(cats, 'shot');
+					} else {
+						this.inputFocus(cats, 'assetTask');
+					}
+
 				}
-			} else if (cat.projectTask == 5) {
+			} else if (cat.showTask == 5) {
+
 				if (cat.shotTask != -1 && cat.shot_selected && cat.shot_selected.Cat_key >= 0) {
 					this.addLineItem(cats);
+				} else {
+
+					if (cat.shotTask != undefined && cat.shotTask > -1) {
+						this.inputFocus(cats, 'shot');
+					} else {
+						this.inputFocus(cats, 'shotTask');
+					}
 				}
-			} else if (cat.projectTask == 6) {
+			} else if (cat.showTask == 6) {
+				this.inputFocus(cats, 'productionTask');
 				if (cat.productionTask != -1 && cat.productionTask != undefined) {
+					this.addLineItem(cats);
+				}
+			} else if (cat.showTask == 7) {
+				this.inputFocus(cats, 'supervisionTask');
+				if (cat.supervisionTask != -1 && cat.supervisionTask != undefined) {
 					this.addLineItem(cats);
 				}
 			} else {
@@ -493,27 +468,29 @@ export class EntryComponent {
 		}
 
 		if (cats.length == 1) {
-			if (cats[0]['cat_key'] == 0) {  // Projects
+			if (cats[0]['cat_key'] == 0) {  // Shows
 				hours = null;
 				cat_array[1] = {
 					title: cat.shot_selected.Cat_Title,
 					cat_key: cat.shot_selected.Cat_key
 				};
 
+				this.inputFocus(cat_array, 'showTask');
+
 			} else {  // Departments				
 				cat_array[1] = {
-					title: this.label(cat.department, this.departments),
+					title: this.label(cat.department, this.vars.departments),
 					cat_key: cat.department
 				};
 				cat_array[2] = {
-					title: this.label(cat.departmentTask, this.department_tasks),
+					title: this.label(cat.departmentTask, this.vars.department_tasks),
 					cat_key: cat.departmentTask
 				};
 			}
 
 		} else if (cats.length == 2 && cats[0]['cat_key'] == 1) {
 			cat_array[2] = {
-				title: this.label(cat.departmentTask, this.department_tasks),
+				title: this.label(cat.departmentTask, this.vars.department_tasks),
 				cat_key: cat.departmentTask
 			};
 
@@ -530,20 +507,24 @@ export class EntryComponent {
 				};
 			}
 		} else if (cats.length == 3) {
-			console.log('you are here');
-			console.log(cat.productionTask);
-			console.log(this.production_tasks);
 
-			cat_array[3] = {				
-				title: this.label(cat.productionTask, this.production_tasks),
-				cat_key: cat.productionTask
-			};
+			if (cat_array[2]['cat_key'] == 6) {
+				cat_array[3] = {
+					title: this.label(cat.productionTask, this.vars.production_tasks),
+					cat_key: cat.productionTask
+				};
+			} else if (cat_array[2]['cat_key'] == 7) {
+				cat_array[3] = {
+					title: this.label(cat.supervisionTask, this.vars.supervision_tasks),
+					cat_key: cat.supervisionTask
+				};
+			}
 
 		} else {
 
 			cat_array[2] = {
-				title: this.label(cat.projectTask, this.project_tasks),
-				cat_key: cat.projectTask
+				title: this.label(cat.showTask, this.vars.show_tasks),
+				cat_key: cat.showTask
 			};
 
 
@@ -558,26 +539,30 @@ export class EntryComponent {
 
 				if (cat_array[2]['cat_key'] == 5) {
 					cat_array[3] = {
-						title: this.label(cat.shotTask, this.shot_tasks),
+						title: this.label(cat.shotTask, this.vars.shot_tasks),
 						cat_key: cat.shotTask
 					};
 				} else {
 					cat_array[3] = {
-						title: this.label(cat.assetTask, this.asset_tasks),
+						title: this.label(cat.assetTask, this.vars.asset_tasks),
 						cat_key: cat.assetTask
 					};
 				}
 			} else if (cat_array[2]['cat_key'] == 6) {
 				cat_array[3] = {
-					title: this.label(cat.productionTask, this.production_tasks),
+					title: this.label(cat.productionTask, this.vars.production_tasks),
 					cat_key: cat.productionTask
+				};
+			} else if (cat_array[2]['cat_key'] == 7) {
+				cat_array[3] = {
+					title: this.label(cat.supervisionTask, this.vars.supervision_tasks),
+					cat_key: cat.supervisionTask
 				};
 			}
 		}
 
 
-		// Determine which input should be highlighted
-		this.entry_vars.cur_sel = '';
+		this.vars.cur_sel = '';
 		var tmp_cats = Array();
 
 		for (var i = 0; i < cat_array.length; i++) {
@@ -585,11 +570,12 @@ export class EntryComponent {
 				tmp_cats.push(cat_array[i]['cat_key'])
 			}
 		}
-		this.entry_vars.cur_sel = tmp_cats.join('_');
+
+		this.vars.cur_sel = tmp_cats.join('_');
 
 
 		if (!this.checkLineExists(cat_array)) {
-			this.lines.push({
+			this.vars.lines.push({
 				Cat_1: cat_array[0]['cat_key'],
 				Cat_1_Title: cat_array[0]['title'],
 				Cat_2: cat_array[1]['cat_key'],
@@ -601,32 +587,52 @@ export class EntryComponent {
 				Cat_5: cat_array[4]['cat_key'],
 				Cat_5_Title: cat_array[4]['title'],
 				Hours: hours,
-				Focus: this.entry_vars.cur_sel
+				Focus: this.vars.cur_sel
 			});
 		}
 
+		if (hours != null) {
+			this.inputFocus(cat_array, '0_hour');
+		}
 
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.vars.lines)
+		this.vars.titles = convertLinesToTimeSheet['titles'];
+		this.vars.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.vars.titles, this.vars.show_add_lines);
 
-		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
-		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
+		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'autofocus', null);
+
 		this.updateTimesheetTotals();
-		this.entry_vars.show_add_lines = {}
+		this.vars.show_add_lines = {}
 		this.resetDropdowns(cat)
+	}
+
+	inputFocus(cats, suffix) {
+		// Determine which input should be highlighted
+		this.vars.cur_sel = '';
+		var tmp_cats = Array();
+
+		for (var i = 0; i < cats.length; i++) {
+			if (cats[i]['cat_key'] != null) {
+				tmp_cats.push(cats[i]['cat_key'])
+			}
+		}
+
+		this.vars.focusInput = 'input_' + tmp_cats.join('_') + '_' + suffix;
+		let loc_this = this;
+
+		setTimeout(function () {
+			$('#' + loc_this.vars.focusInput).focus();
+		}, 10)
 
 	}
 
 	checkLineExists(ca) {
-
-		for (var i = 0; i < this.lines.length; i++) {
-			var li = this.lines[i];
-
+		for (var i = 0; i < this.vars.lines.length; i++) {
+			var li = this.vars.lines[i];
 			if (li['Cat_1'] == ca[0]['cat_key'] && li['Cat_2'] == ca[1]['cat_key'] && li['Cat_3'] == ca[2]['cat_key'] && li['Cat_4'] == ca[3]['cat_key'] && li['Cat_5'] == ca[4]['cat_key']) {
-				console.log('Already in the list... ')
 				return true;
 			}
 		}
-
 		return false;
 	}
 
@@ -637,8 +643,8 @@ export class EntryComponent {
 
 
 		var incl = Array();
-		for (var i = 0; i < this.lines.length; i++) {
-			var el = this.lines[i];
+		for (var i = 0; i < this.vars.lines.length; i++) {
+			var el = this.vars.lines[i];
 			var incl_el = true;
 
 			if (cats.length == 5) {
@@ -683,17 +689,17 @@ export class EntryComponent {
 			}
 		}
 
-		this.lines = incl;
+		this.vars.lines = incl;
 
 		var exists = [false, false]
 
-		for (var i = 0; i < this.lines.length; i++) {
-			exists[this.lines[i]['Cat_1']] = true;
+		for (var i = 0; i < this.vars.lines.length; i++) {
+			exists[this.vars.lines[i]['Cat_1']] = true;
 		}
 
 		for (var i = 0; i < exists.length; i++) {
 			if (i == 0 && !exists[i]) {
-				this.lines.push({
+				this.vars.lines.push({
 					UserKey: 0,
 					Cat_1: 0,
 					Cat_1_Title: 'Shows',
@@ -712,14 +718,14 @@ export class EntryComponent {
 			}
 		}
 
-		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
-		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.vars.lines)
+		this.vars.titles = convertLinesToTimeSheet['titles'];
+		this.vars.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.vars.titles, this.vars.show_add_lines);
 		this.updateTimesheetTotals();
 	}
 
 	resetDropdowns(cat) {
-		cat.projectTask = -1;
+		cat.showTask = -1;
 		cat.productionTask = -1;
 		cat.assetTask = -1;
 		cat.shotTask = -1;
@@ -732,48 +738,37 @@ export class EntryComponent {
 		var cat = cats[cats.length - 1];
 		cat.show_menu = false;
 
-		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
+		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_menu', false);
 
-		if (this.entry_vars.show_edit_line_items) {
-			this.entry_vars.show_edit_line_items = false;
-			this.entry_vars.edit_line_items = false
+		if (this.vars.show_edit_line_items) {
+			this.vars.show_edit_line_items = false;
+			this.vars.edit_line_items = false
 		} else {
-			this.entry_vars.show_edit_line_items = true;
-			this.entry_vars.edit_line_items = true
+			this.vars.show_edit_line_items = true;
+			this.vars.edit_line_items = true
 		}
 
 	}
 
-
-	deleteProject(cats) {
-		var cat = cats[cats.length - 1];
-		cat.show_menu = false;
-	}
-
-	//
 	//
 	//	LOAD/SUBMIT TIMESHEET
 	//
-	//
-
-
 
 	searchDropDown(phrase, arr, cats) {
-		console.log('search drop down menu')		
 		var results = Array();
-		
-		if(phrase != undefined){
+
+		if (phrase != undefined) {
 			phrase = phrase.trim().toLowerCase()
 		} else {
 			phrase = '';
 		}
-		
+
 		if (phrase.length <= 0) {
 			return results;
 		}
 
 		for (var i = 0; i < arr.length; i++) {
-			if (arr[i].Cat_Title.toLowerCase().indexOf(phrase) != -1 && arr[i].Cat_key != -1) {				
+			if (arr[i].Cat_Title.toLowerCase().indexOf(phrase) != -1 && arr[i].Cat_key != -1) {
 				arr[i].cats = cats
 				results.push(arr[i]);
 			}
@@ -786,35 +781,34 @@ export class EntryComponent {
 		return results;
 	}
 
-	resetNewLine(event, el){	
-		
+	resetNewLine(event, el) {
+
 		el.assetTask = -1;
 		el.dd_results_assetTask = false;
 		el.searchDD_assetTask = '';
-	
+
 		el.shotTask = -1;
 		el.dd_results_shotTask = false;
 		el.searchDD_shotTask = '';
-	
+
 		el.productionTask = -1;
 		el.dd_results_productionTask = false;
 		el.searchDD_productionTask = '';
-	
-		el.projectTask = -1;
-		el.dd_results_projectTask = false;
-		el.searchDD_projectTask = '';	
+
+		el.showTask = -1;
+		el.dd_results_showTask = false;
+		el.searchDD_showTask = '';
 
 		el.shot_selected = null;
 		el.dd_results_shot = false;
-		el.searchDD_shot = '';	
+		el.searchDD_shot = '';
 
 	}
 
-	dropDownReset(event, dd_results){		
-		if(event != false){			
-			console.log(event.target.innerHTML)
-			if(event.target.innerHTML.indexOf('&#9660;') != -1 || event.target.innerHTML.indexOf('▼') != -1){
-				event.target.innerHTML = '&#9650;';				
+	dropDownReset(event, dd_results) {
+		if (event != false) {
+			if (event.target.innerHTML.indexOf('&#9660;') != -1 || event.target.innerHTML.indexOf('▼') != -1) {
+				event.target.innerHTML = '&#9650;';
 				event = false;
 			} else {
 				event.target.innerHTML = '&#9660;';
@@ -822,19 +816,19 @@ export class EntryComponent {
 			}
 		}
 
-		if(event){			
+		if (event) {
 			dd_results = Array();
 		}
-		
-		for(var i = 0; i < dd_results.length; i++) {			
+
+		for (var i = 0; i < dd_results.length; i++) {
 			dd_results[i].selected = false;
 		}
-		
+
 		return dd_results;
 	}
 
-	dropDownKey(event, el, dd_results, cats, level='') {
-		
+	dropDownKey(event, el, dd_results, cats, level = '') {
+
 		var k_code = event.keyCode;
 		var cur_i = -1;
 
@@ -846,49 +840,49 @@ export class EntryComponent {
 			dd_results[i].selected = false;
 		}
 
-		
-		
+
+
 		if (k_code == 13) { // Enter Key  (9 = tab)
-			if(cur_i >= 0){
-				if(dd_results[cur_i].cats.length == 1){ // add project
-					
+			if (cur_i >= 0) {
+				if (dd_results[cur_i].cats.length == 1) { // add show					
 					if (dd_results[cur_i].Cat_key > 0) {
-						
-						this.dropDownReset(false,dd_results);					
-						cats[0].shot_selected = dd_results[cur_i];					
+						this.dropDownReset(false, dd_results);
+						cats[0].shot_selected = dd_results[cur_i];
 						this.addLineItem(cats);
 					}
 				} else {
-					
-					if(level == 'assetTask'){
-						cats[cats.length-1].assetTask = dd_results[cur_i].Cat_key
-						cats[cats.length-1].dd_results_assetTask = false;
-						cats[cats.length-1].searchDD_assetTask = dd_results[cur_i].Cat_Title
-					} else if(level == 'shotTask'){
-						cats[cats.length-1].shotTask = dd_results[cur_i].Cat_key
-						cats[cats.length-1].dd_results_shotTask = false;
-						cats[cats.length-1].searchDD_shotTask = dd_results[cur_i].Cat_Title
-					} else if(level == 'productionTask'){
-						cats[cats.length-1].productionTask = dd_results[cur_i].Cat_key
-						cats[cats.length-1].dd_results_productionTask = false;
-						cats[cats.length-1].searchDD_productionTask = dd_results[cur_i].Cat_Title
-					} else if(level == 'projectTask'){
-						cats[cats.length-1].projectTask = dd_results[cur_i].Cat_key
-						cats[cats.length-1].dd_results_projectTask = false;
-						cats[cats.length-1].searchDD_projectTask = dd_results[cur_i].Cat_Title	
-					}  else if(level == 'shot'){
-						cats[cats.length-1].shot_selected = dd_results[cur_i]
-						cats[cats.length-1].dd_results_shot = false;
-						cats[cats.length-1].searchDD_shot = dd_results[cur_i].Cat_Title	
+					if (level == 'assetTask') {
+						cats[cats.length - 1].assetTask = dd_results[cur_i].Cat_key
+						cats[cats.length - 1].dd_results_assetTask = false;
+						cats[cats.length - 1].searchDD_assetTask = dd_results[cur_i].Cat_Title
+					} else if (level == 'shotTask') {
+						cats[cats.length - 1].shotTask = dd_results[cur_i].Cat_key
+						cats[cats.length - 1].dd_results_shotTask = false;
+						cats[cats.length - 1].searchDD_shotTask = dd_results[cur_i].Cat_Title
+					} else if (level == 'productionTask') {
+						cats[cats.length - 1].productionTask = dd_results[cur_i].Cat_key
+						cats[cats.length - 1].dd_results_productionTask = false;
+						cats[cats.length - 1].searchDD_productionTask = dd_results[cur_i].Cat_Title
+					} else if (level == 'supervisionTask') {
+						cats[cats.length - 1].supervisionTask = dd_results[cur_i].Cat_key
+						cats[cats.length - 1].dd_results_supervisionTask = false;
+						cats[cats.length - 1].searchDD_supervisionTask = dd_results[cur_i].Cat_Title
+					} else if (level == 'showTask') {
+						cats[cats.length - 1].showTask = dd_results[cur_i].Cat_key
+						cats[cats.length - 1].dd_results_showTask = false;
+						cats[cats.length - 1].searchDD_showTask = dd_results[cur_i].Cat_Title
+					} else if (level == 'shot') {
+						cats[cats.length - 1].shot_selected = dd_results[cur_i]
+						cats[cats.length - 1].dd_results_shot = false;
+						cats[cats.length - 1].searchDD_shot = dd_results[cur_i].Cat_Title
 					}
-				
 
-					this.addRowOptionChange( dd_results[cur_i].cats, dd_results[cur_i])
+					this.addRowOptionChange(dd_results[cur_i].cats, dd_results[cur_i])
 				}
 			}
 		} else {
-			this.dropDownReset(false,dd_results)
-			
+			this.dropDownReset(false, dd_results)
+
 			for (var i = 0; i < dd_results.length; i++) {
 				if (dd_results[i].selected == true) {
 					cur_i = i;
@@ -901,41 +895,49 @@ export class EntryComponent {
 				} else {
 					cur_i = 0;
 				}
-				try{
+				try {
 					dd_results[cur_i].selected = true;
-				} catch(err){ }
+				} catch (err) { }
 			} else if (k_code == 38) { //Key Up
 				if (cur_i == 0) {
-					cur_i = dd_results.length-1;					
+					cur_i = dd_results.length - 1;
 				} else {
-					cur_i -= 1;					
+					cur_i -= 1;
 				}
-				try{
+				try {
 					dd_results[cur_i].selected = true;
-				} catch(err){ }
+				} catch (err) { }
 			} else {
-				try{
+				try {
 					dd_results[0].selected = true;
-				} catch(err){ }				
-			}			
+				} catch (err) { }
+			}
 		}
-		
 	}
 
 	loadInitTimeheet() {
-		this.entry_vars.timesheet_submitted = false;
-		this.lines = this.serviceService.getInitLines()
-		var convertLinesToTimeSheet = this.convertLinesToObject(this.lines)
-		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
+		this.vars.timesheet_submitted = false;
+		this.vars.lines = Array();
+		this.vars.lines = this.serviceService.getInitLines()
+		console.log(this.vars.lines);
+
+		var convertLinesToTimeSheet = this.convertLinesToObject(this.vars.lines)
+		this.vars.titles = convertLinesToTimeSheet['titles'];
+		this.vars.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.vars.titles, this.vars.show_add_lines);
+		this.vars.ot_sel = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]];
 		this.updateTimesheetTotals();
-		this.submit_date = false;
+		this.vars.submit_date = false;
+
+		setTimeout(function () {
+			$('#input_0').focus();
+		}, 10)
+		this.vars.showCal = false;
 	}
 
 	submitTimesheet(window) {
-		this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_menu', false);
-		this.entry_vars.edit_line_items = false;
-		this.entry_vars.show_edit_line_items = false;
+		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_menu', false);
+		this.vars.edit_line_items = false;
+		this.vars.show_edit_line_items = false;
 
 
 		if (this.validateOvertime(true)) {
@@ -955,67 +957,58 @@ export class EntryComponent {
 		var tot = [];
 		var can_ot = false;
 
-		this.entry_vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
+		this.vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
 
-		for (var x = 0; x < this.timesheet.length; x++) {
-			for (var x_1 = 0; x_1 < this.timesheet[x].children.length; x_1++) {
+		for (var x = 0; x < this.vars.timesheet.length; x++) {
+			for (var x_1 = 0; x_1 < this.vars.timesheet[x].children.length; x_1++) {
 				for (var x_2 = 0; x_2 < 7; x_2++) {
-					if (this.timesheet[x].children[x_1].sum_hours[x_2] > 0.0) {
-						this.entry_vars.ot_req[x_2]++;
+					if (this.vars.timesheet[x].children[x_1].sum_hours[x_2] > 0.0) {
+						this.vars.ot_req[x_2]++;
 					}
 				}
 			}
 		}
 
-
 		for (var x = 0; x < ot_check.length; x++) {
 			var ot = ot_check[x];
 
-			for (var i = 0; i < this.timesheet_totals[ot].length - 1; i++) {
-				var hours = this.timesheet_totals[ot][this.days[i]];
+			for (var i = 0; i < this.vars.timesheet_totals[ot].length - 1; i++) {
+				var hours = this.vars.timesheet_totals[ot][i];
 
 				if (hours > 0.0) {
-					if (i == 0 || this.current_office == 0) {
+					if (this.vars.current_office == 0) {
 						ot_required[i] = true;
-					} else {
-
-						if (this.current_office == 1) {  // Canada rules
-							if (ot_required[i - 1] != true && !can_ot) {
+					} else if (this.vars.current_office == 1) {
+						if (!can_ot) {
+							if(this.vars.timesheet_totals['rt'][i] > 0.0){
 								ot_required[i] = true;
-								can_ot = true;
 							}
+							
+							can_ot = true;
 						}
 					}
 				}
 			}
 		}
 
-		this.timesheet.forEach(element => {
-			element.children.forEach(element_2 => {
-				tot.push(element_2.cat_key);
-			});
-		});
-
-		this.timesheet.forEach(element => {
+		this.vars.timesheet.forEach(element => {
 			element.children.forEach(element_2 => {
 				for (var i = 0; i < element_2.ot.length; i++) {
-
 					if (element_2.ot[i]) {
 						ot_selected[i] = element_2.ot[i];
 					}
-
-					if (ot_required[i] && element_2.sum_hours[i] > 0.0) {
+					if (ot_required[i] && element_2.sum_hours[i] > 0.0 && this.vars.timesheet_totals['rt'][i] > 0.0) {
 						element_2.ot_req[i] = true;
 					} else {
-						element_2.ot_req[i] = false;
-						element_2.ot[i] = false;
+						element_2.ot_req[i] = false;						
 					}
 				}
 			});
 		});
 
-		for (var i = 0; i < ot_required.length; i++) {
-			if (ot_required[i] && ot_required[i] != ot_selected[i]) {
+
+		for (var i = 0; i < ot_required.length; i++) {			
+			if (ot_required[i] && this.vars.ot_sel[i][0] == -1) {
 				missing.push(i);
 			}
 		}
@@ -1037,10 +1030,11 @@ export class EntryComponent {
 	}
 
 	openPopup(title, text, buttons) {
-		this.popup.text = text;
-		this.popup.title = title;
-		this.popup.buttons = buttons;
-		this.entry_vars.showPopup = true
+		this.vars.popup = Object();
+		this.vars.popup.text = text;
+		this.vars.popup.title = title;
+		this.vars.popup.buttons = buttons;
+		this.vars.showPopup = true
 	}
 
 	notesToggle(el) {
@@ -1059,23 +1053,24 @@ export class EntryComponent {
 	loadSampleTimesheet() {
 		this.loadInitTimeheet();
 
-		this.lines = this.serviceService.getSampleLines();
-		let convertLinesToTimeSheet = this.convertLinesToObject(this.lines);
-		this.titles = convertLinesToTimeSheet['titles'];
-		this.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.titles, this.entry_vars.show_add_lines);
-		this.submit_date = false;
+		this.vars.lines = this.serviceService.getSampleLines();
+		let convertLinesToTimeSheet = this.convertLinesToObject(this.vars.lines);
+		this.vars.titles = convertLinesToTimeSheet['titles'];
+		this.vars.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet'], this.vars.titles, this.vars.show_add_lines);
+		this.vars.submit_date = false;
 
 		this.updateTimesheetTotals();
+		this.vars.showCal = false;
 	}
 
 	// Testing out this funciton - currently not being used. 
 	popupFunction(functionName) {
-		this.entry_vars.showPopup = false;
+		this.vars.showPopup = false;
 
 		if (functionName == 'confirmTimesheet') {
-			this.entry_vars.timesheet_submitted = true;
-			this.entry_vars.submit_date = this.serviceService.generateDate(true);
-			this.timesheet = this.serviceService.hideShowDivs(this.timesheet, 'show_note_force', false);
+			this.vars.timesheet_submitted = true;
+			this.vars.submit_date = this.serviceService.generateDate(true);
+			this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_note_force', false);
 		}
 	}
 
@@ -1095,4 +1090,10 @@ export class EntryComponent {
 		window.scrollTo(0, cur_scroll); // values are x,y-offset		
 	}
 
+	resetMenus(){
+		console.log('reset Menus')
+	}
+
 }
+
+

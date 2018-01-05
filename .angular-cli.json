@@ -12,7 +12,7 @@
         "favicon.ico",
         ".htaccess",
         "entry",
-        "approval"
+        "approval"        
       ],
       "index": "index.html",
       "main": "main.ts",
