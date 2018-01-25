@@ -1,3 +1,8 @@
+<div *ngIf="online == false" class="offline">
+    <div>No Internet Connection Detected...</div>
+</div>
+
+
 <div style="min-width:800px;max-width:800px;margin:0 auto;">
     <app-navigation></app-navigation>
     <router-outlet></router-outlet>

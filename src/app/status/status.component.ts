@@ -31,7 +31,7 @@ export class StatusComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.users = this.serviceService.getUsers();    
+    this.users = this.serviceService.getUsers_db();    
     this.users_array = this.users_to_array(this.users);
     this.vars.lines = this.serviceService.getApprovalLines();
     this.workedOn(this.vars.lines);

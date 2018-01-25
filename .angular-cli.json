@@ -12,7 +12,8 @@
         "favicon.ico",
         ".htaccess",
         "entry",
-        "approval"        
+        "approval",
+        "api"
       ],
       "index": "index.html",
       "main": "main.ts",

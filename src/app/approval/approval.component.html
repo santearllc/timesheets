@@ -275,12 +275,9 @@
                                                 <div *ngFor="let b_3 of b_2.children">
 
                                                     <div *ngIf="b_3.hours">
-                                                        <div style="position:absolute;margin-left:725px;margin-top:7px;">
-                                                            <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
-                                                        </div>
                                                         <table style="width:100%;">
                                                             <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                                <td style="width: 200px;">
+                                                                <td style="width: 190px;">
                                                                     <div>&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
                                                                 </td>
                                                                 <td>
@@ -293,10 +290,12 @@
                                                                                     <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                     <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                 </span>                                                                               
-                                                                            </td>
-                                                                            <td class="blank">&nbsp;</td>
+                                                                            </td>                                                                            
                                                                             <td class="sum" style="font-weight:400;">
                                                                                 {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
+                                                                            </td>
+                                                                            <td style="text-align:center;">
+                                                                                <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
                                                                             </td>
                                                                         </tr>
                                                                     </table>
@@ -311,13 +310,9 @@
                                                         <div *ngFor="let b_4 of b_3.children">
                                                             &nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}} : {{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key]['Title']}}
                                                             <div *ngFor="let b_5 of b_4.children">
-
-                                                                <div style="position:absolute;margin-left:725px;margin-top:7px;">
-                                                                    <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true" (mouseout)="b_5.showNote = false">&nbsp;</div>
-                                                                </div>
                                                                 <table style="width:100%;">
                                                                     <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                                        <td style="width: 200px;">
+                                                                        <td style="width: 190px;">
                                                                             <div>&nbsp;&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key][b_5.cat_key]['Title']}}</div>
                                                                         </td>
                                                                         <td>
@@ -330,10 +325,12 @@
                                                                                             <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                             <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                         </span>
-                                                                                    </td>
-                                                                                    <td class="blank">&nbsp;</td>
+                                                                                    </td>                                                                                    
                                                                                     <td class="sum" style="font-weight:400;">
                                                                                         {{b_5.hours[1] + b_5.hours[2] + b_5.hours[3] + b_5.hours[4] + b_5.hours[5] + b_5.hours[6] + b_5.hours[0] | number : '1.2-2'}}
+                                                                                    </td>
+                                                                                    <td style="text-align:center;">
+                                                                                        <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>
@@ -354,7 +351,7 @@
                                         <div style="border-top:1px #555 solid;">
                                             <table style="width:100%;">
                                                 <tr>
-                                                    <td style="width: 200px;" class="title">
+                                                    <td style="width: 190px;" class="title">
                                                         <table style="width: 100%;">
                                                             <tr *ngIf="vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
                                                                 <td>Regular Time</td>
@@ -373,28 +370,28 @@
                                                                 <td class="blank">&nbsp;</td>
                                                                 <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
                                                                     {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][day_i] | number : '1.2-2'}}
-                                                                </td>
-                                                                <td class="blank">&nbsp;</td>
+                                                                </td>                                                                
                                                                 <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][7] | number
                                                                     : '1.2-2'}}</td>
+                                                                <td></td>
                                                             </tr>
                                                             <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
                                                                 <td class="blank">&nbsp;</td>
                                                                 <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
                                                                     {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][day_i] | number : '1.2-2'}}
                                                                 </td>
-                                                                <td class="blank">&nbsp;</td>
                                                                 <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][7] | number
                                                                     : '1.2-2'}}</td>
+                                                                <td></td>
                                                             </tr>
                                                             <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
                                                                 <td class="blank">&nbsp;</td>
                                                                 <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
                                                                     {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][day_i] | number : '1.2-2'}}
-                                                                </td>
-                                                                <td class="blank">&nbsp;</td>
+                                                                </td>                                                                
                                                                 <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][7] | number
                                                                     : '1.2-2'}}</td>
+                                                                <td></td>
                                                             </tr>
                                                         </table>
                                                     </td>
@@ -530,13 +527,10 @@
 
                                                         <div *ngFor="let b_3 of b_2.children">
                                                             <div *ngIf="(b_3.cat_key == x_3.cat_key) || x_4.show_entire_timesheet">
-                                                                <div *ngIf="b_3.hours">
-                                                                    <div style="position:absolute;margin-left:725px;margin-top:7px;">
-                                                                        <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
-                                                                    </div>
+                                                                <div *ngIf="b_3.hours">                                                                    
                                                                     <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
                                                                         <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
-                                                                            <td style="width: 200px;">
+                                                                            <td style="width: 190px;">
                                                                                 <div>&nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
                                                                             </td>
                                                                             <td>
@@ -550,9 +544,11 @@
                                                                                                 <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                             </span>
                                                                                         </td>
-                                                                                        <td class="blank">&nbsp;</td>
                                                                                         <td class="sum" style="font-weight:400;">
                                                                                             {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
+                                                                                        </td>
+                                                                                        <td style="text-align:center;">
+                                                                                            <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
                                                                                         </td>
                                                                                     </tr>
                                                                                 </table>
@@ -567,13 +563,9 @@
                                                                     <div *ngFor="let b_4 of b_3.children">
                                                                         &nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}} : {{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key]['Title']}}
                                                                         <div *ngFor="let b_5 of b_4.children">
-
-                                                                            <div style="position:absolute;margin-left:725px;margin-top:7px;">
-                                                                                <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true" (mouseout)="b_5.showNote = false">&nbsp;</div>
-                                                                            </div>
                                                                             <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
                                                                                 <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
-                                                                                    <td style="width: 200px;">
+                                                                                    <td style="width: 190px;">
                                                                                         <div>&nbsp;&nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key][b_5.cat_key]['Title']}}</div>
                                                                                     </td>
                                                                                     <td>
@@ -587,9 +579,11 @@
                                                                                                         <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                                     </span>
                                                                                                 </td>
-                                                                                                <td class="blank">&nbsp;</td>
                                                                                                 <td class="sum" style="font-weight:400;">
                                                                                                     {{b_5.hours[1] + b_5.hours[2] + b_5.hours[3] + b_5.hours[4] + b_5.hours[5] + b_5.hours[6] + b_5.hours[0] | number : '1.2-2'}}
+                                                                                                </td>
+                                                                                                <td style="text-align:center;">
+                                                                                                    <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
                                                                                                 </td>
                                                                                             </tr>
                                                                                         </table>
@@ -611,7 +605,7 @@
                                                 <div style="border-top:1px #555 solid;">
                                                     <table style="width:100%;">
                                                         <tr>
-                                                            <td style="width: 200px;" class="title">
+                                                            <td style="width: 190px;" class="title">
                                                                 <table style="width: 100%;">
                                                                     <tr *ngIf="vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
                                                                         <td>Regular Time</td>
@@ -631,27 +625,27 @@
                                                                         <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
                                                                             {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][day_i] | number : '1.2-2'}}
                                                                         </td>
-                                                                        <td class="blank">&nbsp;</td>
                                                                         <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][7]
                                                                             | number : '1.2-2'}}</td>
+                                                                        <td></td>
                                                                     </tr>
                                                                     <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
                                                                         <td class="blank">&nbsp;</td>
                                                                         <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
                                                                             {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][day_i] | number : '1.2-2'}}
                                                                         </td>
-                                                                        <td class="blank">&nbsp;</td>
                                                                         <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][7]
                                                                             | number : '1.2-2'}}</td>
+                                                                        <td></td>
                                                                     </tr>
                                                                     <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
                                                                         <td class="blank">&nbsp;</td>
                                                                         <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
                                                                             {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][day_i] | number : '1.2-2'}}
                                                                         </td>
-                                                                        <td class="blank">&nbsp;</td>
                                                                         <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][7]
                                                                             | number : '1.2-2'}}</td>
+                                                                        <td></td>
                                                                     </tr>
                                                                 </table>
                                                             </td>

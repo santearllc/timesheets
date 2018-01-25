@@ -1,4 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { ServiceService } from '../services/service.service';
+import { RouterModule, Routes, ActivatedRoute, Router } from '@angular/router';
+
+
+declare const gapi: any;
 
 @Component({
   selector: 'app-navigation',
@@ -7,9 +12,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class NavigationComponent implements OnInit {
 
-  constructor() { }
+  
+  constructor(public serviceService: ServiceService, private router: Router, private route: ActivatedRoute) {
+  }
 
   ngOnInit() {
   }
+
 
 }

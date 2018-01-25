@@ -2,14 +2,21 @@
 // AUTHOR: Tyler Cote
 // EMAIL: tyler@santear.com
 // 
-// NOTE: Using the following index for days of week; 0 = Monday; 
+// nOTE: Using the following index for days of week; 0 = Monday; 
 // functions : camelCase
 // variables: lowercase, separate_words_with_underscore 
 //
 // the data in this file will be replaced with responses from sql database in next stage. 
 
 import { Injectable } from '@angular/core';
-import { Line } from '../models/Line'
+import { Line } from '../models/Line';
+import { Http } from '@angular/http';
+import { HttpParams } from '@angular/common/http';
+import 'rxjs/add/operator/map';
+import { RouterModule, Routes, ActivatedRoute, Router } from '@angular/router';
+
+
+declare const gapi: any;
 
 @Injectable()
 export class ServiceService {
@@ -29,2171 +36,106 @@ export class ServiceService {
   departments = [];
   users = Object();
   mo_text = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  mo_text_long = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  days_label = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  api_path;
+  valid_login = false;
+  show_signin = false;
 
-  constructor() {
-    this.users = {
-      0: {
-        FullName: 'Violet Rogerson',
-        FullName_r: 'Rogerson, Violet',
-        FirstName: 'Violet',
-        LastName: 'Rogerson',
-        OfficeKey: 1,
-        TimeSheetStatus: 0,        
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      1: {
-        FullName: 'Drake Donaldson',
-        FullName_r: 'Donaldson, Drake',
-        FirstName: 'Drake',
-        LastName: 'Donaldson',
-        OfficeKey: 1,
-        TimeSheetStatus: 1,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      2: {
-        FullName: 'Traci Stacie',
-        FullName_r: 'Stacie, Traci',
-        FirstName: 'Traci',
-        LastName: 'Stacie',
-        OfficeKey: 1,
-        TimeSheetStatus: 0,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      3: {
-        FullName: 'Erick Kelley',
-        FullName_r: 'Kelley, Erick',
-        FirstName: 'Erick',
-        LastName: 'Kelley',
-        OfficeKey: 1,
-        TimeSheetStatus: 3,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      4: {
-        FullName: 'Joyce Cross',
-        FullName_r: 'Cross, Joyce',
-        FirstName: 'Joyce',
-        LastName: 'Cross',
-        OfficeKey: 1,
-        TimeSheetStatus: 0,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      5: {
-        FullName: 'Tommy Fleming',
-        FullName_r: 'Fleming, Tommy',
-        FirstName: 'Tommy',
-        LastName: 'Fleming',
-        OfficeKey: 1,
-        TimeSheetStatus: 4,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      6: {
-        FullName: 'Trent Townsend',
-        FullName_r: 'Townsend, Trent',
-        FirstName: 'Trent',
-        LastName: 'Townsend',
-        OfficeKey: 1,
-        TimeSheetStatus: 4,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      7: {
-        FullName: 'Michael Layton',
-        FullName_r: 'Layton, Michael',
-        FirstName: 'Michael',
-        LastName: 'Layton',
-        OfficeKey: 1,
-        TimeSheetStatus: 4,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      8: {
-        FullName: 'Nate Simonson',
-        FullName_r: 'Simonson, Nate',
-        FirstName: 'Nate',
-        LastName: 'Simonson',
-        OfficeKey: 1,
-        TimeSheetStatus: 0,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [0, 2], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      },
-      9: {
-        FullName: 'Jeannine Chandler',
-        FullName_r: 'Chandler, Jeannine',
-        FirstName: 'Jeannine',
-        LastName: 'Chandler',
-        OfficeKey: 1,
-        TimeSheetStatus: 2,
-        ot_sel: [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]],
-        Data: {
-          WorkedOn: [],
-          TotalHours: 0,
-          TotalHours_byDay: {
-            t: [0, 0, 0, 0, 0, 0, 0, 0],
-            rt: [0, 0, 0, 0, 0, 0, 0, 0],
-            ot: [0, 0, 0, 0, 0, 0, 0, 0],
-            dt: [0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        }
-      }
-    }
+  login_res = '';
+  googleLoginButtonId = "googleBtn";
+  
 
 
-    this.department_tasks = [
-      {
-        Cat_key: 1,
-        Cat_Title: "Bereavement"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "Company Event"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "Down Time"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "Holiday"
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: "Jury Duty"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "Sick"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "Studio Closure"
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: "Training"
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: "Unpaid Time Off"
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: "Vacation"
-      },
-      {
-        Cat_key: 11,
-        Cat_Title: "Work"
-      }
-    ]
-
-    this.projects = [
-      {
-        Cat_key: 1,
-        Cat_Title: "Stranger Things"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "Game of Thrones"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "The Walk"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "Transformers"
-      }
-
-    ]
-
-    this.shots = [
-      {
-        Cat_key: 1,
-        Cat_Title: "ST001_001_001"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "ST001_001_002"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "ST001_001_003"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "ST001_001_004"
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: "ST001_001_005"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "ST001_001_006"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "ST001_001_007"
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: "ST001_001_008"
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: "ST001_001_009"
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: "ST001_001_010"
-      }
-    ]
+  go(to) {
+    this.router.navigate(['../'+to], { relativeTo: this.route });
+  }
 
 
-    this.assets = [
-      {
-        Cat_key: 1,
-        Cat_Title: "ST001"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "ST002"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "ST003"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "ST004"
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: "ST005"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "ST006"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "ST007"
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: "ST008"
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: "ST009"
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: "ST010"
-      },
+  constructor(public http: Http, private router: Router, private route: ActivatedRoute) {
 
-    ]
+    this.api_path = 'http://atomicfiction.xyz';
 
-
-    this.departments = [
-      {
-        Cat_key: 1,
-        Cat_Title: "Executive"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "Facilities"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "Finance"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "Human Resources"
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: "Marketing"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "Operations"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "Pipeline"
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: "Production"
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: "Resources"
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: "Sales"
-      },
-      {
-        Cat_key: 11,
-        Cat_Title: "Systems"
-      }
-    ]
-
-
-
-    this.project_tasks = [
-      {
-        Cat_key: 5,
-        Cat_Title: "Shots"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "Assets"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "Production Staff"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "Supervision"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "Down Time"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "R&D "
-      },
-      {
-        Cat_key: 1,
-        Cat_Title: "Training"
-      }
-    ];
-
-    this.production_tasks = [
-      {
-        Cat_key: 1,
-        Cat_Title: 'Assistant Editor'
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: 'Coordinator'
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: 'Editor'
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: 'Producer'
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: 'Production Assistant'
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: 'Production Manager'
-      }
-    ];
-
-
-    this.supervision_tasks = [
-      {
-        Cat_key: 2,
-        Cat_Title: 'CG Supervisor'
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: 'DFX Supervisor'
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: 'VFX Supervisor'
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: 'Lead Artist'
-      }
-    ];
-
-    this.shot_tasks = [
-      {
-        Cat_key: 1,
-        Cat_Title: 'Animation'
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: 'Camera Tracking'
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: 'CFX Finaling'
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: 'Cloth Simulation'
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: 'Compositing'
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: 'Crowd'
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: 'FX'
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: 'Hair Simulation'
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: 'Layout'
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: 'Lighting'
-      },
-      {
-        Cat_key: 11,
-        Cat_Title: 'Match Move'
-      },
-      {
-        Cat_key: 12,
-        Cat_Title: 'Matte Painting'
-      },
-      {
-        Cat_key: 13,
-        Cat_Title: 'Paint'
-      },
-      {
-        Cat_key: 14,
-        Cat_Title: 'Rotoscope'
-      },
-      {
-        Cat_key: 15,
-        Cat_Title: 'Stereo'
-      }
-    ];
-
-
-    this.asset_tasks = [
-      {
-        Cat_key: 1,
-        Cat_Title: "3D Enviro Build"
-      },
-      {
-        Cat_key: 2,
-        Cat_Title: "Animation Rig Testing"
-      },
-      {
-        Cat_key: 3,
-        Cat_Title: "CFX Cloth Setup"
-      },
-      {
-        Cat_key: 4,
-        Cat_Title: "CFX Hair Groom"
-      },
-      {
-        Cat_key: 5,
-        Cat_Title: "Concept Art"
-      },
-      {
-        Cat_key: 6,
-        Cat_Title: "Crowd Setup"
-      },
-      {
-        Cat_key: 7,
-        Cat_Title: "Enviro Layout"
-      },
-      {
-        Cat_key: 8,
-        Cat_Title: "Enviro Texture"
-      },
-      {
-        Cat_key: 9,
-        Cat_Title: "FX"
-      },
-      {
-        Cat_key: 10,
-        Cat_Title: "Look Dev"
-      },
-      {
-        Cat_key: 11,
-        Cat_Title: "Matte Painting"
-      },
-      {
-        Cat_key: 12,
-        Cat_Title: "Model"
-      },
-      {
-        Cat_key: 13,
-        Cat_Title: "Rigging"
-      },
-      {
-        Cat_key: 14,
-        Cat_Title: "Texture"
-      }
-    ];
 
     this.lines_init = [
       {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: 'Shows',
-        Cat_2: null,
-        Cat_2_Title: '',
-        Cat_3: null,
-        Cat_3_Title: '',
-        Cat_4: null,
-        Cat_4_Title: '',
-        Cat_5: null,
-        Cat_5_Title: '',
-        Hours: null,        
-        Note: null
+        userKey: 0,
+        cat_1: 0,
+        cat_2: null,
+        cat_3: null,
+        cat_4: null,
+        cat_5: null,
+        hours: null,
+        note: ''
       },
       {
-        UserKey: 0,
-        Cat_1: 1,
-        Cat_1_Title: 'Studio',
-        Cat_2: 8,
-        Cat_2_Title: 'Production',
-        Cat_3: 11,
-        Cat_3_Title: 'Work',
-        Cat_4: null,
-        Cat_4_Title: '',
-        Cat_5: null,
-        Cat_5_Title: '',
-        Hours: [0, 0, 0, 0, 0, 0, 0],        
-        Note: null
+        userKey: 0,
+        cat_1: 1,
+        cat_2: 8,
+        cat_3: 11,
+        cat_4: null,
+        cat_5: null,
+        hours: [0, 0, 0, 0, 0, 0, 0],
+        note: ''
       }
     ];
-
-
-    this.lines_sample = [
-      {
-        UserKey: 0,
-        Cat_1: 1,
-        Cat_1_Title: 'Studio',
-        Cat_2: 8,
-        Cat_2_Title: 'Production',
-        Cat_3: 11,
-        Cat_3_Title: 'Work',
-        Cat_4: null,
-        Cat_4_Title: '',
-        Cat_5: null,
-        Cat_5_Title: '',
-        Hours: [0, 0, 0, 0, 0, 0, 0],        
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 6,
-        Cat_3_Title: "Production Staff",
-        Cat_4: 6,
-        Cat_4_Title: "Producer",
-        Cat_5: null,
-        Cat_5_Title: "ST001_001_003",
-        Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "Animation",
-        Cat_5: 3,
-        Cat_5_Title: "ST001_001_003",
-        Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "Animation",
-        Cat_5: 4,
-        Cat_5_Title: "ST001_001_004",
-        Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "Animation",
-        Cat_5: 5,
-        Cat_5_Title: "ST001_001_005",
-        Hours: [0, 2, 0, 1.75, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 4,
-        Cat_4_Title: "Cloth Simulation",
-        Cat_5: 3,
-        Cat_5_Title: "ST001_001_003",
-        Hours: [0, 2, 0, 3, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 6,
-        Cat_4_Title: "Crowd Setup",
-        Cat_5: 2,
-        Cat_5_Title: "ST002",
-        Hours: [0, 2, 0, 2.5, 4, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 6,
-        Cat_4_Title: "Crowd Setup",
-        Cat_5: 3,
-        Cat_5_Title: "ST003",
-        Hours: [0, 2, 0, 2.5, 4, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 2, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 7,
-        Cat_4_Title: "FX",
-        Cat_5: 1,
-        Cat_5_Title: "ST001_001_001",
-        Hours: [0, 0, 7, 0, 5, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 0, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 0, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [8, 0, 0, 0, 0, 0, 0],
-        Note: null
-      }
-    ]
-
-
-
-
-    this.lines_approval = [
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [0, 0, 0, 1, 2, 0, 0],
-        Note: 'This is a note from the user.'
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 0, 1, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 1, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 0,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 11,
-        Cat_3_Title: "Work",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [2, 0, 1, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [0, 1, 0, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 0, 0, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [2, 2, 2, 0, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 2, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [2, 2, 0, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 1,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 11,
-        Cat_3_Title: "Work",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [0, 1, 1, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [2, 0, 0, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 1, 2, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [2, 2, 2, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 0, 2, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [0, 2, 0, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 2, 1, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 2,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 1,
-        Cat_2_Title: "Executive",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 1,
-        Cat_2_Title: "Executive",
-        Cat_3: 11,
-        Cat_3_Title: "Work",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [0, 2, 2, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [0, 1, 0, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 0, 1, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [2, 1, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 0, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [2, 1, 0, 0, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 1, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 3,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 2, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [1, 0, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [0, 1, 2, 0, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 2, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [2, 0, 0, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 0, 2, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [0, 0, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 0, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 4,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 0, 1, 0, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [2, 2, 2, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [1, 1, 2, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 2, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [1, 0, 2, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 0, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [0, 1, 1, 0, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 1, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 2, 2, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 5,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [2, 1, 1, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [1, 1, 0, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [2, 0, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [1, 2, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 1, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [0, 0, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 1, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 2, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 6,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 0, 1, 0, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [1, 2, 2, 0, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [2, 1, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 0, 2, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [1, 0, 2, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 2, 1, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [1, 2, 1, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 0, 2, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 0, 0, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 7,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 2, 0, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [2, 1, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [0, 1, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [0, 2, 0, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [1, 2, 0, 2, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 2, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [1, 0, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 2, 0, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 1, 0, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 8,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 8,
-        Cat_2_Title: "Production",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [2, 1, 0, 0, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 1,
-        Cat_5_Title: "Animation",
-        Hours: [2, 0, 0, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 3,
-        Cat_4_Title: "ST001_001_003",
-        Cat_5: 4,
-        Cat_5_Title: "Cloth Simulation",
-        Hours: [2, 2, 2, 1, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 6,
-        Cat_5_Title: "Crowd Setup",
-        Hours: [1, 1, 1, 1, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 4,
-        Cat_3_Title: "Asset",
-        Cat_4: 2,
-        Cat_4_Title: "ST002",
-        Cat_5: 7,
-        Cat_5_Title: "Enviro Layout",
-        Hours: [0, 1, 0, 0, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 1,
-        Cat_2_Title: "Stranger Things",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 1, 2, 0, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 5,
-        Cat_3_Title: "Shot",
-        Cat_4: 1,
-        Cat_4_Title: "ST001_001_001",
-        Cat_5: 7,
-        Cat_5_Title: "FX",
-        Hours: [2, 2, 0, 1, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 1,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 2, 2, 0, 1, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 0,
-        Cat_1_Title: "Shows",
-        Cat_2: 2,
-        Cat_2_Title: "Game of Thrones",
-        Cat_3: 2,
-        Cat_3_Title: "Down Time",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [1, 2, 1, 2, 0, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 3,
-        Cat_2_Title: "Finance",
-        Cat_3: 6,
-        Cat_3_Title: "Sick",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 1, 2, 2, 0, 0],
-        Note: null
-      },
-      {
-        UserKey: 9,
-        Cat_1: 1,
-        Cat_1_Title: "Studio",
-        Cat_2: 3,
-        Cat_2_Title: "Finance",
-        Cat_3: 8,
-        Cat_3_Title: "Training",
-        Cat_4: null,
-        Cat_4_Title: "",
-        Cat_5: null,
-        Cat_5_Title: "",
-        Hours: [0, 0, 1, 2, 2, 0, 0],
-        Note: null
-      }
-    ]
   }
 
+  // Google login api 
+  public auth2: any;
 
-  getLines() {
-    return this.lines;
+  googleInit() {
+    let that = this;
+    gapi.load('auth2', function () {
+      that.auth2 = gapi.auth2.init({
+        client_id: '697253707156-snm8bjc71kb1i7qac4goakajkr53f1m5.apps.googleusercontent.com',        
+        cookiepolicy: 'single_host_origin',
+        scope: 'profile email'
+      });
+
+      that.attachSignin(document.getElementById('googleBtn'));
+    });
+
+
   }
+
+  attachSignin(element) {
+    console.log('herer')
+    let that = this;
+    this.auth2.attachClickHandler(element, {},
+      function (googleUser) {       
+        var profile = googleUser.getBasicProfile();        
+        that.show_signin = false
+        let id_token = googleUser.getAuthResponse().id_token;
+        document.cookie = "logged_in=True";
+        document.cookie = "id_token=" + id_token;
+        that.valid_login = true
+
+        that.go('entry');
+        
+      }, function (error) {
+        console.log('error logging in')
+        console.log(error.error)
+      });
+
+      // If logged in, then go to entry page
+      setTimeout(res =>{
+        if(this.auth2.isSignedIn.get()){
+          that.go('entry');
+        } 
+      }, 500)
+        
+  }
+
+  logOut(){    
+    var auth2 = gapi.auth2.getAuthInstance();    
+    this.auth2.signOut().then(function () {      
+      document.cookie = "logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    });    
+  }
+  
+
 
   getApprovalLines() {
     return this.lines_approval;
@@ -2203,52 +145,76 @@ export class ServiceService {
     return Object.assign([], this.lines_init);
   }
 
-  getSampleLines() {
-    return Object.assign([], this.lines_sample);
+  getDepartments_db() {
+    return this.http.get(this.api_path + '/api/department').map(res => res.json());
   }
 
-  getShotTasks() {
-    return this.shot_tasks;
+  getShows_db() {
+    return this.http.get(this.api_path + '/api/show').map(res => res.json());
   }
 
-  getAssetTasks() {
-    return this.asset_tasks;
+  getTasks_db() {
+    return this.http.get(this.api_path + '/api/task').map(res => res.json());
   }
 
-  getProductionTasks() {
-    return this.production_tasks;
+  getAssets_db(show_key) {
+    return this.http.get(this.api_path + '/api/show/' + show_key + '/asset')
+      .map(res => res.json());
   }
 
-  getSupervisionTasks() {
-    return this.supervision_tasks;
+  getShots_db(show_key) {
+    return this.http.get(this.api_path + '/api/show/' + show_key + '/shot')
+      .map(res => res.json());
   }
 
-  getShowTasks() {
-    return this.project_tasks;
+  getUsers_db() {
+    return this.http.get(this.api_path + '/api/user')
+      .map(res => res.json());
   }
 
-  getShots() {
-    return this.shots;
+  getTimeSheet_db(week_of) {    
+    return this.http.get(this.api_path + '/api/timesheet?weekStart=' + week_of + '&' + this.session_param('get'))
+      .map(res => res.json());
   }
 
-  getAssets() {
-    return this.assets;
+  updateTimeSheetStatus_db(week_of) {
+    var data = Object();
+    data = this.session_param(data)
+    data.week_of = week_of
+
+    return this.http.put(this.api_path + '/api/timesheet/' + week_of + '/status', data)
+      .map(res => res.json());
   }
 
-  getShows() {
-    return this.projects;
+  unsubmitTimeSheetStatus_db(week_of) {
+    var data = Object();
+    data = this.session_param(data)
+    data.week_of = week_of
+
+    return this.http.put(this.api_path + '/api/timesheet/' + week_of + '/unsubmit', data)
+      .map(res => res.json());
   }
 
-  getDepartmentTasks() {
-    return this.department_tasks;
+
+  saveTimeSheet(data, week_of) {
+    data.session = this.getCookie('session')
+    data.sub = this.getCookie('sub')
+    data.id_token = this.getCookie('id_token')
+    data.weekStart = week_of
+    return this.http.post(this.api_path + '/api/timesheet', data)
+      .map(res => res.json());
   }
 
-  getDepartments() {
-    return this.departments;
-  }
-
-  getUsers() {
-    return Object.assign([], this.users);
+  session_param(data) {
+    if (data == 'get') {
+      var param = 'session=' + this.getCookie('session') + '&sub=' + this.getCookie('sub')
+      return param
+    } else {
+      data.session = this.getCookie('session')
+      data.sub = this.getCookie('sub')
+      data.id_token = this.getCookie('id_token')
+      return data
+    }
   }
 
   sumHours(data_in) {
@@ -2287,75 +253,60 @@ export class ServiceService {
     return data_out;
   }
 
-
-
-  generateTimesheetByUser(timesheet_in, titles, show_add_lines) {
+  generateTimesheetByUser(timesheet_in) {
     let children = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-
     var timesheet_out = Array();
 
     for (var prop_1 in timesheet_in) {
-      if (prop_1 != 'Hours') {
+      if (!isNaN(parseInt(prop_1))) {
         children[1] = [];  // rest children				
         for (var prop_2 in timesheet_in[prop_1]) {
-          if (prop_2 != 'Hours') {
+          if (!isNaN(parseInt(prop_2))) {
             children[2] = [];  // reset children
-            var show_add_line = false;
-
-            try {
-              show_add_line = show_add_lines[prop_1][prop_2];
-            } catch (err) { }
 
             children[1].push({
-              title: titles[prop_1][prop_2].Title,
               cat_key: prop_2,
               sum_hours: [0, 0, 0, 0, 0, 0, 0],
-              note: '',
               ot: [false, false, false, false, false, false, false],
               ot_req: [false, false, false, false, false, false, false],
-              hours: timesheet_in[prop_1][prop_2]['Hours'],
+              note: timesheet_in[prop_1][prop_2]['note'],
+              hours: timesheet_in[prop_1][prop_2]['hours'],
               focus: [false, false, false, false, false, false, false],
               children: children[2],
               projectTask: -1,
-              departmentTask: -1,
-              show_add_line: show_add_line,
-              autofocus: null
+              departmentTask: -1
             });
             for (var prop_3 in timesheet_in[prop_1][prop_2]) {
-              if (prop_3 != 'Hours') {
+              if (!isNaN(parseInt(prop_3))) {
                 children[3] = [];  // reset children
                 children[2].push({
-                  title: titles[prop_1][prop_2][prop_3].Title,
                   cat_key: prop_3,
-                  note: '',
-                  hours: timesheet_in[prop_1][prop_2][prop_3]['Hours'],
+                  note: timesheet_in[prop_1][prop_2][prop_3]['note'],
+                  hours: timesheet_in[prop_1][prop_2][prop_3]['hours'],
                   focus: [false, false, false, false, false, false, false],
                   children: children[3],
-                  productionTask: -1,
-                  autofocus: null
+                  productionTask: -1
                 });
                 for (var prop_4 in timesheet_in[prop_1][prop_2][prop_3]) {
-                  if (prop_4 != 'Hours') {
+                  if (!isNaN(parseInt(prop_4))) {
                     children[4] = [];  // reset children
                     children[3].push({
-                      title: titles[prop_1][prop_2][prop_3][prop_4].Title,
-                      cat_key: prop_4, note: '',
-                      hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['Hours'],
+                      cat_key: prop_4,
+                      note: timesheet_in[prop_1][prop_2][prop_3][prop_4]['note'],
+                      hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['hours'],
                       focus: [false, false, false, false, false, false, false],
                       children: children[4],
-                      productionTask: -1,
-                      autofocus: null
+                      productionTask: -1
                     });
                     for (var prop_5 in timesheet_in[prop_1][prop_2][prop_3][prop_4]) {
-                      if (prop_5 != 'Hours') {
+                      if (!isNaN(parseInt(prop_5))) {
                         children[4].push({
-                          title: titles[prop_1][prop_2][prop_3][prop_4][prop_5].Title,
-                          cat_key: prop_5, note: '',
-                          hours: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['Hours'],
+                          cat_key: prop_5,
+                          note: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['note'],
+                          hours: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['hours'],
                           focus: [false, false, false, false, false, false, false],
                           children: [],
-                          productionTask: -1,
-                          autofocus: null
+                          productionTask: -1
                         });
                       }
                     }
@@ -2367,19 +318,18 @@ export class ServiceService {
         }
       }
       timesheet_out.push({
-        title: titles[prop_1].Title,
         cat_key: prop_1,
-        hours: timesheet_in[prop_1]['Hours'],
+        note: '',
+        hours: timesheet_in[prop_1]['hours'],
         children: children[1],
-        show_add_line: (children[1].length <= 0 && parseInt(prop_1) == 0) ? true : false,
-        autofocus: (children[1].length <= 0 && parseInt(prop_1) == 0) ? true : null,
       });
     }
     return timesheet_out;
   }
 
-  generateDate(today = false) {
-    var dateObj = new Date();
+  generateDate(date_in) {
+
+    var dateObj = new Date(date_in);
     var mo = dateObj.getUTCMonth(); //months from 1-12
     var da = dateObj.getUTCDate();
     var yr = dateObj.getUTCFullYear();
@@ -2418,7 +368,7 @@ export class ServiceService {
   }
 
   totalsOvertimeBreakdown(timesheet, totals_in, office_key) {
-    var totals_out = Object.assign([], totals_in);    
+    var totals_out = Object.assign([], totals_in);
     var entry_page = false;
 
 
@@ -2458,7 +408,7 @@ export class ServiceService {
       }
     }
 
-    totals_out['TotalHours_byShow']  = by_show;
+    totals_out['TotalHours_byShow'] = by_show;
 
     if (!totals_out.hasOwnProperty('TotalHours_byDay')) {
       totals_out['TotalHours_byDay'] = totals_out;
@@ -2543,7 +493,7 @@ export class ServiceService {
 
           if (ot_triggerd) {  // This day is all OT hours
             totals_out['TotalHours_byDay']['rt'][i] = 0.0;
-            hours_ot = d_h;            
+            hours_ot = d_h;
           } else {
             hours_ot = cur_total - 40;
 
@@ -2564,7 +514,7 @@ export class ServiceService {
           hours_rt = d_h
         }
         totals_out['TotalHours_byDay']['rt'][7] += hours_rt;
-      }      
+      }
     }
     return totals_out;
   }
@@ -2604,7 +554,7 @@ export class ServiceService {
 
     var ot_assignment = { 'rt': [], 'ot': [], 'dt': [] };
 
-    
+
     for (var i = 0; i < 7; i++) {
       if (vars.timesheet_totals['ot'][i] > 0.0) {
         var hours = vars.timesheet_totals['rt'][i];
@@ -2614,9 +564,9 @@ export class ServiceService {
         // go through the projects in order of priorty
         for (var x_1 in byHours[i]) {
           var hours_byShow = byHours[i][x_1]['hours'];
-          
+
           if (vars.current_office == 0) { // California Rules
-            
+
             if (hours_dt > 0.0) {
               ot_assignment['dt'].push({ day: i, hours: (hours_byShow > hours_dt) ? hours_dt : hours_byShow, cat_1: byHours[i][x_1]['cat_1'], cat_2: byHours[i][x_1]['cat_2'] });
 
@@ -2640,14 +590,208 @@ export class ServiceService {
     }
 
     vars.ot_assignment = ot_assignment;
-    vars.show_ot_breakdown = false;
+    //vars.show_ot_breakdown = false;
 
-    
-    if(return_values){     
+    if (return_values) {
       return vars.ot_assignment;
     }
   }
 
+  calendarBackForth(cur_year_month, n) {
+    var new_date = new Date(cur_year_month[0], cur_year_month[1] + n)
+    return this.generateCalendar(new_date)
+  }
 
+
+  calendarLabel(d1) {
+    d1 = new Date(d1 + ' 00:00:00:00');
+    var d2 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate() + 6);
+    var today = this.date_yyyymmdd_dashed(new Date());
+
+
+    var d1_t = this.date_yyyymmdd_dashed(d1);
+    var d2_t = this.date_yyyymmdd_dashed(d2);
+
+    // if the week is the current week then add (this week) text. 
+    var this_week = (today >= d1_t && today <= d2_t) ? ' (this week)' : '';
+
+    return this.mo_text[d1.getMonth()] + ' ' + d1.getDate() + ' - ' + this.mo_text[d2.getMonth()] + ' ' + d2.getDate() + this_week;
+  }
+
+  generateCalendar(in_date) {
+    var today = new Date();
+    var calendar = { week_of: '', weeks: [], month_label: '', week_forth: { label: '', week_of: '' }, week_back: { label: 'here', week_of: '2018-01-01' }, cur_year_month: [in_date.getFullYear(), in_date.getMonth()] };
+
+    var day_of_week = new Date(in_date.getFullYear(), (in_date.getMonth()), 1).getDay();
+    var month_len = new Date(in_date.getFullYear(), (in_date.getMonth() + 1), 0).getDate();
+    var prev_month_len = new Date(in_date.getFullYear(), in_date.getMonth(), 0).getDate();
+
+    calendar.month_label = this.mo_text_long[in_date.getMonth()] + ' ' + in_date.getFullYear();
+    calendar.week_of = this.determineWeek(new Date(), 0);
+
+    day_of_week = (day_of_week == 0) ? 6 : day_of_week - 1;
+
+    var week = { cur_week: false, week_of: '', week_of_label: '', days: [{ cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }] };
+
+    for (var i = 1; i <= month_len; i++) {
+
+      // add date to week array
+      week.days[day_of_week].date = i;
+      week.days[day_of_week].cur_mo = true;
+
+      // If the first of the month does not start on a Monday then include the days from the prior month. 
+      if (week.days[0].date == 0 && day_of_week != 0) {
+        var prev_mo_day = prev_month_len;
+        for (var i_i = day_of_week - 1; i_i >= 0; i_i--) {
+          week.days[i_i].date = prev_mo_day;
+
+          // if start of week, create label and assign week_of
+          if (i_i == 0) {
+            var prev_month = new Date(in_date.getFullYear(), in_date.getMonth(), 0)
+            week.week_of = this.date_yyyymmdd_dashed(new Date(prev_month.getFullYear(), prev_month.getMonth(), prev_mo_day));
+            week.week_of_label = this.calendarLabel(week.week_of);
+          }
+          prev_mo_day--;
+        }
+      }
+
+      // if start of week, create label and assign week_of
+      if (day_of_week == 0) {
+        var sunday = new Date(in_date.getFullYear(), in_date.getMonth(), i + 6)
+        week.week_of = this.date_yyyymmdd_dashed(new Date(in_date.getFullYear(), in_date.getMonth(), i))
+        week.week_of_label = this.mo_text[in_date.getMonth()] + ' ' + i + ' - ' + this.mo_text[sunday.getMonth()] + ' ' + sunday.getDate();
+      }
+
+
+      if (today.getDate() == i && today.getMonth() == in_date.getMonth() && today.getFullYear() == in_date.getFullYear()) {
+        week.cur_week = true;
+        week.week_of_label += ' (this week)'
+        //calendar.week_label = week.week_of_label
+
+        // setup initial back forth buttons for date
+        calendar.week_back.week_of = this.determineWeek(new Date(), -7);
+        calendar.week_back.label = this.calendarLabel(calendar.week_back.week_of);
+
+        calendar.week_forth.week_of = this.determineWeek(new Date(), 7);
+        calendar.week_forth.label = this.calendarLabel(calendar.week_forth.week_of);
+      }
+
+      // if end of month see if ends on a Sunday. If not, then fill in the rest of the week with the next months dates
+      if (i == (month_len)) {
+        var next_mo_day = 1;
+        for (var i_i = day_of_week + 1; i_i <= 6; i_i++) {
+          week.days[i_i].date = next_mo_day;
+          next_mo_day++;
+        }
+        calendar.weeks.push(week)
+      } else {
+        // see if end of the week, if so then append week array to months.weeks and reset the week array and reent the day of week to zero. Otherwise just increase the day of week by 1;
+        if (day_of_week == 6) {
+          calendar.weeks.push(week)
+          var week = { cur_week: false, week_of: '', week_of_label: '', days: [{ cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }, { cur_mo: false, date: 0 }] };
+          day_of_week = 0;
+        } else {
+          day_of_week++;
+        }
+      }
+    }
+    return calendar
+  }
+
+
+
+  determineWeek(date_in, offset) {
+    var day = date_in.getDay();
+    var prevMonday;
+
+    if (date_in.getDay() == 0) {
+      //prevMonday = new Date().setDate(date_in.getDate() - 6);
+      prevMonday = new Date(date_in.getFullYear(), date_in.getMonth(), date_in.getDate() - 6 + offset)
+    } else if (date_in.getDay() == 0) {
+      //prevMonday = new Date().setDate(date_in.getDate() - day);
+      prevMonday = new Date(date_in.getFullYear(), date_in.getMonth(), date_in.getDate() - day + offset)
+    } else {
+      //prevMonday = new Date().setDate(date_in.getDate() - day + 1);
+      prevMonday = new Date(date_in.getFullYear(), date_in.getMonth(), date_in.getDate() - day + 1 + offset)
+    }
+
+    // Format previous monday to yyyy-mm-dd
+    //var date = new Date(prevMonday);
+
+    // apply offset
+    // date = new Date(date.getFullYear(), date.getMonth(), date.getDate + offset);
+
+    return this.date_yyyymmdd_dashed(prevMonday)
+  }
+
+
+
+
+  date_yyyymmdd_dashed(date_in) {
+
+    var mm = date_in.getMonth() + 1; // getMonth() is zero-based
+    var dd = date_in.getDate();
+
+    return [date_in.getFullYear() + '-',
+    (mm > 9 ? '' : '0') + mm + '-',
+    (dd > 9 ? '' : '0') + dd
+    ].join('');
+  }
+
+  date_server_to_client(date_in) {
+    var date_out = new Date(date_in);
+    return date_out
+  }
+
+  isLoggedIn() {
+    
+    var is_root = location.pathname == "/"; //Equals true if we're at the root
+
+    if (this.getCookie('logged_in')) {
+      this.validateLogin().subscribe(res => {
+        if (res['valid']) {          
+          if (is_root || location.href.endsWith('login')) {
+            //window.location.href = "/entry"
+          }
+        } else {
+          if (!is_root && !location.href.endsWith('login')) {
+            //window.location.href = "/login"
+          }
+        }
+      });
+    } else {
+      if (!is_root && !location.href.endsWith('login')) {
+        //window.location.href = "/login"
+      }
+    }
+  }
+
+
+  validateLogin() {
+    console.log('Running User Validation: ')
+    var id_token = this.getCookie('id_token')
+    var data = { 'id_token': id_token }
+    return this.http.post(this.api_path + '/api/user/validate', data).map(res => res.json());
+  }
+
+  getCookie(cookiename) {
+    // Get name followed by anything except a semicolon
+    var cookiestring = RegExp("" + cookiename + "[^;]+").exec(document.cookie);
+    // Return everything after the equal sign, or an empty string if the cookie name not found
+    return decodeURIComponent(!!cookiestring ? cookiestring.toString().replace(/^[^=]+./, "") : "");
+  }
+
+  checkLogin(){    
+    if(!this.getCookie('logged_in')){
+      this.go('login')
+      this.valid_login = false
+      return false
+    }
+    setTimeout(res=> {
+      this.checkLogin()
+    },1000)
+  }
 
 }
+
+

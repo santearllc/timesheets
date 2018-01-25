@@ -45,7 +45,15 @@ export class ApprovalComponent implements OnInit {
     this.vars.day_name_full = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     // get data from database
-    this.vars.users = this.serviceService.getUsers();
+    this.vars.users = this.serviceService.getUsers_db();
+
+
+    this.serviceService.getUsers_db().subscribe(res => {      
+      this.vars.users_db = res['users']
+      console.log(this.vars.users_db)
+    });
+
+
     this.vars.lines = this.serviceService.getApprovalLines();
 
     // convert rows from database into object
@@ -77,7 +85,7 @@ export class ApprovalComponent implements OnInit {
 
     // generate timesheet breakdown for every user
     for (var x in converted['timesheet_by_user']) {
-      this.vars.timesheet_by_user[x] = this.serviceService.generateTimesheetByUser(converted['timesheet_by_user'][x], this.vars.titles, null)
+      this.vars.timesheet_by_user[x] = this.serviceService.generateTimesheetByUser(converted['timesheet_by_user'][x])
 
       var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(this.vars.timesheet_by_user[x], this.vars.users[x].Data.TotalHours_byDay, this.vars.users[x].OfficeKey);
       this.vars.users[x].Data.timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];

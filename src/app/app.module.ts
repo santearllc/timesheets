@@ -21,10 +21,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 import { MatDatepickerModule } from '@angular/material';
 import 'hammerjs';
 
-import { CalendarComponent } from './calendar/calendar.component';
 import { StatusComponent } from './status/status.component';
 import { SafeHtmlPipe } from './pipes/safeHtml.pipe';
 import { TimesheetBreakdownComponent } from './timesheet-breakdown/timesheet-breakdown.component';
+import { LoginComponent } from './login/login.component';
 
 
 @NgModule({
@@ -35,10 +35,10 @@ import { TimesheetBreakdownComponent } from './timesheet-breakdown/timesheet-bre
     ExportComponent,
     AdministrateComponent,
     NavigationComponent,    
-    CalendarComponent,
     StatusComponent,
     SafeHtmlPipe,
-    TimesheetBreakdownComponent
+    TimesheetBreakdownComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,

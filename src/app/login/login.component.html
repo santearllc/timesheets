@@ -1,0 +1,17 @@
+<!-- Display when loading time sheet -->
+
+<div *ngIf="show_signin" class="cat_1 projects" style="margin-top: 40px;">
+  <div class="cat_1_title">
+
+    <div style="font-size:1.5em;font-weight: 700;">
+      <div>Time Sheet System</div>
+    </div>
+  </div>
+  <div class="cat_1_content" style="text-align:center;">
+      <div style="margin:20px;">
+          <!-- <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-icon="false" style="display:inline-block;"></div>  -->
+          <div id="googleBtn" style="display:inline-block;">Loading Google Access</div>
+          <div id="login_error">{{login_res}}</div>
+      </div>
+  </div>
+</div>

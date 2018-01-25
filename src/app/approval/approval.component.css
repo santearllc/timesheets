@@ -34,11 +34,12 @@ td{
 	font-size:.8em;
 	box-shadow: 10px 10px 5px #888888;
 	padding:5px;
-	width:695px;
+	width:770px;
 }
 
 .note_text{
 	font-size:1.0em;
+	width:750px;
 }
 
 .rejected_note_text{

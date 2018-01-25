@@ -1,10 +1,121 @@
 
+.hideNote{
+	overflow: hidden;
+	max-height:0px;
+	opacity: 0.0;
+	transition: max-height .1s ease-out .2s, opacity .1s linear;
+}
+
+.showNote{
+	overflow: hidden;
+    max-height:1000px;
+	opacity: 1.0;
+	transition: max-height .1s ease-out, opacity .1s linear .1s;	
+	transition-delay: 0.1s;
+}
+
+
+.note_text{
+	position:absolute;
+	width:770px;
+	z-index:1000;	
+	font-size:0.8em;
+	background-color:rgb(160, 160, 160);	
+	margin-top:0px;	
+	box-shadow: 5px 5px 10px #888888;	
+	overflow: hidden;
+}
+
+.note_text div{
+	/* white-space: pre;  */
+	padding:10px;
+}
+
+
+
+/* class for top div used to hide remove buttons  */
+.showAddRemove, .hideAddRemove{
+	width:800px;
+	z-index:1000;
+	position:fixed;
+	background-color:#555;
+	top:0;
+}
+
+.hideAddRemove{
+	overflow: hidden;
+	max-height:0px;	
+	transition:max-height .1s linear;	
+}
+
+.showAddRemove{
+	overflow: hidden;
+    max-height:50px;
+	transition: max-height .1s linear;	
+}
+
+
+.close_btn{
+	padding:10px;
+	text-align:center;	
+	cursor: pointer;
+	font-style: italic;	
+}
+
+.close_btn:hover{
+	color:#677ef3;
+}
+
+.timesheet_show{
+	opacity: 1.0;
+	transition: opacity .25s .25s linear;
+}
+
+.timesheet_hide{
+	opacity: 0.0;
+	/*transition: opacity .25s linear;*/
+}
+
+.timesheet_footer{
+	color:#000;
+	background-color:#BCBCBC;	
+	text-align: right;
+}
+
+.timesheet_submitted_footer{
+	color:#000;
+	background-color:#BCBCBC;	
+	text-align: right;
+	padding:20px;
+	text-align: center;
+	font-weight: 700;	
+}
+
+/* triangle menu (edit lines, reset timesheet,remove project) */
+.menu_div{
+	position: absolute;
+	background-color:#FFF;
+	box-shadow: 5px 5px 5px #000;	
+	padding:5px;
+	z-index: 1000;	
+}
+
+.menu_div div{
+	white-space: nowrap;
+	padding:2px;
+	cursor: pointer;
+}
+
+.menu_div div:hover{
+	color:#1f54dc;
+}
+
+
+/* custom drop down menue with search */
 .dd_div{
-width: 100%;
-box-sizing: border-box;
+    width: 100%;
+    box-sizing: border-box;
 }   
-
-
 
 .dd_search input{
     background: transparent;
@@ -21,20 +132,16 @@ box-sizing: border-box;
     outline: none;
 }
 
-
-
 .dd_search{
     padding:5px;
     border-bottom:2px #999 solid;
 }
-
 
 .dd_reveal{
     font-size:0.75em;
     cursor: pointer;
     
 }
-
 
 .dd_results{
     position: absolute;
@@ -61,4 +168,7 @@ box-sizing: border-box;
     color:#DDD;
     background-color: #677ef3
 }
+
+
+
 

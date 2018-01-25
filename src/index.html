@@ -13,10 +13,10 @@
     crossorigin="anonymous">
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
-  
-
+  <meta name="google-signin-scope" content="profile email">
+  <meta name="google-signin-client_id" content="697253707156-snm8bjc71kb1i7qac4goakajkr53f1m5.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js?onload=onLoadCallback"></script>
 
 </head>
 
@@ -24,11 +24,9 @@
   <app-root></app-root>
 
   <div style="margin-top:20px;display:none;">
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>    
-    <button onclick="signOut();">Sign Out</button>
+    <!-- <div class="g-signin2" data-onsuccess="onSignIn" scope='profile email'></div> -->
+    <!--  <button onclick="signOut();">Sign Out</button> -->
   </div>
-  
 </body>
 
 </html>
-

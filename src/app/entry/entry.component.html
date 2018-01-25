@@ -1,14 +1,37 @@
-<div (click)="resetMenus()">
+<div *ngIf="vars.showEntryComponent" (click)="resetMenus()">
+	<!-- finish editing line items -->
 	<div class="close_menu_btn_par" [class.hideAddRemove]="!vars.edit_line_items" [class.showAddRemove]="vars.edit_line_items">
-
-
-		<div class="close_btn" style="" (click)="showEditLineItems([vars])">
+		<div class="close_btn" style="" (click)="showHideEditLineItems()">
 			click when done editing line items
 		</div>
-
 	</div>
 
-	<!-- Popup used to inform user of important actions (typically includes a confirm or cancel button) -->
+	<!-- template warning -->
+	<div class="close_menu_btn_par" [class.hideAddRemove]="!vars.auto_generated_time_sheet" [class.showAddRemove]="vars.auto_generated_time_sheet">
+		<div class="close_btn" style="" (click)="loadInitTimeheet();vars.auto_generated_time_sheet=false">
+			Auto generated time sheet.  Press here to load a blank time sheet. 
+		</div>
+	</div>
+
+	<!-- Not Valid -->
+	<div *ngIf="!vars.valid_login" class="cat_1 projects" style="margin-top: 40px;">
+		<div class="cat_1_title">
+	  
+		  <div style="font-size:1.5em;font-weight: 700;">
+			<div>Time Sheet System</div>
+		  </div>
+		</div>
+		<div class="cat_1_content" style="text-align:center;">
+			<div style="margin:20px;">
+				{{vars.invalid_login_res}}
+			</div>
+			<div style="margin:20px;">
+				<div class="g-signin2" data-onsuccess="onSignIn"></div>
+			</div>
+		</div>
+	  </div>
+
+	<!-- popup used to inform user of important actions (typically includes a confirm or cancel button) -->
 	<div *ngIf="vars.showPopup" class="popup">
 		<div>
 			<div class="popup_title" [innerHTML]="vars.popup.title | safeHtml: 'html'"></div>
@@ -18,24 +41,15 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Menu is used during testing -->
-	<div class="debug_settings" *ngIf="true">
-		<div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Menu</div>
-		<div class="debug_items" style="">
-			<div class="alt_btn" (click)="(vars.current_office==1) ? vars.current_office=0 : vars.current_office=1;updateTimesheetTotals();">Toggle Location: {{ (vars.current_office == 1) ? 'CAN' : 'US'}}</div>
-			<div class="alt_btn" (click)="loadInitTimeheet()">Clear Timesheet (reset)</div>
-			<div class="alt_btn" (click)="loadSampleTimesheet()">Load Sample Time Sheet</div>
-		</div>
-	</div>
-
+	
 	<!-- Main section of component -->
-
-	<div style="margin-bottom: 10px;">
+	<div *ngIf="vars.valid_login" style="margin-bottom: 10px;" [class.disable-clicks]="!vars.showTimeSheet">
 		<div>
 			<h1>{{vars.user_name}}</h1>
 		</div>
-		<div class="alt_btn" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.timesheet_date}}</div>
+		<div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
+		<div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
+		<div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>
 
 		<!-- Texual and graphical indicator for save state; defaults to hidden until an action is made -->
 		<div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimesheet()">
@@ -45,492 +59,378 @@
 			</svg>
 		</div>
 
-		<!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> -->
+		<!-- Calendar | at some point this should become a reusable component -->
 		<div id="cal" *ngIf="vars.showCal">
 			<div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
 				<table width="100%;">
 					<tr>
-						<td>&larr;</td>
-						<td style="text-align:center;">January 2018</td>
-						<td>&rarr;</td>
+						<td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
+						<td style="text-align:center;">{{ vars.calendar.month_label }}</td>
+						<td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
 					</tr>
 				</table>
 			</div>
 			<table class="cal_weeks" width="100%;">
 				<tr class="disable-clicks">
-					<td *ngFor="let day_i of vars.days_label" style="font-weight:700;">{{ day_i }}</td>
+					<td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
 				</tr>
-				<tr (click)="weekSelected(0)">                
-					<td>1</td>
-					<td>2</td>
-					<td>3</td>
-					<td>4</td>
-					<td>5</td>
-					<td>6</td>
-					<td>7</td>
+				<tr *ngFor="let week of vars.calendar.weeks" (click)="weekSelected(week.week_of_label,week.week_of)" [class.cal_cur_week]="week.cur_week">
+					<td *ngFor="let day of week.days" [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
 				</tr>
-				<tr class="cal_days" (click)="weekSelected(1)">
-					<td>8</td>
-					<td>9</td>
-					<td>10</td>
-					<td>11</td>
-					<td>12</td>
-					<td>13</td>
-					<td>14</td>
-				</tr>
-				<tr (click)="weekSelected(2)">
-					<td>15</td>
-					<td>16</td>
-					<td>17</td>
-					<td>18</td>
-					<td>19</td>
-					<td>20</td>
-					<td>21</td>
-				</tr>
-				<tr (click)="weekSelected(3)">
-					<td>22</td>
-					<td>23</td>
-					<td>24</td>
-					<td>25</td>
-					<td>26</td>
-					<td>27</td>
-					<td>28</td>
-				</tr>
-				<tr (click)="weekSelected(4)">
-					<td>29</td>
-					<td>30</td>
-					<td>31</td>
-					<td class="cal_dif_mo">1</td>
-					<td class="cal_dif_mo">2</td>
-					<td class="cal_dif_mo">3</td>
-					<td class="cal_dif_mo">4</td>
-				</tr>
-			</table>
+			</table>		
 		</div>
 	</div>
 
-	<!-- Timesheet Generation -->
-	<div class="cat_1 projects" *ngFor="let x_1 of vars.timesheet; let i_0 = 'index'" style="margin-bottom: 10px;">
-		<div class="cat_1_title">
-			<table style="width:100%;">
-				<tr>
-					<td style="width: 200px;font-size:1.5em;font-weight: 700;">
-						<div>{{ vars.titles[x_1.cat_key]['Title'] }}</div>
-					</td>
-					<td>
-						<table style="width: 100%;">
-							<tr>
-								<td class="blank">&nbsp;</td>
-								<td *ngFor="let day_i of vars.days_label" class="day">{{ day_i }}</td>
-								<td class="blank">&nbsp;</td>
-								<td class="sum">&nbsp;</td>
-								<td style="width:1%;">
-									<div class="empty">&nbsp;</div>
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-			<!-- Add new row options -->
-			<div class="addRowOption" style="margin-top:10px;">
+	<!-- Display when loading time sheet -->
+	<div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);" *ngIf="!vars.showTimeSheet && vars.valid_login">
+		Loading Time Sheet...
+	</div>
 
-				<!-- This div is for project searching -->
-				
-				<div *ngIf="x_1.cat_key == 0 && !vars.timesheet_submitted">
-					<div class="dd_div">
-						<div class="dd_search">
-							<div style="width:90%;display:inline-block;">
-								<input autofocus [attr.id]="'input_'+x_1.cat_key" placeholder="Search for Show (name or code)" [(ngModel)]="x_1.searchDD" type="text" (keyup)="x_1.dd_results = searchDropDown(x_1.searchDD, vars.shows,[x_1]);dropDownKey($event, x_1, x_1.dd_results,[x_1], 'project');" (click)="x_1.searchDD='';x_1.dd_results = searchDropDown(x_1.searchDD, vars.shows)"/>
-							</div><!--
-							--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
-								<div class="dd_reveal" (click)="x_1.dd_results = dropDownReset($event, vars.shows)">&#9660;</div>
-							</div>
-						</div>
-						<div *ngIf="x_1.dd_results">
-							<div *ngIf="x_1.dd_results.length > 0" (mouseover)="x_1.dd_results = dropDownReset(false, x_1.dd_results);" class="dd_results" style="width:770px;">
-								<div *ngFor="let result of x_1.dd_results" [class.dd_result_sel]="result.selected" [attr.data-cats]="[x_1]" (click)="x_1.department=x_1.cat_key;selectShow(result, x_1)">{{ result.Cat_Title }}</div>
-							</div>
-						</div>					
-					</div>
+	<div *ngIf="this.vars.status == 3 && vars.showTimeSheet" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">
+		
+		<div style="font-size:1.25em;font-weight: 700;">This timesheet was rejected</div>	
+		<div style="font-style:italic;">Please refer to notes under show or department to resolve issue and then resubmit.</div>
+	</div>
 
-					<div style="z-index:1000;" class="addRowOption_ProjectList">
-						<div *ngFor="let el of x_1.results" (click)="selectShow(el, x_1)" style="">{{ el.Cat_Title }}</div>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<div class="cat_1_content" *ngIf="x_1.children.length > 0">
-			<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'" [class]="(!x_2.indicateRemoval) ? '' : 'indicateRemoval'">
-				<div *ngIf="!first">&nbsp;</div>
-				<div style="border-bottom:1px #BBB solid;padding-bottom:0px;margin-bottom: 5px;">
-					<table style="width:100%;">
-						<tr>
-							<td style="width: 200px;" class="cat_0_title">
-								<div>{{ vars.titles[x_1.cat_key][x_2.cat_key]['Title'] }}</div>
-							</td>
-							<td>
-								<table style="width: 100%;" [class]="(vars.timesheet_submitted) ? 'disable-clicks' : ''">
-									<tr>
-										<td class="blank">&nbsp;</td>
-										<td *ngFor="let day_i of vars.days;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key &&  x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_selected day' : 'ot day'">
-											<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i] && x_2.sum_hours[day_i] > 0.0 && vars.ot_req[day_i] > 1">OT</div>										
-										</td>
-										<td class="blank">&nbsp;</td>
-										<td class="sum" style="text-align:right;">
-
-										</td>
-										<td style="width:1%;">
-											<div>
-												<div class="menu" (click)="(x_2.show_menu) ? x_2.show_menu = false : x_2.show_menu = true"></div>
-												<div *ngIf="x_2.show_menu" class="menu_div">
-													<div *ngIf="x_1.cat_key == 0">
-														<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])">Remove Show</div>
-													</div>
-													<div (click)="showEditLineItems([x_1, x_2])">Edit Line Items</div>
-												</div>
-											</div>
-										</td>
-									</tr>
-								</table>
-							</td>
-						</tr>
-					</table>
-				</div>
-				<!-- Add new row options -->
-				<div *ngIf="!vars.timesheet_submitted" class="addRowOption" style="margin-bottom:15px;">
-
-					<div *ngIf="x_1.cat_key == 0">
-						<table width="100%">
-							<tr>
-								<td width="33%">
-									<div class="dd_div">
-										<div class="dd_search">
-											<div style="width:90%;display:inline-block;">
-												<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_showTask'" placeholder="Select Category" [(ngModel)]="x_2.searchDD_showTask" type="text" (keyup)="x_2.dd_results_showTask = searchDropDown(x_2.searchDD_showTask, vars.show_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_showTask,[x_1,x_2],'showTask');" (click)="resetNewLine($event,x_2);x_2.showTask=-1;x_2.searchDD_showTask='';x_2.dd_results = searchDropDown(x_2.searchDD_showTask, vars.show_tasks);"/>											
-											</div><!--
-											--><div style="width:10%;display:inline-block;text-align:right;">
-												<div class="dd_reveal" (click)="resetNewLine($event, x_2); x_2.dd_results_showTask = dropDownReset($event, vars.show_tasks)">&#9660;</div>
+	<!-- time sheet generation -->
+	<div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">		
+		<div class="cat_1 projects" *ngFor="let x_1 of vars.timesheet; let i_0 = 'index'" style="margin-bottom: 10px;">
+			<div class="cat_1_title">
+				<table style="width:100%;">
+					<tr>
+						<td style="width: 200px;font-size:1.5em;font-weight: 700;">
+							<div>{{ vars.titles_obj[x_1.cat_key]['title'] }}</div> <!-- 'Show' or 'Department' title -->
+						</td>
+						<td>
+							<table style="width: 100%;">
+								<tr>
+									<td class="blank">&nbsp;</td>
+									<td *ngFor="let day_i of serviceService.days_label" class="day">{{ day_i }}</td>
+									<td class="blank">&nbsp;</td>
+									<td class="sum">&nbsp;</td>
+									<td style="width:1%;">
+										<div>
+											<div class="menu" (click)="(x_1.show_menu) ? x_1.show_menu = false : x_1.show_menu = true"></div>
+											<div *ngIf="x_1.show_menu" class="menu_div">												
+												<div (click)="showHideEditLineItems()">Edit Line Items</div>
+												<div (click)="loadInitTimeheet();this.saveTimesheet();">Clear Timesheet</div>
 											</div>
 										</div>
-										<div *ngIf="x_2.dd_results_showTask">
-											<div *ngIf="x_2.dd_results_showTask.length > 0" (mouseover)="x_2.dd_results = dropDownReset(false, x_2.dd_results_showTask);" class="dd_results" style="width:255px;">
-												<div *ngFor="let result of x_2.dd_results_showTask" [class.dd_result_sel]="result.selected" (click)="x_2.showTask=result.Cat_key;x_2.searchDD_showTask=result.Cat_Title;x_2.dd_results_showTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>											
-											</div>
-										</div>						
-									</div>
-								</td>
-								<td width="34%">
-									<div *ngIf="x_2.showTask != 4 && x_2.showTask != 5 && x_2.showTask != 6 && x_2.showTask != 7">   <!--  Nothing Selected  -->
-										<div class="dd_div" style="opacity:0.25;">
-											<div class="dd_search">
-												<div style="width:90%;display:inline-block;">
-													<input placeholder="Select Step" type="text" disabled/>
-												</div><!--
-												--><div style="width:10%;display:inline-block;text-align:right;">
-													<div class="dd_reveal" (click)="x_2.dd_results_shotTask = dropDownReset($event, vars.asset_tasks)">&#9660;</div>
-												</div>
-											</div>										
-										</div>
-									</div>								
-									<div *ngIf="x_2.showTask == 4"> <!--  Asset Task  -->
-										<div class="dd_div">
-											<div class="dd_search">
-												<div style="width:90%;display:inline-block;">
-													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_assetTask'" placeholder="Select Step" [(ngModel)]="x_2.searchDD_assetTask" type="text" (keyup)="x_2.dd_results_assetTask = searchDropDown(x_2.searchDD_assetTask, vars.asset_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_assetTask,[x_1,x_2], 'assetTask');" (click)="x_2.searchDD_assetTask='';x_2.dd_results_assetTask = searchDropDown(x_2.searchDD_assetTask, vars.asset_tasks)"/>
-												</div><!--
-												--><div style="width:10%;display:inline-block;text-align:right;">
-													<div class="dd_reveal" (click)="x_2.dd_results_assetTask = dropDownReset($event, vars.asset_tasks)">&#9660;</div>
-												</div>
-											</div>
-											<div *ngIf="x_2.dd_results_assetTask">
-												<div *ngIf="x_2.dd_results_assetTask.length > 0" (mouseover)="x_2.dd_results_assetTask = dropDownReset(false, x_2.dd_results_assetTask);" class="dd_results" style="width:255px;">
-													<div *ngFor="let result of x_2.dd_results_assetTask" [class.dd_result_sel]="result.selected" (click)="x_2.assetTask=result.Cat_key;x_2.searchDD_assetTask=result.Cat_Title;x_2.dd_results_assetTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
-												</div>
-											</div>						
-										</div>
-									</div>
-									<div *ngIf="x_2.showTask == 5"> <!--  Shot Task  -->
-										<div class="dd_div">
-											<div class="dd_search">
-												<div style="width:90%;display:inline-block;">
-													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_shotTask'" placeholder="Select Step" [(ngModel)]="x_2.searchDD_shotTask" type="text" (keyup)="x_2.dd_results_shotTask = searchDropDown(x_2.searchDD_shotTask, vars.shot_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_shotTask,[x_1,x_2], 'shotTask');" (click)="x_2.searchDD_shotTask='';x_2.dd_results_shotTask = searchDropDown(x_2.searchDD_shotTask, vars.shot_tasks)"/>
-												</div><!--
-												--><div style="width:10%;display:inline-block;text-align:right;">
-													<div class="dd_reveal" (click)="x_2.dd_results_shotTask = dropDownReset($event, vars.shot_tasks)">&#9660;</div>
-												</div>
-											</div>
-											<div *ngIf="x_2.dd_results_shotTask">
-												<div *ngIf="x_2.dd_results_shotTask.length > 0" (mouseover)="x_2.dd_results_shotTask = dropDownReset(false, x_2.dd_results_shotTask);" class="dd_results" style="width:255px;">
-													<div *ngFor="let result of x_2.dd_results_shotTask" [class.dd_result_sel]="result.selected" (click)="x_2.shotTask=result.Cat_key;x_2.searchDD_shotTask=result.Cat_Title;x_2.dd_results_shotTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
-												</div>
-											</div>						
-										</div>
-									</div>
-									<div *ngIf="x_2.showTask == 6"> <!--  Produciton Task  -->
-										<div class="dd_div">
-											<div class="dd_search">
-												<div style="width:90%;display:inline-block;">
-													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_productionTask'" placeholder="Select Position" [(ngModel)]="x_2.searchDD_productionTask" type="text" (keyup)="x_2.dd_results_productionTask = searchDropDown(x_2.searchDD_productionTask, vars.production_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_productionTask,[x_1,x_2], 'productionTask');" (click)="x_2.searchDD_productionTask='';x_2.dd_results_productionTask = searchDropDown(x_2.searchDD_productionTask, vars.production_tasks)"/>
-												</div><!--
-												--><div style="width:10%;display:inline-block;text-align:right;">
-													<div class="dd_reveal" (click)="x_2.dd_results_productionTask = dropDownReset($event, vars.production_tasks)">&#9660;</div>
-												</div>
-											</div>
-											<div *ngIf="x_2.dd_results_productionTask">
-												<div *ngIf="x_2.dd_results_productionTask.length > 0" (mouseover)="x_2.dd_results_productionTask = dropDownReset(false, x_2.dd_results_productionTask);" class="dd_results" style="width:255px;">
-													<div *ngFor="let result of x_2.dd_results_productionTask" [class.dd_result_sel]="result.selected" (click)="x_2.productionTask=result.Cat_key;x_2.searchDD_productionTask=result.Cat_Title;x_2.dd_results_productionTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
-												</div>
-											</div>						
-										</div>
-									</div>
-									<div *ngIf="x_2.showTask == 7"> <!--  Produciton Task  -->
-										<div class="dd_div">
-											<div class="dd_search">
-												<div style="width:90%;display:inline-block;">
-													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_supervisionTask'" placeholder="Select Position" [(ngModel)]="x_2.searchDD_supervisionTask" type="text" (keyup)="x_2.dd_results_supervisionTask = searchDropDown(x_2.searchDD_supervisionTask, vars.supervision_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_supervisionTask,[x_1,x_2], 'supervisionTask');" (click)="x_2.searchDD_supervisionTask='';x_2.dd_results_supervisionTask = searchDropDown(x_2.searchDD_supervisionTask, vars.supervision_tasks)"/>
-												</div><!--
-												--><div style="width:10%;display:inline-block;text-align:right;">
-													<div class="dd_reveal" (click)="x_2.dd_results_supervisionTask = dropDownReset($event, vars.supervision_tasks)">&#9660;</div>
-												</div>
-											</div>
-											<div *ngIf="x_2.dd_results_supervisionTask">
-												<div *ngIf="x_2.dd_results_supervisionTask.length > 0" (mouseover)="x_2.dd_results_supervisionTask = dropDownReset(false, x_2.dd_results_supervisionTask);" class="dd_results" style="width:255px;">
-													<div *ngFor="let result of x_2.dd_results_supervisionTask" [class.dd_result_sel]="result.selected" (click)="x_2.supervisionTask=result.Cat_key;x_2.searchDD_supervisionTask=result.Cat_Title;x_2.dd_results_supervisionTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
-												</div>
-											</div>						
-										</div>
-									</div>
-								</td>
-								<td width="33%">
-
-									<div *ngIf="x_2.showTask != 4 && x_2.showTask != 5">   <!--  Nothing Selected  -->
-										<div class="dd_div" style="opacity:0.25;">
-											<div class="dd_search">
-												<div style="width:100%;display:inline-block;">
-													<input placeholder="Search for Shot/Asset" type="text" disabled/>
-												</div>
-											</div>										
-										</div>
-									</div>
-									<div *ngIf="x_2.showTask == 4 || x_2.showTask == 5" class="dd_div">
-										<div class="dd_search">
-											<div style="width:90%;display:inline-block;">
-												<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_shot'" placeholder="Search for Shot/Asset" [(ngModel)]="x_2.searchDD_shot" type="text" (keyup)="x_2.dd_results_shot = searchDropDown(x_2.searchDD_shot, (x_2.showTask == 4) ? vars.assets : vars.shots,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_shot,[x_1,x_2], 'shot');" (click)="x_2.searchDD_shot='';x_2.dd_results_shot = searchDropDown(x_2.searchDD_shot, (x_2.showTask == 4) ? vars.assets : vars.shots)"/>
-											</div><!--
-											--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
-												<div class="dd_reveal" (click)="x_2.dd_results_shot = dropDownReset($event, (x_2.showTask == 4) ? vars.assets : vars.shots)">&#9660;</div>
-											</div>
-										</div>
-										<div *ngIf="x_2.dd_results_shot">
-											<div *ngIf="x_2.dd_results_shot.length > 0" (mouseover)="x_2.dd_results_shot = dropDownReset(false, x_2.dd_results_shot);" class="dd_results" style="width:255px;">
-												<div *ngFor="let result of x_2.dd_results_shot" [class.dd_result_sel]="result.selected" (click)="x_2.shot_selected=result;x_2.searchDD_shot=result.Cat_Title;x_2.dd_results_shot=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
-											</div>
-										</div>						
-									</div>
-									<!-- </div>-->
-								</td>
-							</tr>
-						</table>
-					</div>
-
-					<div *ngIf="x_1.cat_key == 1 && !vars.timesheet_submitted">
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<!-- add new row options -->
+				<div class="addRowOption" style="margin-top:10px;">					
+					
+					<!-- search for show -->
+					<div *ngIf="x_1.cat_key == 0 && !vars.timesheet_submitted">						
 						<div class="dd_div">
 							<div class="dd_search">
 								<div style="width:90%;display:inline-block;">
-									<input placeholder="Select Task" [(ngModel)]="x_2.searchDD_departmentTask" type="text" (keyup)="x_2.dd_results_departmentTask = searchDropDown(x_2.searchDD_departmentTask, vars.department_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_departmentTask,[x_1,x_2], 'shotTask');" (click)="x_2.searchDD_departmentTask='';x_2.dd_results_departmentTask = searchDropDown(x_2.searchDD_departmentTask, vars.department_tasks)"/>
+									<input autofocus [attr.id]="'input_'+x_1.cat_key" placeholder="Search for Show (name or code)" [(ngModel)]="x_1.searchDD" type="text" (keyup)="x_1.dd_results = searchDropDown(x_1.searchDD, vars.shows,[x_1]);dropDownKey($event, x_1, x_1.dd_results,[x_1], 'project');" (click)="x_1.searchDD='';x_1.dd_results = searchDropDown(x_1.searchDD, vars.shows)"/>
 								</div><!--
-								--><div style="width:10%;display:inline-block;text-align:right;">
-									<div class="dd_reveal" (click)="x_2.dd_results_departmentTask = dropDownReset($event, vars.department_tasks)">&#9660;</div>
+								--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
+									<div class="dd_reveal" (click)="x_1.dd_results = dropDownReset($event, vars.shows)">&#9660;</div>
 								</div>
 							</div>
-							<div *ngIf="x_2.dd_results_departmentTask">
-								<div *ngIf="x_2.dd_results_departmentTask.length > 0" (mouseover)="x_2.dd_results_departmentTask = dropDownReset(false, x_2.dd_results_departmentTask);" class="dd_results" style="width:770px;">
-									<div *ngFor="let result of x_2.dd_results_departmentTask" [class.dd_result_sel]="result.selected" (click)="x_2.shotTask=result.Cat_key;x_2.searchDD_departmentTask=result.Cat_Title;x_2.dd_results_departmentTask=false;addRowOptionChange([x_1,x_2],result)">{{ result.Cat_Title }}</div>
+							<div *ngIf="x_1.dd_results">
+								<div *ngIf="x_1.dd_results.length > 0" (mouseover)="x_1.dd_results = dropDownReset(false, x_1.dd_results);" class="dd_results" style="width:770px;">
+									<div *ngFor="let result of x_1.dd_results" [class.dd_result_sel]="result.selected" [attr.data-cats]="[x_1]" (click)="x_1.department=x_1.cat_key;showSelected(result, x_1)">{{ result.cat_Title }}</div>
 								</div>
-							</div>						
+							</div>					
+						</div>
+						<div style="z-index:1000;" class="addRowOption_ProjectList">
+							<div *ngFor="let el of x_1.results" (click)="showSelected(el, x_1)" style="">{{ el.cat_Title }}</div>
+						</div>
+					</div>
+					<!-- add department task to time sheet -->
+					<div *ngIf="x_1.cat_key == 1 && !vars.timesheet_submitted">
+						<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'">
+							<div class="dd_div">
+								<div class="dd_search">
+									<div style="width:90%;display:inline-block;">
+										<input placeholder="Select Task" [(ngModel)]="x_2.searchDD_departmentTask" type="text" (keyup)="x_2.dd_results_departmentTask = searchDropDown(x_2.searchDD_departmentTask, vars.tasks.department_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_departmentTask,[x_1,x_2], 'shotTask');" (click)="x_2.searchDD_departmentTask='';x_2.dd_results_departmentTask = searchDropDown(x_2.searchDD_departmentTask, vars.tasks.department_tasks)"/>
+									</div><!--
+									--><div style="width:10%;display:inline-block;text-align:right;">
+										<div class="dd_reveal" (click)="x_2.dd_results_departmentTask = dropDownReset($event, vars.tasks.department_tasks)">&#9660;</div>
+									</div>
+								</div>
+								<div *ngIf="x_2.dd_results_departmentTask">
+									<div *ngIf="x_2.dd_results_departmentTask.length > 0" (mouseover)="x_2.dd_results_departmentTask = dropDownReset(false, x_2.dd_results_departmentTask);" class="dd_results" style="width:770px;">
+										<div *ngFor="let result of x_2.dd_results_departmentTask" [class.dd_result_sel]="result.selected" (click)="x_2.shotTask=result.cat_key;x_2.searchDD_departmentTask=result.cat_Title;x_2.dd_results_departmentTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+									</div>
+								</div>						
+							</div>
 						</div>
 					</div>
 				</div>
-				<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' " [class]="(!x_3.indicateRemoval) ? '' : 'indicateRemoval'">
-					<div *ngIf="x_3.hours">
-						<table style="width:100%;" [class.addedLine]="(x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key) == vars.cur_sel">
-							<tr>
-								<td class="title">
-									<div style="width: 200px;">
-										<div>{{ vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title'] }}</div>
-									</div>
-								</td>
-								<td>
-									<table style="width: 100%;">
-										<tr>
-											<td class="blank">&nbsp;</td>
-											<td *ngFor="let day_i of vars.days;" [class.day]="(x_3.hours[day_i] > 0 || x_3.focus[day_i])" [class.day_zero]="x_3.hours[day_i] <= 0 && !x_3.focus[day_i]">
-												<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_3.hours[day_i] > 0 ? x_3.hours[day_i] : '' }}" (focus)="x_3.focus[day_i] = true;" (keyup)="updateHours($event,x_3.hours, day_i)"
-												(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
-												[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''" />
-											</td>
-											<td class="blank">&nbsp;</td>
-											<td class="sum hour_sum">
-												<div>{{ (x_3.hours[1] + x_3.hours[2] + x_3.hours[3] + x_3.hours[4] + x_3.hours[5] + x_3.hours[6] + x_3.hours[0]) |
-													number : '1.2-2'}}</div>
-											</td>
-											<td style="width:1%;">
-												<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_3.note.length <= 0) ? 0.0 : default"
-												title="Note" (click)="(vars.timesheet_submitted) ? '' : notesToggle(x_3)" (mouseover)="x_3.show_note=true"
-												(mouseout)="x_3.show_note=false" [class]="(x_3.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+			</div>
 
-												<div *ngIf="vars.show_edit_line_items && !(x_1.cat_key == 1 && x_3.cat_key == 11)" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : default"
-												title="Remove" class="minus" (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key,x_3.cat_key])">&nbsp;</div>
-												<div *ngIf="vars.show_edit_line_items && (x_1.cat_key == 1 && x_3.cat_key == 11)" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : .15"
-												title="" class="minus">&nbsp;</div>
-											</td>
-										</tr>
-									</table>
-								</td>
-							</tr>
-						</table>
-						<div *ngIf="x_3.show_note_force">
-							<div *ngIf="!submit_date">
-								<textarea (keyup)="notesUpdate($event,x_3)" class="note_textarea" rows=7>{{ x_3.note }}</textarea>
-							</div>
-							<div class="note_text" *ngIf="x_3.show_note && submit_date && x_3.note.trim().length > 0">
-								<div>{{ x_3.note }}</div>
-							</div>
-						</div>				
-						<div *ngIf="!x_3.show_note_force && x_3.note.trim().length > 0" [class.hideNote]="!x_3.show_note" [class.showNote]="x_3.show_note" class="note_text">
-							<div>{{ x_3.note }}</div>
-						</div>
-					</div>
-					<div *ngIf="(x_3.cat_key == 6 && x_1.cat_key == 0) || (x_3.cat_key == 7 && x_1.cat_key == 0)">
-
-						<div style="margin-top:20px;margin-bottom:5px;">
+			<div class="cat_1_content" *ngIf="x_1.children.length > 0">
+				<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'">
+					<div *ngIf="x_1.cat_key == 0 || showOvertimeIcons(x_2.ot_req, x_2.sum_hours)">
+						<div *ngIf="!first">&nbsp;</div>
+						<div style="border-bottom:1px #BBB solid;padding-bottom:0px;margin-bottom: 5px;">
 							<table style="width:100%;">
 								<tr>
-									<td class="title" style="width:230px;vertical-align:middle;">
-										{{vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']}}
-									</td>
-									<td style="width:420px;">
-										<div *ngIf="!vars.timesheet_submitted">
-											<div *ngIf="x_3.cat_key == 6">
-												<div class="dd_search" style="font-size:0.8em;">
-													<div style="width:90%;display:inline-block;">
-														<input placeholder="Select Position" [(ngModel)]="x_3.searchDD_productionTask" type="text" (keyup)="x_3.showTask=x_3.cat_key;x_3.dd_results_productionTask = searchDropDown(x_3.searchDD_productionTask, vars.production_tasks,[x_1,x_2,x_3]);dropDownKey($event, x_3, x_3.dd_results_productionTask,[x_1,x_2,x_3], 'productionTask');" (click)="x_3.searchDD_productionTask='';x_3.dd_results_productionTask = searchDropDown(x_3.searchDD_productionTask, vars.production_tasks)"/>
-													</div><!--
-													--><div style="width:10%;display:inline-block;text-align:right;">
-														<div class="dd_reveal" (click)="x_3.dd_results_productionTask = dropDownReset($event, vars.production_tasks)">&#9660;</div>
-													</div>
-												</div>
-												<div *ngIf="x_3.dd_results_productionTask">
-													<div *ngIf="x_3.dd_results_productionTask.length > 0" (mouseover)="x_3.dd_results_productionTask = dropDownReset(false, x_3.dd_results_productionTask);" class="dd_results" style="width:418px;">
-														<div *ngFor="let result of x_3.dd_results_productionTask" [class.dd_result_sel]="result.selected" (click)="x_3.showTask=x_3.cat_key;x_3.productionTask=result.Cat_key;x_3.searchDD_productionTask=result.Cat_Title;x_3.dd_results_productionTask=false;addRowOptionChange([x_1,x_2,x_3],result)">{{ result.Cat_Title }}</div>
-													</div>
-												</div>
-											</div>
-											<div *ngIf="x_3.cat_key == 7">
-												<div class="dd_search" style="font-size:0.8em;">
-													<div style="width:90%;display:inline-block;">
-														<input placeholder="Select Position" [(ngModel)]="x_3.searchDD_supervisionTask" type="text" (keyup)="x_3.showTask=x_3.cat_key;x_3.dd_results_supervisionTask = searchDropDown(x_3.searchDD_supervisionTask, vars.supervision_tasks,[x_1,x_2,x_3]);dropDownKey($event, x_3, x_3.dd_results_supervisionTask,[x_1,x_2,x_3], 'supervisionTask');" (click)="x_3.searchDD_supervisionTask='';x_3.dd_results_supervisionTask = searchDropDown(x_3.searchDD_supervisionTask, vars.supervision_tasks)"/>
-													</div><!--
-													--><div style="width:10%;display:inline-block;text-align:right;">
-														<div class="dd_reveal" (click)="x_3.dd_results_supervisionTask = dropDownReset($event, vars.supervision_tasks)">&#9660;</div>
-													</div>
-												</div>
-												<div *ngIf="x_3.dd_results_supervisionTask">
-													<div *ngIf="x_3.dd_results_supervisionTask.length > 0" (mouseover)="x_3.dd_results_supervisionTask = dropDownReset(false, x_3.dd_results_supervisionTask);" class="dd_results" style="width:418px;">
-														<div *ngFor="let result of x_3.dd_results_supervisionTask" [class.dd_result_sel]="result.selected" (click)="x_3.showTask=x_3.cat_key;x_3.supervisionTask=result.Cat_key;x_3.searchDD_supervisionTask=result.Cat_Title;x_3.dd_results_supervisionTask=false;addRowOptionChange([x_1,x_2,x_3],result)">{{ result.Cat_Title }}</div>
-													</div>
-												</div>
-											</div>										
-										</div>
-									</td>
-									<td>&nbsp;</td>
-								</tr>
-							</table>
-						</div>
-
-						<div *ngFor="let x_4 of x_3.children; let i_4 = 'index'" [class]="(!x_4.indicateRemoval) ? '' : 'indicateRemoval'">
-							<table style="width:100%;" [class.addedLine]="(x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key) == vars.cur_sel">
-								<tr>
-									<td class="title">
-										<div style="width: 200px;">
-											<div>&nbsp;&nbsp;{{ vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}</div>
-										</div>
+									<td style="width: 200px;" class="cat_0_title">
+										<div *ngIf="x_1.cat_key != 1">{{ vars.titles_obj[x_1.cat_key]['cat_2'][x_2.cat_key]['title'] }}</div> <!-- show name or department name -->
 									</td>
 									<td>
-										<table style="width: 100%;">
+										<table style="width: 100%;" [class]="(vars.timesheet_submitted) ? 'disable-clicks' : ''">
 											<tr>
 												<td class="blank">&nbsp;</td>
-												<td *ngFor="let day_i of vars.days;" [class]="x_4.hours[day_i] > 0 || x_4.focus[day_i] ? 'day' : 'day_zero'">
-													<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_4.hours[day_i] > 0 ? x_4.hours[day_i] : '' }}" (focus)="x_4.focus[day_i] = true;" (keyup)="updateHours($event,x_4.hours, day_i)"
-													(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
-													[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''" />
+												<td *ngFor="let day_i of vars.days;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key &&  x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_selected day' : 'ot day'">
+													<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i] && x_2.sum_hours[day_i] > 0.0 && vars.ot_req[day_i] > 1">OT</div>										
 												</td>
 												<td class="blank">&nbsp;</td>
-												<td class="sum hour_sum">
-													<div> {{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) |
-														number : '1.2-2'}}</div>
+												<td class="sum" style="text-align:right;">
+
 												</td>
-												<td style="width:1%">
-													<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_4.note.length <= 0) ? 0.0 : default"
-													title="Note" (click)="(vars.timesheet_submitted) ? '' : notesToggle(x_4)" (mouseover)="x_4.show_note=true"
-													(mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
-													<div *ngIf="vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : default" title="Remove"
-													class="minus" (click)="removeLineItem(x_4.children, i_4,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])">&nbsp;</div>
+												<td style="width:1%;">
+													<div *ngIf="x_1.cat_key != 1">
+														<div class="menu" (click)="(x_2.show_menu) ? x_2.show_menu = false : x_2.show_menu = true"></div>
+														<div *ngIf="x_2.show_menu" class="menu_div">
+															<div (click)="showHideEditLineItems()">Edit Line Items</div>
+															<div *ngIf="x_1.cat_key == 0">
+																<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])">Remove Show</div>
+															</div>															
+														</div>
+													</div>
+													<div *ngIf="x_1.cat_key == 1" class="empty">&nbsp;</div>
 												</td>
 											</tr>
 										</table>
 									</td>
 								</tr>
 							</table>
-							<div *ngIf="x_4.show_note_force">
-								<div *ngIf="!submit_date">
-									<textarea (keyup)="notesUpdate($event,x_4)" class="note_textarea" rows=7>{{ x_4.note }}</textarea>
-								</div>
-								<div class="note_text" *ngIf="x_4.show_note && submit_date && x_4.note.trim().length > 0">
-									<div>{{ x_4.note }}</div>
-								</div>
-							</div>				
-							<div *ngIf="!x_4.show_note_force && x_4.note.trim().length > 0" [class.hideNote]="!x_4.show_note" [class.showNote]="x_4.show_note" class="note_text">
-								<div>{{ x_4.note }}</div>
-							</div>							
 						</div>
 					</div>
+					<!-- Add new row options -->
+					<div *ngIf="!vars.timesheet_submitted" class="addRowOption" style="margin-bottom:15px;">
 
-					<div *ngIf="x_3.cat_key == 4 || x_3.cat_key == 5">
-						<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'" [class]="(!x_4.indicateRemoval) ? '' : 'indicateRemoval'">
-
-							<div style="margin-bottom:5px;margin-top:20px;">
-								<table style="width:100%;">
-									<tr>
-										<td class="title" style="width:230px;vertical-align:middle;">
-											{{ vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title']+"s: " + vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key]['Title']}}
-										</td>
-										<td style="width:420px;">
-											<div *ngIf="!vars.timesheet_submitted && false" class="addRowOption_shotAssetSearch">
-												<input class="addRowOption_searchShotAsset" type="text" [placeholder]="(x_3.cat_key == 5) ? '&nbsp;Search for Shot' : '&nbsp;Search for Asset'"
-												style="width: 100%;box-sizing:border-box;font-size:0.8em;" (keyup)="searchShotAsset($event,2,x_3.cat_key,x_4)"
-												(click)="$event.target.value='';searchShotAsset($event,2,x_3.cat_key,x_4)">
-												<div class="addRowOption" class="addRowOption_shotAssetList" style="z-index:1000;width:418px;">
-													<div *ngFor="let el of x_4.results" (click)="selectShotAsset(el, [x_1,x_2,x_3,x_4])">{{ el.Cat_Title }}</div>
+						<div *ngIf="x_1.cat_key == 0">
+							<table width="100%">
+								<tr>
+									<td width="33%">
+										<div class="dd_div">
+											<div class="dd_search">
+												<div style="width:90%;display:inline-block;">
+													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_showTask'" placeholder="Select Category" [(ngModel)]="x_2.searchDD_showTask" type="text" (keyup)="x_2.dd_results_showTask = searchDropDown(x_2.searchDD_showTask, vars.tasks.show_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_showTask,[x_1,x_2],'showTask');" (click)="x_2.showTask=-1;x_2.searchDD_showTask='';x_2.dd_results = searchDropDown(x_2.searchDD_showTask, vars.tasks.show_tasks);"/>											
+												</div><!--
+												--><div style="width:10%;display:inline-block;text-align:right;">
+													<div class="dd_reveal" (click)="x_2.dd_results_showTask = dropDownReset($event, vars.tasks.show_tasks)">&#9660;</div>
 												</div>
 											</div>
-
-											<div *ngIf="!vars.timesheet_submitted">
-												<div class="dd_search" style="font-size:0.8em;">
+											<div *ngIf="x_2.dd_results_showTask">
+												<div *ngIf="x_2.dd_results_showTask.length > 0" (mouseover)="x_2.dd_results = dropDownReset(false, x_2.dd_results_showTask);" class="dd_results" style="width:255px;">
+													<div *ngFor="let result of x_2.dd_results_showTask" [class.dd_result_sel]="result.selected" (click)="x_2.showTask=result.cat_key;x_2.searchDD_showTask=result.cat_Title;x_2.dd_results_showTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>											
+												</div>
+											</div>						
+										</div>
+									</td>
+									<td width="34%">
+										<div *ngIf="x_2.showTask != 4 && x_2.showTask != 5 && x_2.showTask != 6 && x_2.showTask != 7">   <!--  Nothing Selected  -->
+											<div class="dd_div" style="opacity:0.25;">
+												<div class="dd_search">
 													<div style="width:90%;display:inline-block;">
-														<input placeholder="Search for Shot/Asset" [(ngModel)]="x_4.searchDD_shot" type="text" (keyup)="x_4.assetTask = x_4.cat_key;x_4.shotTask = x_4.cat_key;x_4.productionTask = -1;x_4.showTask = x_3.cat_key;;x_4.dd_results_shot = searchDropDown(x_4.searchDD_shot, (x_3.cat_key == 4) ? vars.assets : vars.shots,[x_1,x_2,x_3,x_4]);dropDownKey($event, x_4, x_4.dd_results_shot,[x_1,x_2,x_3,x_4], 'shot');" (click)="x_4.searchDD_shot='';x_4.dd_results_shot = searchDropDown(x_4.searchDD_shot, (x_3.cat_key == 4) ? vars.assets : vars.shots)"/>
+														<input placeholder="Select Step" type="text" disabled/>
 													</div><!--
-													--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
-														<div class="dd_reveal" (click)="x_4.dd_results_shot = dropDownReset($event, (x_3.cat_key == 4) ? vars.assets : vars.shots)">&#9660;</div>
+													--><div style="width:10%;display:inline-block;text-align:right;">
+														<div class="dd_reveal" (click)="x_2.dd_results_shotTask = dropDownReset($event, vars.tasks.asset_tasks)">&#9660;</div>
+													</div>
+												</div>										
+											</div>
+										</div>								
+										<div *ngIf="x_2.showTask == 4"> <!--  Asset Task  -->
+											<div class="dd_div">
+												<div class="dd_search">
+													<div style="width:90%;display:inline-block;">
+														<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_assetTask'" placeholder="Select Step" [(ngModel)]="x_2.searchDD_assetTask" type="text" (keyup)="x_2.dd_results_assetTask = searchDropDown(x_2.searchDD_assetTask, vars.tasks.asset_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_assetTask,[x_1,x_2], 'assetTask');" (click)="x_2.searchDD_assetTask='';x_2.dd_results_assetTask = searchDropDown(x_2.searchDD_assetTask, vars.tasks.asset_tasks)"/>
+													</div><!--
+													--><div style="width:10%;display:inline-block;text-align:right;">
+														<div class="dd_reveal" (click)="x_2.dd_results_assetTask = dropDownReset($event, vars.tasks.asset_tasks)">&#9660;</div>
 													</div>
 												</div>
-												<div *ngIf="x_4.dd_results_shot">
-													<div *ngIf="x_4.dd_results_shot.length > 0" (mouseover)="x_4.dd_results_shot = dropDownReset(false, x_4.dd_results_shot);" class="dd_results" style="width:418px;">
-														<div *ngFor="let result of x_4.dd_results_shot" [class.dd_result_sel]="result.selected" (click)="x_4.assetTask = x_4.cat_key;x_4.shotTask = x_4.cat_key;x_4.productionTask = -1;x_4.showTask = x_3.cat_key;x_4.shot_selected=result;x_4.searchDD_shot=result.Cat_Title;x_4.dd_results_shot=false;addRowOptionChange([x_1,x_2,x_3,x_4],result)">{{ result.Cat_Title }}</div>
+												<div *ngIf="x_2.dd_results_assetTask">
+													<div *ngIf="x_2.dd_results_assetTask.length > 0" (mouseover)="x_2.dd_results_assetTask = dropDownReset(false, x_2.dd_results_assetTask);" class="dd_results" style="width:255px;">
+														<div *ngFor="let result of x_2.dd_results_assetTask" [class.dd_result_sel]="result.selected" (click)="x_2.assetTask=result.cat_key;x_2.searchDD_assetTask=result.cat_Title;x_2.dd_results_assetTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+													</div>
+												</div>						
+											</div>
+										</div>
+										<div *ngIf="x_2.showTask == 5"> <!--  Shot Task  -->
+											<div class="dd_div">
+												<div class="dd_search">
+													<div style="width:90%;display:inline-block;">
+														<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_shotTask'" placeholder="Select Step" [(ngModel)]="x_2.searchDD_shotTask" type="text" (keyup)="x_2.dd_results_shotTask = searchDropDown(x_2.searchDD_shotTask, vars.tasks.shot_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_shotTask,[x_1,x_2], 'shotTask');" (click)="x_2.searchDD_shotTask='';x_2.dd_results_shotTask = searchDropDown(x_2.searchDD_shotTask, vars.tasks.shot_tasks)"/>
+													</div><!--
+													--><div style="width:10%;display:inline-block;text-align:right;">
+														<div class="dd_reveal" (click)="x_2.dd_results_shotTask = dropDownReset($event, vars.tasks.shot_tasks)">&#9660;</div>
 													</div>
 												</div>
+												<div *ngIf="x_2.dd_results_shotTask">
+													<div *ngIf="x_2.dd_results_shotTask.length > 0" (mouseover)="x_2.dd_results_shotTask = dropDownReset(false, x_2.dd_results_shotTask);" class="dd_results" style="width:255px;">
+														<div *ngFor="let result of x_2.dd_results_shotTask" [class.dd_result_sel]="result.selected" (click)="x_2.shotTask=result.cat_key;x_2.searchDD_shotTask=result.cat_Title;x_2.dd_results_shotTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+													</div>
+												</div>						
+											</div>
+										</div>
+										<div *ngIf="x_2.showTask == 6"> <!--  Produciton Task  -->
+											<div class="dd_div">
+												<div class="dd_search">
+													<div style="width:90%;display:inline-block;">
+														<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_productionTask'" placeholder="Select Position" [(ngModel)]="x_2.searchDD_productionTask" type="text" (keyup)="x_2.dd_results_productionTask = searchDropDown(x_2.searchDD_productionTask, vars.tasks.production_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_productionTask,[x_1,x_2], 'productionTask');" (click)="x_2.searchDD_productionTask='';x_2.dd_results_productionTask = searchDropDown(x_2.searchDD_productionTask, vars.tasks.production_tasks)"/>
+													</div><!--
+													--><div style="width:10%;display:inline-block;text-align:right;">
+														<div class="dd_reveal" (click)="x_2.dd_results_productionTask = dropDownReset($event, vars.tasks.production_tasks)">&#9660;</div>
+													</div>
+												</div>
+												<div *ngIf="x_2.dd_results_productionTask">
+													<div *ngIf="x_2.dd_results_productionTask.length > 0" (mouseover)="x_2.dd_results_productionTask = dropDownReset(false, x_2.dd_results_productionTask);" class="dd_results" style="width:255px;">
+														<div *ngFor="let result of x_2.dd_results_productionTask" [class.dd_result_sel]="result.selected" (click)="x_2.productionTask=result.cat_key;x_2.searchDD_productionTask=result.cat_Title;x_2.dd_results_productionTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+													</div>
+												</div>						
+											</div>
+										</div>
+										<div *ngIf="x_2.showTask == 7"> <!--  Produciton Task  -->
+											<div class="dd_div">
+												<div class="dd_search">
+													<div style="width:90%;display:inline-block;">
+														<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_supervisionTask'" placeholder="Select Position" [(ngModel)]="x_2.searchDD_supervisionTask" type="text" (keyup)="x_2.dd_results_supervisionTask = searchDropDown(x_2.searchDD_supervisionTask, vars.tasks.supervision_tasks,[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_supervisionTask,[x_1,x_2], 'supervisionTask');" (click)="x_2.searchDD_supervisionTask='';x_2.dd_results_supervisionTask = searchDropDown(x_2.searchDD_supervisionTask, vars.tasks.supervision_tasks)"/>
+													</div><!--
+													--><div style="width:10%;display:inline-block;text-align:right;">
+														<div class="dd_reveal" (click)="x_2.dd_results_supervisionTask = dropDownReset($event, vars.tasks.supervision_tasks)">&#9660;</div>
+													</div>
+												</div>
+												<div *ngIf="x_2.dd_results_supervisionTask">
+													<div *ngIf="x_2.dd_results_supervisionTask.length > 0" (mouseover)="x_2.dd_results_supervisionTask = dropDownReset(false, x_2.dd_results_supervisionTask);" class="dd_results" style="width:255px;">
+														<div *ngFor="let result of x_2.dd_results_supervisionTask" [class.dd_result_sel]="result.selected" (click)="x_2.supervisionTask=result.cat_key;x_2.searchDD_supervisionTask=result.cat_Title;x_2.dd_results_supervisionTask=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+													</div>
+												</div>						
+											</div>
+										</div>
+									</td>
+									<td width="33%">
+
+										<div *ngIf="x_2.showTask != 4 && x_2.showTask != 5">   <!--  Nothing Selected  -->
+											<div class="dd_div" style="opacity:0.25;">
+												<div class="dd_search">
+													<div style="width:100%;display:inline-block;">
+														<input placeholder="Search for Shot/Asset" type="text" disabled/>
+													</div>
+												</div>										
+											</div>
+										</div>
+										<div *ngIf="x_2.showTask == 4 || x_2.showTask == 5" class="dd_div">
+											<div class="dd_search">
+												<div style="width:90%;display:inline-block;">
+													<input [attr.id]="'input_'+x_1.cat_key+'_'+x_2.cat_key+'_shot'" placeholder="Search for Shot/Asset" [(ngModel)]="x_2.searchDD_shot" type="text" (keyup)="x_2.dd_results_shot = searchDropDown(x_2.searchDD_shot, (x_2.showTask == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'],[x_1,x_2]);dropDownKey($event, x_2, x_2.dd_results_shot,[x_1,x_2], 'shot');" (click)="x_2.searchDD_shot='';x_2.dd_results_shot = searchDropDown(x_2.searchDD_shot, (x_2.showTask == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'])"/>
+												</div><!--
+												--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
+													<div class="dd_reveal" (click)="x_2.dd_results_shot = dropDownReset($event, (x_2.showTask == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'])">&#9660;</div>
+												</div>
+											</div>
+											<div *ngIf="x_2.dd_results_shot">
+												<div *ngIf="x_2.dd_results_shot.length > 0" (mouseover)="x_2.dd_results_shot = dropDownReset(false, x_2.dd_results_shot);" class="dd_results" style="width:255px;">
+													<div *ngFor="let result of x_2.dd_results_shot" [class.dd_result_sel]="result.selected" (click)="x_2.shot_selected=result;x_2.searchDD_shot=result.cat_Title;x_2.dd_results_shot=false;addRowOptionChanged([x_1,x_2],result)">{{ result.cat_Title }}</div>
+												</div>
+											</div>						
+										</div>
+										<!-- </div>-->
+									</td>
+								</tr>
+							</table>
+						</div>					
+					</div>
+					<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' ">
+						<div *ngIf="x_3.hours">
+							<table style="width:100%;">
+								<tr>
+									<td class="title">
+										<div style="width: 200px;">
+											<div>{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['title'] }}</div> <!-- show tasks with no associated child objects (training, r&d, downtime) and all department tasks -->
+										</div>
+									</td> 
+									<td>
+										<table style="width: 100%;">
+											<tr>
+												<td class="blank">&nbsp;</td>
+												<td *ngFor="let day_i of vars.days;" [class.day]="(x_3.hours[day_i] > 0 || x_3.focus[day_i])" [class.day_zero]="x_3.hours[day_i] <= 0 && !x_3.focus[day_i]">
+													<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_3.hours[day_i] > 0 ? x_3.hours[day_i] : '' }}" (focus)="x_3.focus[day_i] = true;" (keyup)="updateHours($event,x_3.hours, day_i)"
+													(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_3.hours, day_i);x_3.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
+													[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''" />
+												</td>
+												<td class="blank">&nbsp;</td>
+												<td class="sum hour_sum">
+													<div>{{ (x_3.hours[1] + x_3.hours[2] + x_3.hours[3] + x_3.hours[4] + x_3.hours[5] + x_3.hours[6] + x_3.hours[0]) |
+														number : '1.2-2'}}</div>
+												</td>
+												<td style="width:1%;">
+													<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_3.note.length <= 0) ? 0.0 : default"
+													title="Note" (click)="notesToggle(x_3)" (mouseover)="x_3.show_note=true"
+													(mouseout)="x_3.show_note=false" [class]="(x_3.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+
+													<div *ngIf="vars.show_edit_line_items && !(x_1.cat_key == 1 && x_3.cat_key == 11)" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : default"
+													title="Remove" class="minus" (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key,x_3.cat_key])">&nbsp;</div>
+													<div *ngIf="vars.show_edit_line_items && (x_1.cat_key == 1 && x_3.cat_key == 11)" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : .15"
+													title="" class="minus">&nbsp;</div>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+							</table>
+							<div *ngIf="x_3.show_note_force && !submit_date" class="note_textarea_div">
+								<textarea (keyup)="updateNote($event,x_3,[x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="note_textarea" rows=7>{{ x_3.note }}</textarea>
+							</div>
+							<div *ngIf="!x_3.show_note_force && x_3.note.trim().length > 0" [class.hideNote]="!x_3.show_note" [class.showNote]="x_3.show_note" class="note_text">
+								<div>{{ x_3.note }}</div>
+							</div>
+						</div>
+						<div *ngIf="(x_3.cat_key == 6 && x_1.cat_key == 0) || (x_3.cat_key == 7 && x_1.cat_key == 0)">
+
+							<div style="margin-top:20px;margin-bottom:5px;">
+								<table style="width:100%;">
+									<tr>
+										<td class="title" style="width:230px;vertical-align:middle;">										
+											{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['title'] }} <!-- show tasks that aren't shots or assets -->
+										</td>
+										<td style="width:420px;">
+											<div *ngIf="!vars.timesheet_submitted">
+												<div *ngIf="x_3.cat_key == 6">
+													<div class="dd_search" style="font-size:0.8em;">
+														<div style="width:90%;display:inline-block;">
+															<input placeholder="Quick Add Position" [(ngModel)]="x_3.searchDD_productionTask" type="text" (keyup)="x_3.showTask=x_3.cat_key;x_3.dd_results_productionTask = searchDropDown(x_3.searchDD_productionTask, vars.tasks.production_tasks,[x_1,x_2,x_3]);dropDownKey($event, x_3, x_3.dd_results_productionTask,[x_1,x_2,x_3], 'productionTask');" (click)="x_3.searchDD_productionTask='';x_3.dd_results_productionTask = searchDropDown(x_3.searchDD_productionTask, vars.tasks.production_tasks)"/>
+														</div><!--
+														--><div style="width:10%;display:inline-block;text-align:right;">
+															<div class="dd_reveal" (click)="x_3.dd_results_productionTask = dropDownReset($event, vars.tasks.production_tasks)">&#9660;</div>
+														</div>
+													</div>
+													<div *ngIf="x_3.dd_results_productionTask">
+														<div *ngIf="x_3.dd_results_productionTask.length > 0" (mouseover)="x_3.dd_results_productionTask = dropDownReset(false, x_3.dd_results_productionTask);" class="dd_results" style="width:418px;">
+															<div *ngFor="let result of x_3.dd_results_productionTask" [class.dd_result_sel]="result.selected" (click)="x_3.showTask=x_3.cat_key;x_3.productionTask=result.cat_key;x_3.searchDD_productionTask=result.cat_Title;x_3.dd_results_productionTask=false;addRowOptionChanged([x_1,x_2,x_3],result)">{{ result.cat_Title }}</div>
+														</div>
+													</div>
+												</div>
+												<div *ngIf="x_3.cat_key == 7">
+													<div class="dd_search" style="font-size:0.8em;">
+														<div style="width:90%;display:inline-block;">
+															<input placeholder="Quick Add Position" [(ngModel)]="x_3.searchDD_supervisionTask" type="text" (keyup)="x_3.showTask=x_3.cat_key;x_3.dd_results_supervisionTask = searchDropDown(x_3.searchDD_supervisionTask, vars.tasks.supervision_tasks,[x_1,x_2,x_3]);dropDownKey($event, x_3, x_3.dd_results_supervisionTask,[x_1,x_2,x_3], 'supervisionTask');" (click)="x_3.searchDD_supervisionTask='';x_3.dd_results_supervisionTask = searchDropDown(x_3.searchDD_supervisionTask, vars.tasks.supervision_tasks)"/>
+														</div><!--
+														--><div style="width:10%;display:inline-block;text-align:right;">
+															<div class="dd_reveal" (click)="x_3.dd_results_supervisionTask = dropDownReset($event, vars.tasks.supervision_tasks)">&#9660;</div>
+														</div>
+													</div>
+													<div *ngIf="x_3.dd_results_supervisionTask">
+														<div *ngIf="x_3.dd_results_supervisionTask.length > 0" (mouseover)="x_3.dd_results_supervisionTask = dropDownReset(false, x_3.dd_results_supervisionTask);" class="dd_results" style="width:418px;">
+															<div *ngFor="let result of x_3.dd_results_supervisionTask" [class.dd_result_sel]="result.selected" (click)="x_3.showTask=x_3.cat_key;x_3.supervisionTask=result.cat_key;x_3.searchDD_supervisionTask=result.cat_Title;x_3.dd_results_supervisionTask=false;addRowOptionChanged([x_1,x_2,x_3],result)">{{ result.cat_Title }}</div>
+														</div>
+													</div>
+												</div>										
 											</div>
 										</td>
 										<td>&nbsp;</td>
@@ -538,161 +438,233 @@
 								</table>
 							</div>
 
-							<div *ngFor="let x_5 of x_4.children;let i_5 = 'index'" [class]="(!x_5.indicateRemoval) ? '' : 'indicateRemoval'">
-								<table style="width:100%;" [class.addedLine]="(x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key + '_' + x_5.cat_key) == vars.cur_sel">
+							<div *ngFor="let x_4 of x_3.children; let i_4 = 'index'">
+								<table style="width:100%;">
 									<tr>
 										<td class="title">
-											<div style="width:  200px;">
-												<div>&nbsp;&nbsp;{{ vars.titles[x_1.cat_key][x_2.cat_key][x_3.cat_key][x_4.cat_key][x_5.cat_key]['Title']}}</div>
+											<div style="width: 200px;">
+												<div>&nbsp;&nbsp;{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['cat_4'][x_4.cat_key]['title'] }} </div> <!-- show tasks' position that aren't shots or assets -->
 											</div>
 										</td>
 										<td>
 											<table style="width: 100%;">
 												<tr>
 													<td class="blank">&nbsp;</td>
-													<td *ngFor="let day_i of vars.days;" [class]="x_5.hours[day_i] > 0 || x_5.focus[day_i] ? 'day' : 'day_zero'">
-														<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key + '_' + x_5.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_5.hours[day_i] > 0 ? x_5.hours[day_i] : '' }}" (focus)="x_5.focus[day_i] = true;" (keyup)="updateHours($event,x_5.hours, day_i)"
-														(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
-														[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''"
-														/>
+													<td *ngFor="let day_i of vars.days;" [class]="x_4.hours[day_i] > 0 || x_4.focus[day_i] ? 'day' : 'day_zero'">
+														<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_4.hours[day_i] > 0 ? x_4.hours[day_i] : '' }}" (focus)="x_4.focus[day_i] = true;" (keyup)="updateHours($event,x_4.hours, day_i)"
+														(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_4.hours, day_i);x_4.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
+														[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''" />
 													</td>
 													<td class="blank">&nbsp;</td>
 													<td class="sum hour_sum">
-														{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) | number : '1.2-2'}}
+														<div> {{ (x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4] + x_4.hours[5] + x_4.hours[6] + x_4.hours[0]) |
+															number : '1.2-2'}}</div>
 													</td>
 													<td style="width:1%">
-														<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_5.note.length <= 0) ? 0.0 : default"
-														title="Note" (click)="(vars.timesheet_submitted) ? '' : notesToggle(x_5)" (mouseover)="x_5.show_note=true"
-														(mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+														<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_4.note.length <= 0) ? 0.0 : default"
+														title="Note" (click)="notesToggle(x_4)" (mouseover)="x_4.show_note=true"
+														(mouseout)="x_4.show_note=false" [class]="(x_4.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
 														<div *ngIf="vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : default" title="Remove"
-														class="minus" (click)="removeLineItem(x_5.children, i_5,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key,x_5.cat_key])">&nbsp;</div>
+														class="minus" (click)="removeLineItem(x_4.children, i_4,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])">&nbsp;</div>
 													</td>
 												</tr>
 											</table>
 										</td>
 									</tr>
 								</table>
-								<div *ngIf="x_5.show_note_force">
-									<div *ngIf="!submit_date">
-										<textarea (keyup)="notesUpdate($event,x_5)" class="note_textarea" rows=7>{{ x_5.note }}</textarea>
+								<div *ngIf="x_4.show_note_force && !submit_date" class="note_textarea_div">
+									<textarea (keyup)="updateNote($event,x_4,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key])" class="note_textarea" rows=7>{{ x_4.note }}</textarea>
+								</div>								
+								<div *ngIf="!x_4.show_note_force && x_4.note.trim().length > 0" [class.hideNote]="!x_4.show_note" [class.showNote]="x_4.show_note" class="note_text">
+									<div>{{ x_4.note }}</div>
+								</div>							
+							</div>
+						</div>
+
+						<div *ngIf="x_3.cat_key == 4 || x_3.cat_key == 5">
+							<div *ngFor="let x_4 of x_3.children; let i_3 = 'index'">
+
+								<div style="margin-bottom:5px;margin-top:20px;">
+									<table style="width:100%;">
+										<tr>
+											<td class="title" style="width:230px;vertical-align:middle;">
+												{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['title'] +": " + vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['cat_4'][x_4.cat_key]['title'] }} <!-- shot or asset and task -->
+											</td>
+											<td style="width:420px;">
+
+												<div *ngIf="!vars.timesheet_submitted">
+													<div class="dd_search" style="font-size:0.8em;">
+														<div style="width:90%;display:inline-block;">
+															<input [placeholder]="(x_3.cat_key == 4) ? 'Quick Add Asset' : 'Quick Add Shot'" [(ngModel)]="x_4.searchDD_shot" type="text" (keyup)="x_4.assetTask = x_4.cat_key;x_4.shotTask = x_4.cat_key;x_4.productionTask = -1;x_4.showTask = x_3.cat_key;;x_4.dd_results_shot = searchDropDown(x_4.searchDD_shot, (x_3.cat_key == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'],[x_1,x_2,x_3,x_4]);dropDownKey($event, x_4, x_4.dd_results_shot,[x_1,x_2,x_3,x_4], 'shot');" (click)="x_4.searchDD_shot='';x_4.dd_results_shot = searchDropDown(x_4.searchDD_shot, (x_3.cat_key == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'])"/>
+														</div><!--
+														--><div style="width:10%;display:inline-block;text-align:right;visibility:hidden;">
+															<div class="dd_reveal" (click)="x_4.dd_results_shot = dropDownReset($event, (x_3.cat_key == 4) ? vars.assets_byShow[x_2.cat_key]['arr'] : vars.shots_byShow[x_2.cat_key]['arr'])">&#9660;</div>
+														</div>
+													</div>
+													<div *ngIf="x_4.dd_results_shot">
+														<div *ngIf="x_4.dd_results_shot.length > 0" (mouseover)="x_4.dd_results_shot = dropDownReset(false, x_4.dd_results_shot);" class="dd_results" style="width:418px;">
+															<div *ngFor="let result of x_4.dd_results_shot" [class.dd_result_sel]="result.selected" (click)="x_4.assetTask = x_4.cat_key;x_4.shotTask = x_4.cat_key;x_4.productionTask = -1;x_4.showTask = x_3.cat_key;x_4.shot_selected=result;x_4.searchDD_shot=result.cat_Title;x_4.dd_results_shot=false;addRowOptionChanged([x_1,x_2,x_3,x_4],result)">{{ result.cat_Title }}</div>
+														</div>
+													</div>
+												</div>
+											</td>
+											<td>&nbsp;</td>
+										</tr>
+									</table>
+								</div>
+ 
+								<div *ngFor="let x_5 of x_4.children;let i_5 = 'index'">
+									<table style="width:100%;">
+										<tr>
+											<td class="title">
+												<div style="width:  200px;">												
+													<div *ngIf="x_3.cat_key == 4">&nbsp;&nbsp;{{ this.vars.assets_byShow[x_2.cat_key]['obj'][x_5.cat_key]['cat_Title'] }}</div> <!-- shot -->
+													<div *ngIf="x_3.cat_key == 5">&nbsp;&nbsp;{{ this.vars.shots_byShow[x_2.cat_key]['obj'][x_5.cat_key]['cat_Title'] }}</div> <!-- asset -->
+												</div>
+											</td>
+											<td>
+												<table style="width: 100%;">
+													<tr>
+														<td class="blank">&nbsp;</td>
+														<td *ngFor="let day_i of vars.days;" [class]="x_5.hours[day_i] > 0 || x_5.focus[day_i] ? 'day' : 'day_zero'">
+															<input [attr.id]="'input_' + x_1.cat_key + '_' + x_2.cat_key + '_' + x_3.cat_key + '_' + x_4.cat_key + '_' + x_5.cat_key + '_' + day_i + '_' + 'hour'" type="text" value="{{ x_5.hours[day_i] > 0 ? x_5.hours[day_i] : '' }}" (focus)="x_5.focus[day_i] = true;" (keyup)="updateHours($event,x_5.hours, day_i)"
+															(keypress)="isNumberKey($event)" (blur)="updateHours($event,x_5.hours, day_i);x_5.focus[day_i] = false;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key && x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_cell' : ''"
+															[disabled]="vars.timesheet_submitted" [style.border]="(vars.timesheet_submitted) ? 'none' : ''"
+															/>
+														</td>
+														<td class="blank">&nbsp;</td>
+														<td class="sum hour_sum">
+															{{ (x_5.hours[1] + x_5.hours[2] + x_5.hours[3] + x_5.hours[4] + x_5.hours[5] + x_5.hours[6] + x_5.hours[0]) | number : '1.2-2'}}
+														</td>
+														<td style="width:1%">
+															<div *ngIf="!vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted && x_5.note.length <= 0) ? 0.0 : default"
+															title="Note" (click)="notesToggle(x_5)" (mouseover)="x_5.show_note=true"
+															(mouseout)="x_5.show_note=false" [class]="(x_5.note.length > 0) ? 'note_sel' : 'note'">&nbsp;</div>
+															<div *ngIf="vars.show_edit_line_items" [style.opacity]="(vars.timesheet_submitted) ? 0.0 : default" title="Remove"
+															class="minus" (click)="removeLineItem(x_5.children, i_5,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key,x_5.cat_key])">&nbsp;</div>
+														</td>
+													</tr>
+												</table>
+											</td>
+										</tr>
+									</table>
+									<div *ngIf="x_5.show_note_force && !submit_date" class="note_textarea_div">
+										<textarea (keyup)="updateNote($event,x_5,[x_1.cat_key,x_2.cat_key,x_3.cat_key,x_4.cat_key,x_5.cat_key])" class="note_textarea" rows=7>{{ x_5.note }}</textarea>
 									</div>
-									<div class="note_text" *ngIf="x_5.show_note && submit_date && x_5.note.trim().length > 0">
+									<div *ngIf="!x_5.show_note_force && x_5.note.trim().length > 0" [class.hideNote]="!x_5.show_note" [class.showNote]="x_5.show_note" class="note_text">
 										<div>{{ x_5.note }}</div>
-									</div>
-								</div>				
-								<div *ngIf="!x_5.show_note_force && x_5.note.trim().length > 0" [class.hideNote]="!x_5.show_note" [class.showNote]="x_5.show_note" class="note_text">
-									<div>{{ x_5.note }}</div>
+									</div>							
 								</div>
 							</div>
 						</div>
 					</div>
+					<div *ngIf="!last" style="height:5px;display:none;">&nbsp;</div>
 				</div>
-				<div *ngIf="!last" style="height:5px;display:none;">&nbsp;</div>
 			</div>
 		</div>
-	</div>
-	<div class="cat_1 departments">
-		<div class="cat_1_title">
-			<table style="width:100%;">
-				<tr>
-					<td class="title">
-						<div>Totals</div>
-					</td>
-					<td>
-						<table style="width: 100%;">
-							<tr>
-								<td class="blank">&nbsp;</td>
-								<td *ngFor="let day_i of vars.days_label" class="day">{{ day_i }}</td>
-								<td class="blank">&nbsp;</td>
-								<td class="sum">&nbsp;</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-		</div>
-		<div class="cat_1_content">
-			<div>
+		<!-- time sheet totals -->
+		<div class="cat_1 departments">
+			<div class="cat_1_title">
 				<table style="width:100%;">
 					<tr>
-						<td style="width: 200px;" class="title">
-							<table id="timesheet_totals" style="width: 100%;">
-								<tr>
-									<td>Regular Time</td>
-								</tr>
-								<tr *ngIf="vars.timesheet_totals['ot'][7] > 0.0">
-									<td>Overtime</td>
-								</tr>
-								<tr *ngIf="vars.timesheet_totals['dt'][7] > 0.0">
-									<td>Double Time</td>
-								</tr>							
-							</table>
+						<td class="title">
+							<div>Totals</div>
 						</td>
 						<td>
-							<table id="timesheet_totals" style="width: 100%;">
+							<table style="width: 100%;">
 								<tr>
 									<td class="blank">&nbsp;</td>
-									<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['rt'][day_i] <= 0) ? 0.25 : 1.0">
-										{{ vars.timesheet_totals['rt'][day_i] | number : '1.2-2'}}
-									</td>
+									<td *ngFor="let day_i of serviceService.days_label" class="day">{{ day_i }}</td>
 									<td class="blank">&nbsp;</td>
-									<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['rt'][7] | number : '1.2-2'}}</td>
-								</tr>
-								<tr *ngIf="vars.timesheet_totals['ot'][7] > 0.0">
-									<td class="blank">&nbsp;</td>
-									<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['ot'][day_i] <= 0) ? 0.25 : 1.0">
-										{{ vars.timesheet_totals['ot'][day_i] | number : '1.2-2'}}
-									</td>
-									<td class="blank">&nbsp;</td>
-									<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['ot'][7] | number : '1.2-2'}}</td>
-								</tr>
-								<tr *ngIf="vars.timesheet_totals['dt'][7] > 0.0">
-									<td class="blank">&nbsp;</td>
-									<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['dt'][day_i] <= 0) ? 0.25 : 1.0">
-										{{ vars.timesheet_totals['dt'][day_i] | number : '1.2-2'}}
-									</td>
-									<td class="blank">&nbsp;</td>
-									<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['dt'][7] | number : '1.2-2'}}</td>
+									<td class="sum">&nbsp;</td>
 								</tr>
 							</table>
 						</td>
 					</tr>
 				</table>
-				<div *ngIf="vars.timesheet_totals['ot'][7] > 0.0 || vars.timesheet_totals['dt'][7] > 0.0" style="margin-top:10px;font-style:italic;color:#555;" (click)="(vars.show_ot_breakdown) ? vars.show_ot_breakdown = false : vars.show_ot_breakdown = true;">
-					
-					<div class="btn_1" *ngIf="!vars.show_ot_breakdown">Show Breakdown...</div>
-					<div class="btn_1" *ngIf="vars.show_ot_breakdown">Hide Breakdown...</div>
-
-					<div *ngIf="vars.ot_assignment && vars.show_ot_breakdown"  style="margin-top:10px;">
-						<div *ngIf="vars.ot_assignment['dt']">
-							<div *ngIf="vars.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.ot_assignment['dt'].length > 0 && vars.ot_assignment['ot'].length > 0) ? '20px' : 0">
-								<div style="font-weight:700">Double time allocation</div>
-								<div *ngFor="let x of vars.ot_assignment['dt'];">					
-									{{ vars.titles[x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+			</div>			
+			<div class="cat_1_content">
+				<div>
+					<table style="width:100%;">
+						<tr>
+							<td style="width: 200px;" class="title">
+								<table id="timesheet_totals" style="width: 100%;">
+									<tr>
+										<td>Regular Time</td>
+									</tr>
+									<tr *ngIf="vars.timesheet_totals['ot'][7] > 0.0">
+										<td>Overtime</td>
+									</tr>
+									<tr *ngIf="vars.timesheet_totals['dt'][7] > 0.0">
+										<td>Double Time</td>
+									</tr>							
+								</table>
+							</td>
+							<td>
+								<table id="timesheet_totals" style="width: 100%;">
+									<tr>
+										<td class="blank">&nbsp;</td>
+										<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['rt'][day_i] <= 0) ? 0.25 : 1.0">
+											{{ vars.timesheet_totals['rt'][day_i] | number : '1.2-2'}}
+										</td>
+										<td class="blank">&nbsp;</td>
+										<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['rt'][7] | number : '1.2-2'}}</td>
+									</tr>
+									<tr *ngIf="vars.timesheet_totals['ot'][7] > 0.0">
+										<td class="blank">&nbsp;</td>
+										<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['ot'][day_i] <= 0) ? 0.25 : 1.0">
+											{{ vars.timesheet_totals['ot'][day_i] | number : '1.2-2'}}
+										</td>
+										<td class="blank">&nbsp;</td>
+										<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['ot'][7] | number : '1.2-2'}}</td>
+									</tr>
+									<tr *ngIf="vars.timesheet_totals['dt'][7] > 0.0">
+										<td class="blank">&nbsp;</td>
+										<td *ngFor="let day_i of vars.days" class="day hour_sum" [style.opacity]="(vars.timesheet_totals['dt'][day_i] <= 0) ? 0.25 : 1.0">
+											{{ vars.timesheet_totals['dt'][day_i] | number : '1.2-2'}}
+										</td>
+										<td class="blank">&nbsp;</td>
+										<td class="sum" style="font-weight:700;">{{ vars.timesheet_totals['dt'][7] | number : '1.2-2'}}</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+					<!-- overtime breakdown -->
+					<div *ngIf="vars.timesheet_totals['ot'][7] > 0.0 || vars.timesheet_totals['dt'][7] > 0.0" style="margin-top:10px;font-style:italic;color:#555;" (click)="(vars.show_ot_breakdown) ? vars.show_ot_breakdown = false : vars.show_ot_breakdown = true;">						
+						<div class="btn_1" *ngIf="!vars.show_ot_breakdown">Show Breakdown...</div>
+						<div class="btn_1" *ngIf="vars.show_ot_breakdown">Hide Breakdown...</div>
+						<div *ngIf="vars.ot_assignment && vars.show_ot_breakdown"  style="margin-top:10px;">
+							<div *ngIf="vars.ot_assignment['dt']">
+								<div *ngIf="vars.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.ot_assignment['dt'].length > 0 && vars.ot_assignment['ot'].length > 0) ? '20px' : 0">
+									<div style="font-weight:700">Double time allocation</div>
+									<div *ngFor="let x of vars.ot_assignment['dt'];">					
+										{{ vars.titles_obj[x_1.cat_key]['cat_2'][x_2.cat_key]['title'] }} <span style="font-size:0.8em;">{{ ' (' + day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+									</div>
 								</div>
-							</div>
-						</div>
-						
-						<div *ngIf="vars.ot_assignment['ot'].length > 0">
-							<div style="font-weight:700">Overtime allocation: </div>
-							<div *ngFor="let x of vars.ot_assignment['ot'];">					
-								{{ vars.titles[x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+							</div>							
+							<div *ngIf="vars.ot_assignment['ot'].length > 0">
+								<div style="font-weight:700">Overtime allocation: </div>
+								<div *ngFor="let x of vars.ot_assignment['ot'];">					
+									{{ vars.titles_obj[x.cat_1]['cat_2'][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
 
-	<div class="spacer">&nbsp;</div>
+		<div class="spacer">&nbsp;</div>
 
-	<!-- Footers -->
-	<div *ngIf="!vars.timesheet_submitted" class="timesheet_footer">
-		<div class="submit_btn" (click)="submitTimesheet()">Submit</div>
-	</div>
+		<!-- Footers -->
+		<div *ngIf="!vars.timesheet_submitted" class="timesheet_footer">
+			<div class="submit_btn" (click)="submitTimesheet()">Submit</div>
+		</div>
 
-	<div *ngIf="vars.timesheet_submitted" class="timesheet_submitted_footer">
-		<div>Time Sheet Submitted on {{ vars.submit_date }}</div>
+		<div *ngIf="vars.timesheet_submitted" class="timesheet_submitted_footer">
+			<div>Time Sheet Submitted on {{ vars.submit_date }}</div>
+			<div class="btn_1" (click)="unsubmitTimesheet()">(unsubmit timesheet: only available in testing)</div>
+		</div>
 	</div>
 </div>
