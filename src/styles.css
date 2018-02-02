@@ -359,3 +359,19 @@ select{
 .cal_cur_week{
 	font-weight: 700;
 }
+
+
+.timesheet_show{
+	opacity: 1.0;
+	transition: opacity .25s .25s linear;
+}
+
+.timesheet_hide{
+	opacity: 0.0;
+	/*transition: opacity .25s linear;*/
+}
+
+
+.divider{
+	border-bottom: 5px #151515 solid;
+}

@@ -9,8 +9,7 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 
-declare const gapi: any;
-  
+declare const gapi: any;  
 declare var jquery: any;
 declare var $: any;
 
@@ -46,6 +45,7 @@ export class EntryComponent {
 		this.vars.timesheet_submitted = false;
 		this.vars.valid_login = true;
 		this.vars.showEntryComponent = true;
+		this.vars.department = 17; // default to production
 
 		this.vars.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
@@ -72,22 +72,23 @@ export class EntryComponent {
 		this.serviceService.valid_login = false
 		this.serviceService.show_signin = false
 
-		this.serviceService.validateLogin().subscribe(res => {
+		this.serviceService.validateLogin().subscribe(res => {			
+			this.serviceService.googleInit();
 
-			if (!res['valid']) {
-				document.cookie = "logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-				this.vars.valid_login = false;
-				this.vars.invalid_login_res = res['message']
-
+			if (!res['valid']) {				
 				this.serviceService.show_signin = true
-
-				setTimeout(res => {
-					//window.location.href = "/login"	
-				}, 2500)
+				this.vars.valid_login = false;
+				this.vars.invalid_login_res = res['message'];
+				
+				setTimeout(timeout => {
+					this.serviceService.logOut()
+				}, 3000)
 			} else if (!this.serviceService.getCookie('logged_in')) {
-				this.vars.user_name = 'Not Logged In... Redirecting.';
-				window.location.href = "/login"
+				setTimeout(timeout => {
+					this.serviceService.logOut()
+				}, 500)
 			} else {
+
 				document.cookie = "session=" + res.session;
 				document.cookie = "sub=" + res.sub;
 				this.serviceService.valid_login = true;
@@ -97,14 +98,13 @@ export class EntryComponent {
 					this.vars.user_name = res['email'];
 				}
 
-				// load timesheet and associated shows, departments, and tasks for current week
-				this.loadWeek();
+				this.vars.department = parseInt(res['department']);
 
+				// load timesheet and associated shows, departments, and tasks for current week
+				this.loadWeek();				
+				this.serviceService.checkLogin()				
 			}
 		});
-
-		this.serviceService.checkLogin()
-		this.serviceService.googleInit();
 	}
 
 
@@ -198,8 +198,8 @@ export class EntryComponent {
 	getTimeSheet() {
 		// load current weekOf time sheet from database
 		this.serviceService.getTimeSheet_db(this.vars.week_of).subscribe(res => {
-			console.log(res)
-
+			
+			this.vars.rejections = res['rejections']
 			this.vars.status = res.data.status;
 			this.vars.auto_generated_time_sheet = res.data.auto_generated_time_sheet;
 
@@ -212,16 +212,6 @@ export class EntryComponent {
 				}, 5000)
 			}
 
-
-			// if the time status is 2 (submitted) then change the var to true
-			if (res.data.status == 2) {
-				this.vars.timesheet_submitted = true;
-				var client_timestamp = this.serviceService.date_server_to_client(res.data.updatedOn)
-				this.vars.submit_date = this.serviceService.generateDate(client_timestamp)
-			} else {
-				this.vars.timesheet_submitted = false;
-			}
-
 			// If the timesheet is blank then the initial template needs to be applied; else use lines from database
 			if (res.lines.length <= 0) {
 				this.vars.lines = Array();
@@ -229,6 +219,21 @@ export class EntryComponent {
 			} else {
 				this.vars.lines = res.lines
 			}
+
+			// if the time status is 1 or >= 3 (submitted or (partial)approved) then change the var to true
+			if (res.data.status == 1 || res.data.status >= 3) {
+				this.vars.timesheet_submitted = true;
+				var client_timestamp = this.serviceService.date_server_to_client(res.data.updatedOn)
+				this.vars.submit_date = this.serviceService.generateDate(client_timestamp)
+			} else {
+				this.vars.timesheet_submitted = false;
+				var init_lines = this.deepClone(this.serviceService.getInitLines());
+				this.vars.lines.push(init_lines[0]);				
+				init_lines[1].cat_2 = this.vars.department;
+				this.vars.lines.push(init_lines[1]);
+			}
+
+			
 
 			// set overtime selection from database
 			this.vars.ot_sel = res.ot_sel
@@ -593,6 +598,7 @@ export class EntryComponent {
 			if (cat.showTask == -1) {
 				return false;
 			} else if (cat.showTask == 4) {
+				
 				if (cat.assetTask != -1 && cat.shot_selected && cat.shot_selected.cat_key >= 0) {
 					this.addLineItem(cats);
 				} else {
@@ -1023,7 +1029,7 @@ export class EntryComponent {
 		var ot_selected = [false, false, false, false, false, false, false];
 		var missing = [];
 		var ot_check = ['ot', 'dt'];
-		var can_ot = false;
+		var canada_ot = false;
 
 		this.vars.ot_req = [0, 0, 0, 0, 0, 0, 0]
 
@@ -1048,12 +1054,12 @@ export class EntryComponent {
 					if (this.vars.current_office == 0) {  // Oakland
 						ot_required[i] = true;
 					} else if (this.vars.current_office == 1) {  // Montreal
-						if (!can_ot) {
+						if (!canada_ot) {
 							if (this.vars.timesheet_totals['rt'][i] > 0.0) {
 								ot_required[i] = true;
 							}
 							// when triggered the OT icon will not show up for the remaining days
-							can_ot = true;
+							canada_ot = true;
 						}
 					}
 				}
@@ -1075,6 +1081,26 @@ export class EntryComponent {
 			});
 		});
 
+
+		// loop through projects to see if OT selection required. 
+		for(var i = 0; i < ot_required.length; i ++){
+			if(ot_required[i]){
+				var total_shows = 0
+				
+				for(var cat_1 in this.vars.timesheet_totals_byShow){
+					for(var cat_2 in this.vars.timesheet_totals_byShow[cat_1]){
+						if(this.vars.timesheet_totals_byShow[cat_1][cat_2]['hours'][i] > 0.0){
+							total_shows += 1;
+						}
+					}
+				}
+				if(total_shows <= 1){
+					ot_required[i] = false;
+				}
+			}
+		}
+		
+
 		// look at the ot_required and see if a show or department was selected for the specific day, if not, then indicate the day that is missing
 		for (var i = 0; i < ot_required.length; i++) {
 			if (ot_required[i] && this.vars.ot_sel[i][0] == -1) {
@@ -1082,6 +1108,7 @@ export class EntryComponent {
 			}
 		}
 
+		
 		// if the missing length great than 0 and submit time sheet is true, then alert the user that they need to pick a day for OT
 		if (missing.length > 0 && onSubmit) {
 			var missing_days = []
@@ -1136,7 +1163,7 @@ export class EntryComponent {
 	}
 
 
-	submitTimesheet(window) {
+	submitTimesheet() {
 		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_menu', false);
 		this.vars.edit_line_items = false;
 		this.vars.show_edit_line_items = false;
@@ -1229,6 +1256,23 @@ export class EntryComponent {
 			this.serviceService.updateTimeSheetStatus_db(this.vars.week_of).subscribe(res => {
 				console.log(res);
 			});
+			
+			var lines_incl = []
+			
+			for(var x = 0; x < this.vars.lines.length; x++){
+				var sum_hours = 0
+				if(this.vars.lines[x]['hours'] != null){
+					for(var d = 0; d < 7; d++){
+						sum_hours += this.vars.lines[x]['hours'][d];
+					}
+				}
+				if(sum_hours > 0){
+					lines_incl.push(this.vars.lines[x]);
+				}				
+			}
+			
+			this.vars.lines = lines_incl;
+			this.saveTimesheet()
 		}
 	}
 
@@ -1237,6 +1281,10 @@ export class EntryComponent {
 			console.log('time sheet has been unsubmitted')
 			console.log(res)
 			this.vars.timesheet_submitted = false;
+			var init_lines = this.deepClone(this.serviceService.getInitLines());
+			this.vars.lines.push(init_lines[0]);
+			init_lines[1].cat_2 = this.vars.department;
+			this.vars.lines.push(init_lines[1]);
 		});
 	}
 

@@ -101,7 +101,6 @@ export class ServiceService {
   }
 
   attachSignin(element) {
-    console.log('herer')
     let that = this;
     this.auth2.attachClickHandler(element, {},
       function (googleUser) {       
@@ -111,28 +110,48 @@ export class ServiceService {
         document.cookie = "logged_in=True";
         document.cookie = "id_token=" + id_token;
         that.valid_login = true
-
         that.go('entry');
-        
       }, function (error) {
-        console.log('error logging in')
-        console.log(error.error)
+          // error
       });
 
       // If logged in, then go to entry page
       setTimeout(res =>{
         if(this.auth2.isSignedIn.get()){
-          that.go('entry');
-        } 
-      }, 500)
-        
+          var is_root = (location.pathname == "/" || location.pathname == "/login") ? true : false; 
+          if(is_root){
+            that.go('entry');
+          }
+        }
+      }, 500)        
+  }
+
+  
+  validateLogin() {
+    var id_token = this.getCookie('id_token')
+    var data = { 'id_token': id_token }
+    return this.http.post(this.api_path + '/api/user/validate', data).map(res => res.json());
+  }
+
+
+  checkLogin(){    
+    if(!this.getCookie('logged_in')){
+      this.go('login')
+      this.valid_login = false
+      return false
+    }
+    setTimeout(res=> {
+      this.checkLogin()
+    },1000)
   }
 
   logOut(){    
     var auth2 = gapi.auth2.getAuthInstance();    
+    var that = this
     this.auth2.signOut().then(function () {      
       document.cookie = "logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    });    
+      that.go('login');
+    }); 
   }
   
 
@@ -143,6 +162,10 @@ export class ServiceService {
 
   getInitLines() {
     return Object.assign([], this.lines_init);
+  }
+
+  updatesBambooUsers() {
+    return this.http.get(this.api_path + '/api/users/updateBamboo').map(res => res.json());
   }
 
   getDepartments_db() {
@@ -177,6 +200,31 @@ export class ServiceService {
       .map(res => res.json());
   }
 
+  getTimeSheetsAllUsers_db(week_of) {
+    return this.http.get(this.api_path + '/api/timesheets/'+week_of+'?' + this.session_param('get'))
+      .map(res => res.json());
+  }
+
+
+  rejectTimeSheetLine(data) {
+    return this.http.post(this.api_path + '/api/timesheet/line/reject?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+  
+  approveTimeSheetLine(data) {
+    return this.http.post(this.api_path + '/api/timesheet/line/approve?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  unapproveTimeSheetLine(data) {
+    return this.http.post(this.api_path + '/api/timesheet/line/unapprove?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  
+
+
+
   updateTimeSheetStatus_db(week_of) {
     var data = Object();
     data = this.session_param(data)
@@ -205,6 +253,13 @@ export class ServiceService {
       .map(res => res.json());
   }
 
+  geStatuses_db(week_of) {
+    return this.http.get(this.api_path + '/api/timesheets/status/'+ week_of)
+      .map(res => res.json());
+  }
+
+
+
   session_param(data) {
     if (data == 'get') {
       var param = 'session=' + this.getCookie('session') + '&sub=' + this.getCookie('sub')
@@ -220,6 +275,7 @@ export class ServiceService {
   sumHours(data_in) {
     var data_out = data_in;
 
+    
     try {
       for (var i_1 = 0; i_1 < data_out.length; i_1++) {
         var obj_1 = data_out[i_1];
@@ -227,7 +283,7 @@ export class ServiceService {
           var obj_2 = obj_1.children[i_2];
           for (var i_3 = 0; i_3 < obj_2.children.length; i_3++) {
             var sum_hours = [0, 0, 0, 0, 0, 0, 0];
-            var obj_3 = obj_2.children[i_3];
+            var obj_3 = obj_2.children[i_3];            
             for (var i_4 = 0; i_4 < obj_3.children.length; i_4++) {
               var obj_4 = obj_3.children[i_4];
               if (obj_4['hours'] != undefined) {
@@ -237,6 +293,12 @@ export class ServiceService {
               }
               for (var i_5 = 0; i_5 < obj_4.children.length; i_5++) {
                 var obj_5 = obj_4.children[i_5];
+
+                if (obj_5['hours'] != undefined) {
+                  for (var hr = 0; hr < 7; hr++) {
+                    sum_hours[hr] += obj_5['hours'][hr];
+                  }
+                }
                 for (var i_6 = 0; i_6 < obj_5.children.length; i_6++) {
                   var obj_6 = obj_5.children[i_6];
                   for (var hr = 0; hr < 7; hr++) {
@@ -250,6 +312,8 @@ export class ServiceService {
         }
       }
     } catch (err) { }
+
+
     return data_out;
   }
 
@@ -743,37 +807,6 @@ export class ServiceService {
     return date_out
   }
 
-  isLoggedIn() {
-    
-    var is_root = location.pathname == "/"; //Equals true if we're at the root
-
-    if (this.getCookie('logged_in')) {
-      this.validateLogin().subscribe(res => {
-        if (res['valid']) {          
-          if (is_root || location.href.endsWith('login')) {
-            //window.location.href = "/entry"
-          }
-        } else {
-          if (!is_root && !location.href.endsWith('login')) {
-            //window.location.href = "/login"
-          }
-        }
-      });
-    } else {
-      if (!is_root && !location.href.endsWith('login')) {
-        //window.location.href = "/login"
-      }
-    }
-  }
-
-
-  validateLogin() {
-    console.log('Running User Validation: ')
-    var id_token = this.getCookie('id_token')
-    var data = { 'id_token': id_token }
-    return this.http.post(this.api_path + '/api/user/validate', data).map(res => res.json());
-  }
-
   getCookie(cookiename) {
     // Get name followed by anything except a semicolon
     var cookiestring = RegExp("" + cookiename + "[^;]+").exec(document.cookie);
@@ -781,16 +814,6 @@ export class ServiceService {
     return decodeURIComponent(!!cookiestring ? cookiestring.toString().replace(/^[^=]+./, "") : "");
   }
 
-  checkLogin(){    
-    if(!this.getCookie('logged_in')){
-      this.go('login')
-      this.valid_login = false
-      return false
-    }
-    setTimeout(res=> {
-      this.checkLogin()
-    },1000)
-  }
 
 }
 

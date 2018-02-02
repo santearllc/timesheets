@@ -23,4 +23,3 @@ class Bamboo:
 		
 		return False
 
-

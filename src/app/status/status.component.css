@@ -51,15 +51,16 @@
 }
 
 .icon_inactive{
-    border-bottom: 4px #DDD solid;
+    border-bottom: 6px #DDD solid;
+    opacity: 0.5;
 }
 
 .icon_active{
-    border-bottom: 4px rgb(56, 230, 12) solid;
+    border-bottom: 6px rgb(56, 230, 12) solid;
 }
 
 #legend td:hover{
-    border-bottom: 4px lightgreen outset;    
+    border-bottom: 6px lightgreen outset;    
 }
 
 

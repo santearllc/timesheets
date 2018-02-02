@@ -12,9 +12,7 @@ from google.auth.transport import requests as requests_goog
 from bamboo import Bamboo
 import urllib2, urllib
 
-
 app = Flask(__name__)
-
 
 # Postgresql Database 
 POSTGRES_URL ="atomicfiction.cbzrp1azkzhh.us-west-2.rds.amazonaws.com"
@@ -48,6 +46,7 @@ class User(db.Model):
 	officeKey = db.Column(db.Integer)
 	sub = db.Column(db.String(500))
 	bambooKey = db.Column(db.Integer)
+	departmentKey = db.Column(db.Integer)
 
 class Time(db.Model):
 	timeKey = db.Column(db.Integer, primary_key=True)	
@@ -66,6 +65,7 @@ class Time(db.Model):
 	rejectedOn = db.Column(db.DateTime)
 	rejectedNote_artist = db.Column(db.Text)
 	rejectedNote_department = db.Column(db.Text)
+	ip = db.Column(db.Text)
 
 class Timesheet(db.Model):
 	timeSheetKey = db.Column(db.Integer, primary_key=True)	
@@ -90,10 +90,8 @@ class Show(db.Model):
 
 class Department(db.Model):
 	departmentKey = db.Column(db.Integer, primary_key=True)
-	bambooKey = db.Column(db.Integer)
 	departmentTitle = db.Column(db.String(50))
-	departmentCode = db.Column(db.String(50))
-	orderBy = db.Column(db.Integer)
+	archived = db.Column(db.Boolean)
 
 class ShowTask(db.Model):
 	catKey = db.Column(db.Integer, primary_key=True)
@@ -204,6 +202,78 @@ class PayrollPeriod(db.Model):
 
 
 
+@app.route('/timesheets/status/<week_of>', methods=['GET'])
+def get_time_sheet_status_all_users(week_of):
+	users = User.query.order_by(User.lastName).all()
+	output = []
+	shows_rec = []
+	departments_rec = []
+	
+
+	for user in users:
+		user_data = {}
+		user_data['fullName'] = user.firstName + ' ' + user.lastName
+		user_data['fullName_r'] = user.lastName + ', ' + user.firstName
+		user_data['firstName'] = user.firstName
+		user_data['lastName'] = user.lastName
+		user_data['officeKey'] = user.officeKey
+		user_data['timeSheetStatus'] = 0
+		user_data['worked'] = []
+
+		timesheet = Timesheet.query.filter_by(weekOf=week_of, userKey=user.userKey).first()
+		if timesheet: 
+			user_data['timeSheetStatus'] = timesheet.status
+
+			# see if partially approved or fully, or neither
+			if timesheet.status == 1:
+				approved = 0
+				total = 0
+				lines = Time.query.filter_by(timeSheetKey=timesheet.timeSheetKey).all()
+				for line in lines:
+					total += 1
+					if line.approvedBy > 0:
+						approved += 1
+
+				if approved == 0:
+					user_data['timeSheetStatus'] = 1
+				elif approved == total:
+					user_data['timeSheetStatus'] = 4
+				elif approved < total:
+					user_data['timeSheetStatus'] = 3
+			
+			
+			time = db.session.query(Time.cat1, Time.cat2).distinct().filter_by(timeSheetKey=timesheet.timeSheetKey).order_by(Time.cat1).all()
+			
+			for t in time:
+				if t.cat2:
+					user_data['worked'].append([t.cat1,t.cat2])
+
+					if t.cat1 == 0:
+						if t.cat2 not in shows_rec:
+							shows_rec.append(t.cat2)
+					else:
+						if t.cat2 not in departments_rec:
+							departments_rec.append(t.cat2)
+
+		output.append(user_data)
+
+	titles = {}
+
+	# get show titles
+	shows_rec_titles = {}
+	for showKey in shows_rec:
+		show = Show.query.filter_by(showKey=showKey).first()
+		titles['0_'+str(showKey)] = show.showTitle
+
+	# get dept titles
+	departments_rec_titles = {}
+	for departmentKey in departments_rec:
+		department = Department.query.filter_by(departmentKey=departmentKey).first()
+		titles['1_'+str(departmentKey)] = department.departmentTitle
+
+	return jsonify({'users' : output, 'shows' : shows_rec_titles, 'departments' : departments_rec_titles, 'titles' : titles})
+
+
 
 @app.route('/user/validate', methods=['POST'])
 def vailidate_user():
@@ -220,10 +290,15 @@ def vailidate_user():
 	        return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Invalid Google Login'})
 
 	    # check if the email address for the person logging on is in the BambooHR system; If not, then don't allow access
-	    # bamboo = Bamboo().get_user_byEmail(idinfo['email'])
-	    bamboo = Bamboo().get_user_byEmail('carsten@atomicfiction.com')
+	    bamboo = Bamboo().get_user_byEmail(idinfo['email'])
+
 	    if not bamboo:
-			return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Email address ('+idinfo['email']+') is not registered in BambooHR. Contact your supervisor to correct.'})
+			# return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Email address ('+idinfo['email']+') is not registered in BambooHR. Contact your supervisor to correct.'})
+			# the following line is temporary while testing for people not in bamboo,
+			# otherwise the return should be used.
+
+			bamboo = Bamboo().get_user_byEmail('info@santear.com')
+			# return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Email address ('+idinfo['email']+') is not registered in BambooHR. Contact your supervisor to correct.'})
 
 
 	    # ID token is valid. Get the user's Google Account ID from the decoded token.
@@ -232,18 +307,38 @@ def vailidate_user():
 	    user_data['email'] = idinfo['email']
 	    user_data['firstName'] = idinfo['given_name']
 	    user_data['lastName'] = idinfo['family_name']
-	    user_data['officeKey'] = 1
+
+	    
+	    # determine department based off of Bamboo
+	    department = Department.query.filter_by(departmentTitle=bamboo["department"]).first()
+
+	    if not department:
+			# defaults to production if no department is found (we should discuss this default)
+			user_data['departmentKey'] = 17
+	    else:
+			user_data['departmentKey'] = department.departmentKey
+
+
+		# determine office based off of Bamboo
+	    if bamboo['location'] in ["Canada"]:
+			user_data['officeKey'] = 1
+	    else: 
+			# otherwise defaults to USA
+			user_data['officeKey'] = 0
+
+	    
 	    user_data['sub'] = idinfo['sub']
 	    user_data['bambooKey'] = bamboo['id']
 	    userKey = add_validated_user(user_data)
 
 	    session = str(uuid.uuid4())
 	    add_session(userKey, session, token, sub)
+	    userKey = get_user_public_key(userKey)
 
-	    return jsonify({'valid' : True, 'session' : session,  'id_token' : token, 'sub' : sub, 'email' : idinfo['email'], 'firstName' : idinfo['given_name'], 'lastName' : idinfo['family_name'], 'userKey' : userKey, 'data': data})
+	    return jsonify({'valid' : True, 'session' : session,  'id_token' : token, 'sub' : sub, 'email' : idinfo['email'], 'firstName' : idinfo['given_name'], 'lastName' : idinfo['family_name'], 'userKey' : userKey, 'data': data, 'department' : user_data['departmentKey']})
 	except ValueError:
 	    # Invalid token 
-	    return jsonify({'valid' : False, 'id_token' : token})
+	    return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Session expired... redirecting to sign in page.'})
 
 
 def add_session(userKey, session, token, sub):
@@ -271,16 +366,18 @@ def get_session(session, sub):
 
 
 def add_validated_user(data):
-	user = User.query.filter_by(sub=data["sub"]).first()
+	user = User.query.filter_by(email=data["email"]).first()
 
-	# only add a user if they arent in the tss database
+	# only add a user if they aren't in the tss database; otherwise update office and department to latest bamboo settings
 	if not user:
 		userKeyPublic = str(uuid.uuid4())
-		new_user = User(userKeyPublic=userKeyPublic, email=data['email'], firstName=data['firstName'], lastName=data['lastName'], officeKey=data["officeKey"], sub=data["sub"], bambooKey=data['bambooKey'])		
+		new_user = User(userKeyPublic=userKeyPublic, email=data['email'], firstName=data['firstName'], lastName=data['lastName'], officeKey=data["officeKey"], sub=data["sub"], bambooKey=data['bambooKey'], departmentKey=data['departmentKey'])
 		db.session.add(new_user)
 		db.session.commit()
 		return get_user_private_key(userKeyPublic)
-	else:
+	else:		
+		User.query.filter_by(email=data["email"]).update({'sub' : data['sub'],'officeKey' : data['officeKey'], 'departmentKey' : data['departmentKey'], 'firstName' : data['firstName'], 'lastName' : data['lastName']})
+		db.session.commit()
 		return user.userKey
 
 
@@ -298,9 +395,10 @@ def get_all_users():
 		user_data['firstName'] = user.firstName
 		user_data['lastName'] = user.lastName
 		user_data['officeKey'] = user.officeKey
-		user_data['timesheetStatus'] = 1
+		user_data['timesheetStatus'] = -1
 		user_data['otSel'] = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1]]
-		user_data['data'] = {}
+		user_data['data'] = {}		
+		user_data['data']['ot_assignment'] = None
 		user_data['data']['totalHours'] = 0
 		user_data['data']['totalHours_byDay'] = {}
 		user_data['data']['totalHours_byDay']['t'] = [0,0,0,0,0,0,0,0]
@@ -311,7 +409,9 @@ def get_all_users():
 		output.append(user_data)
 
 	return jsonify({'users' : output})
-	
+
+
+
 
 @app.route('/user/<public_key>', methods=['GET'])
 def get_one_user(public_key):
@@ -361,12 +461,6 @@ def delete_user(public_key):
 	
 	return jsonify({'message' : 'the user has been deleted'})
 
-def get_user_current_office(email):
-	# Bamboo API Call
-
-	# query UserOfficeHistory to see if current, if not add record and return value
-	return 1
-
 
 def get_user_private_key(userKeyPublic):
 	user = User.query.filter_by(userKeyPublic=userKeyPublic).first()
@@ -375,7 +469,110 @@ def get_user_private_key(userKeyPublic):
 
 	return user.userKey
 
+def get_user_public_key(userKey):
+	user = User.query.filter_by(userKey=userKey).first()
+	if not user:
+		return False
+
+	return user.userKeyPublic
+
+
+def get_user_name(userKey):
+
+	user = User.query.filter_by(userKey=userKey).first()
+	if not user:
+		return 'name not set'
+
+	return user.firstName + ' '	+ user.lastName
+
+
 ### Timesheet Functions ###
+ 
+@app.route('/timesheets/<week_of>', methods=['GET'])
+def get_time_sheets_all_users(week_of):
+	timesheets_arr = []
+	lines_out = []
+	overtime_sel = {}
+	rejections = {}
+	approvals = {}
+	
+	# select timesheet; see if there is a timesheet for the current week for the user
+	timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status >= 1).all()
+
+	for timesheet in timesheets:
+		ot_sel = [[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1]]
+
+		lines = OvertimeSelect.query.filter_by(timeSheetKey=timesheet.timeSheetKey).all()
+		lines_out = []
+		for line in lines: 
+			ot_sel[line.day] = [line.cat1,line.cat2]
+
+		userKey = get_user_public_key(timesheet.userKey)
+		overtime_sel[userKey] = ot_sel
+
+		timesheet_data = {}
+		timesheet_data['timeSheetKey'] = timesheet.timeSheetKey
+		timesheet_data['userKey'] = userKey
+		timesheet_data['status'] = timesheet.status
+		timesheets_arr.append(timesheet_data)
+
+	for timesheet in timesheets_arr:
+
+		# get time rows 
+		lines = Time.query.filter_by(timeSheetKey=timesheet['timeSheetKey']).all()
+		
+		for line in lines: 
+			userKey = get_user_public_key(line.userKey)
+
+			line_data = {}
+			line_data['timeKey'] = line.timeKey
+			line_data['timeSheetKey'] = line.timeSheetKey
+			line_data['userKey'] = userKey
+			line_data['cat_1'] = line.cat1
+			line_data['cat_2'] = line.cat2
+			line_data['cat_3'] = line.cat3
+			line_data['cat_4'] = line.cat4
+			line_data['cat_5'] = line.cat5
+			line_data['hours'] = line.hours
+			line_data['note'] = line.note
+
+			if line.approvedBy > 0: 
+				if line.cat1 == 1 :
+					index = str(line.cat1)+'_'+str(line.cat2)+'_'+str(line.cat3)+'_'+userKey					
+				else: 
+					index = str(line.cat1)+'_'+str(line.cat2)+'_'+userKey
+
+				approvals[index] = {}
+				approvals[index]['approved_on'] = line.approvedOn
+				approvals[index]['approved_by'] = get_user_name(line.approvedBy)
+
+			# rejection of a single line item will force the entire time sheet to be rejected
+			if line.rejectedBy > 0 :
+				rejections[userKey] = {}
+				rejections[userKey]['rejected_on'] = line.rejectedOn
+				rejections[userKey]['rejected_by'] = get_user_name(line.rejectedBy)
+				rejections[userKey]['rejectedNote_artist'] = line.rejectedNote_artist
+				rejections[userKey]['rejectedNote_department'] = line.rejectedNote_department
+				rejections[userKey]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_department_title(line.cat2) + ': ' + get_departmentTask_title(line.cat3)
+
+			lines_out.append(line_data)
+
+	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals})
+
+
+def get_show_title(showKey):
+	show = Show.query.filter_by(showKey=showKey).first()
+	return show.showTitle
+
+def get_department_title(departmentKey):
+	department = Department.query.filter_by(departmentKey=departmentKey).first()
+	return department.departmentTitle
+
+def get_departmentTask_title(catKey):
+	departmentTask = DepartmentTask.query.filter_by(catKey=catKey).first()
+	return departmentTask.taskTitle	
+
+
 @app.route('/timesheet', methods=['GET'])
 def get_user_timesheet():
 	args = request.args.to_dict()
@@ -384,7 +581,7 @@ def get_user_timesheet():
 
 	data['weekStart'] = args['weekStart']
 	ot_sel = [[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1]]
-
+	rejections = {}
 	session_data = get_session(args['session'], args['sub'])
 	userKey = session_data['userKey']
 	data['userKey'] = userKey
@@ -413,7 +610,7 @@ def get_user_timesheet():
 		# db.session.commit()
 		# db.session.flush()
 
-		data['status'] = 1
+		data['status'] = 0
 		data['existing'] = False		
 		data['updatedOn'] = False
 
@@ -422,7 +619,6 @@ def get_user_timesheet():
 		else:			
 			data['existing'] = False
 			data['auto_generated_time_sheet'] = True
-			data['status'] = timesheet.status
 			data['updatedOn'] = timesheet.updatedOn
 
 			# get time rows 
@@ -467,7 +663,7 @@ def get_user_timesheet():
 			line_data = {}
 			line_data['timeKey'] = line.timeKey
 			line_data['timeSheetKey'] = line.timeSheetKey
-			line_data['userKey'] = line.userKey			
+			line_data['userKey'] = line.userKey
 			line_data['cat_1'] = line.cat1
 			line_data['cat_2'] = line.cat2
 			line_data['cat_3'] = line.cat3
@@ -482,12 +678,27 @@ def get_user_timesheet():
 			line_data['rejectedNote_artist'] = line.rejectedNote_artist
 			line_data['rejectedNote_department'] = str(line.rejectedNote_department)
 			lines_out.append(line_data)
+
+			# rejection of a single line item will force the entire time sheet to be rejectedBy
+			if line.rejectedBy > 0 :
+				if line.cat1 == 0 :
+					key = str(line.cat1)+'_'+str(line.cat2)
+				else :
+					key = str(line.cat1)+'_'+str(line.cat2)+'_'+str(line.cat3)
+
+				rejections[key] = {}
+
+				rejections[key]['rejected_on'] = line.rejectedOn
+				rejections[key]['rejected_by'] = get_user_name(line.rejectedBy)
+				rejections[key]['rejectedNote_artist'] = line.rejectedNote_artist
+				rejections[key]['rejectedNote_department'] = line.rejectedNote_department
+				rejections[key]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_departmentTask_title(line.cat3)
 	
-	return jsonify({'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data})
+	return jsonify({'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections})
 
 
 @app.route('/timesheet/<weekStart>/unsubmit', methods=['PUT'])
-def unsubmit_timesheet_status(weekStart):
+def unsubmit_timesheet(weekStart):
 	data = request.get_json()
 	
 	session_data = get_session(data['session'], data['sub'])
@@ -503,13 +714,13 @@ def unsubmit_timesheet_status(weekStart):
 
 	timeSheetKey = timesheet.timeSheetKey
 
-	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedOn' : timestamp})
+	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 0, 'updatedOn' : timestamp})
 	db.session.commit()
 	
 	return jsonify({'message' : 'timesheet status updated'})
 
 @app.route('/timesheet/<weekStart>/status', methods=['PUT'])
-def update_timesheet_status(weekStart):
+def submit_timesheet(weekStart):
 	data = request.get_json()
 	
 	session_data = get_session(data['session'], data['sub'])
@@ -522,11 +733,17 @@ def update_timesheet_status(weekStart):
 	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=data['week_of']).first()
 
 	if not timesheet:
-		return jsonify({'message' : 'issue adding timesheet line item'})
+		return jsonify({'message' : 'no timesheet found'})
 
 	timeSheetKey = timesheet.timeSheetKey
 
-	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 2, 'updatedOn' : timestamp})
+	# reset all approvals and rejections 
+	times = Time.query.filter_by(timeSheetKey=timesheet.timeSheetKey).all()
+	for time in times:		
+		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": None, 'approvedOn' : None, 'rejectedBy' : None, 'rejectedOn' : None, 'rejectedNote_department' : None, 'rejectedNote_artist' : None})
+		db.session.commit()
+
+	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedOn' : timestamp})
 	db.session.commit()
 	
 	return jsonify({'message' : 'timesheet status updated'})
@@ -546,7 +763,7 @@ def save_timesheet():
 
 	if not timesheet:
 		timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-		new_timesheet = Timesheet(userKey=str(userKey), weekOf=weekStart, status=1, updatedOn=timestamp, updatedBy=userKey)
+		new_timesheet = Timesheet(userKey=str(userKey), weekOf=weekStart, status=0, updatedOn=timestamp, updatedBy=userKey)
 		db.session.add(new_timesheet)
 		db.session.commit()
 		timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=weekStart).first()
@@ -578,30 +795,98 @@ def save_timesheet():
 
 	# add lines back into database 
 	for line in data["lines"]:
+		
+		user = User.query.filter_by(userKey=userKey).first()
+
+		# set current department  (cat_1; 0=shows, 1=studio)
+		if line['cat_1'] == 1:
+			line['cat_2'] = user.departmentKey
+
 		new_line = Time(
 			timeSheetKey=str(timeSheetKey),
-			userKey=str(1),
+			userKey=userKey,
 			note=line['note'],
 		 	cat1=line['cat_1'],
 		  	cat2=line['cat_2'],
 		   	cat3=line['cat_3'],
 		    cat4=line["cat_4"],
 		    cat5=line["cat_5"],
+		    ip=request.remote_addr,
 		    hours=line["hours"])
+
 		db.session.add(new_line)
 		db.session.commit()
 
 	return jsonify({'message' : 'timesheet line added', 'data' : data, 'timeSheetKey' : timeSheetKey, 'session' : data['session']})
 
+@app.route('/timesheet/line/approve', methods=['POST'])
 def approve_line():
-	# approve time sheet line	
-	args = request.args.to_dict()
-	pass
+	data = request.get_json()
 
+	userKey = get_user_private_key(data['userKeyPublic'])
+	
+	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=data['week_of']).first()
+	if not timesheet:
+		return jsonify({'message' : 'no timesheet found'})
+	
+	if data['cat1'] == 1:
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2'], cat3=data['cat3']).all()
+	else:		
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2']).all()
+
+	for time in times:		
+		approved_by = get_user_private_key(data['approved_by'])
+		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": approved_by, 'approvedOn' : data['approved_on']})
+		db.session.commit()
+	
+	return jsonify({'message' : 'timesheet line approved'})
+
+
+@app.route('/timesheet/line/unapprove', methods=['POST'])
+def unapprove_line():
+	data = request.get_json()
+
+	userKey = get_user_private_key(data['userKeyPublic'])
+	
+	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=data['week_of']).first()
+	if not timesheet:
+		return jsonify({'message' : 'no timesheet found'})
+	
+	if data['cat1'] == 1:
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2'], cat3=data['cat3']).all()
+	else:
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2']).all()
+
+	for time in times:		
+		approved_by = get_user_private_key(data['approved_by'])
+		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": None, 'approvedOn' : None})
+		db.session.commit()
+	
+	return jsonify({'message' : 'timesheet line approved'})	
+
+
+
+@app.route('/timesheet/line/reject', methods=['POST'])
 def reject_line():
-	# reject time sheet line	
-	args = request.args.to_dict()
-	pass
+	data = request.get_json()
+
+	userKey = get_user_private_key(data['userKeyPublic'])
+	
+	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=data['week_of']).first()
+	if not timesheet:
+		return jsonify({'message' : 'no timesheet found'})
+	else:		
+		db.session.query(Timesheet).filter_by(timeSheetKey=timesheet.timeSheetKey).update({"status": 2, "updatedOn" : data['rejected_on']})
+		db.session.commit()
+
+	times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2'], cat3=data['cat3']).all()
+
+	for time in times:
+		rejected_by = get_user_private_key(data['rejected_by'])
+		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"rejectedBy": rejected_by, 'rejectedOn' : data['rejected_on'], 'rejectedNote_artist' : data['rejectedNote_artist'] , 'rejectedNote_department' : data['rejectedNote_department']})
+		db.session.commit()
+	
+	return jsonify({'message' : 'timesheet line rejected'})
 
 
 ### Drop Downs ###
@@ -730,7 +1015,7 @@ def get_shows():
 @app.route('/department', methods=['GET'])
 def get_departments():
 
-	departments = Department.query.order_by(Department.departmentTitle).all()
+	departments = Department.query.all()
 	output = []
 
 	for department in departments:
@@ -743,8 +1028,47 @@ def get_departments():
 	return jsonify(output)
 
 
+@app.route('/users/updateBamboo', methods=['GET'])
+def update_user_table():
+	# this will be a cron job function that can run every 10 minutes 
+	users = Bamboo().get_users()
+
+	if users:
+		for bamboo in users['employees']:
+			if bamboo['workEmail']:
+				user_data = {}
+
+				user_data['email'] = bamboo['workEmail']
+				user_data['firstName'] = bamboo['firstName']
+				user_data['lastName'] = bamboo['lastName']
+
+
+				# determine department based off of Bamboo
+				department = Department.query.filter_by(departmentTitle=bamboo["department"]).first()
+
+				if not department:
+					# defaults to production if no department is found (we should discuss this default)
+					user_data['departmentKey'] = 17
+				else:
+					user_data['departmentKey'] = department.departmentKey
+
+
+				# determine office based off of Bamboo
+				if bamboo['location'] in ["Canada"]:
+					user_data['officeKey'] = 1
+				else: 
+					# otherwise defaults to USA
+					user_data['officeKey'] = 0
+
+
+				user_data['sub'] = None
+				user_data['bambooKey'] = bamboo['id']
+
+				add_validated_user(user_data)
+			
+
+
 
 if __name__ == "__main__":   	
 	app.run()
 
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'

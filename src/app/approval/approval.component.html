@@ -28,562 +28,320 @@
     </div>
 </div>
 
-<div class="debug_settings" *ngIf="false">
-    <div onClick="$(this).next().toggle()" style="cursor:pointer;">Testing Info</div>
-    <div style="font-size:0.8em;">OT indicator is not fully implemented</div>
-    <div class="debug_items" style="display:none;">
-        <div class="alt_btn" (click)="(current_office==1) ? current_office=0 : current_office=1;updateTimeSheetTotals();">Toggle Location: {{ (current_office == 1) ? 'CAN' : 'US'}}</div>
-        <div class="alt_btn" (click)="loadInitSheet()">Clear Timesheet (reset)</div>
-        <div class="alt_btn" (click)="timesheetToLines()" *ngIf="false">TimeSheet to Lines</div>
-        <div class="alt_btn" (click)="loadSampleTimeSheet()">Load Sample Time Sheet</div>
-    </div>
-</div>
-<div style="margin-bottom: 10px;margin-top:20px;">
-    <div class="alt_btn" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.approval_date}}</div>
-    <div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
-        {{vars.save_status}}
-        <svg height="10" width="10">
-            <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="vars.save_status_color" />
-        </svg>
-    </div>
 
-    <!-- This static calendar will be replaced with a script generated one  <app-calendar></app-calendar> -->
-    <div id="cal" *ngIf="vars.showCal">
-        <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
-            <table width="100%;">
+
+        <div style="margin-bottom: 10px;margin-top:20px;">
+            <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
+            <div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
+            <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>
+            
+            <div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
+                {{vars.save_status}}
+                <svg height="10" width="10">
+                    <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="vars.save_status_color" />
+                </svg>
+            </div>
+
+
+            <!-- Calendar | at some point this should become a reusable component -->
+            <div id="cal" *ngIf="vars.showCal">
+                <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
+                    <table width="100%;">
+                        <tr>
+                            <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
+                            <td style="text-align:center;">{{ vars.calendar.month_label }}</td>
+                            <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
+                        </tr>
+                    </table>
+                </div>
+                <table class="cal_weeks" width="100%;">
+                    <tr class="disable-clicks">
+                        <td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
+                    </tr>
+                    <tr *ngFor="let week of vars.calendar.weeks" (click)="weekSelected(week.week_of_label,week.week_of)" [class.cal_cur_week]="week.cur_week">
+                        <td *ngFor="let day of week.days" [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
+                    </tr>
+                </table>		
+            </div>
+
+
+
+        </div>
+
+        <div style="margin-bottom:10px;">
+
+        </div>
+
+<!-- Display when loading time sheet -->
+<div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);margin-top:20px;" *ngIf="vars.loading && !vars.no_timesheets">
+    Loading Approvals...
+</div>
+            
+
+<div *ngIf="!vars.loading">        
+        <div *ngIf="!vars.no_timesheets" class="cat_1 projects" style="margin-bottom:20px;">
+
+            <table width="100%">
                 <tr>
-                    <td>&larr;</td>
-                    <td style="text-align:center;">January 2018</td>
-                    <td>&rarr;</td>
+                    <td width="50%">
+                        <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_name=$event.target.value.toLowerCase();hideBreakdowns();"
+                            (click)="$event.target.value='';vars.search_name=''">
+                    </td>
+                    <td width="50%">
+                        <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_project=$event.target.value.toLowerCase();hideBreakdowns()"
+                            (click)="$event.target.value='';vars.search_project=''">
+                    </td>
                 </tr>
             </table>
         </div>
-        <table class="cal_weeks" width="100%;">
-            <tr class="disable-clicks">
-                <td *ngFor="let day_i of vars.days_label" style="font-weight:700;">{{ day_i }}</td>
-            </tr>
-            <tr (click)="weekSelected(0)">                
-                <td>1</td>
-                <td>2</td>
-                <td>3</td>
-                <td>4</td>
-                <td>5</td>
-                <td>6</td>
-                <td>7</td>
-            </tr>
-            <tr class="cal_days" (click)="weekSelected(1)">
-                <td>8</td>
-                <td>9</td>
-                <td>10</td>
-                <td>11</td>
-                <td>12</td>
-                <td>13</td>
-                <td>14</td>
-            </tr>
-            <tr (click)="weekSelected(2)">
-                <td>15</td>
-                <td>16</td>
-                <td>17</td>
-                <td>18</td>
-                <td>19</td>
-                <td>20</td>
-                <td>21</td>
-            </tr>
-            <tr (click)="weekSelected(3)">
-                <td>22</td>
-                <td>23</td>
-                <td>24</td>
-                <td>25</td>
-                <td>26</td>
-                <td>27</td>
-                <td>28</td>
-            </tr>
-            <tr (click)="weekSelected(4)">
-                <td>29</td>
-                <td>30</td>
-                <td>31</td>
-                <td class="cal_dif_mo">1</td>
-                <td class="cal_dif_mo">2</td>
-                <td class="cal_dif_mo">3</td>
-                <td class="cal_dif_mo">4</td>
-            </tr>
-        </table>
+
+
+    <!-- Display when loading time sheet -->
+    <div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);margin-top:20px;" *ngIf="vars.no_timesheets">
+        No Time Sheets To Approve...
     </div>
-</div>
 
-<div style="margin-bottom:10px;">
-
-</div>
-
-<div class="cat_1 projects" style="margin-bottom:20px;">
-
-    <table width="100%">
-        <tr>
-            <td width="50%">
-                <input value="" placeholder="Search For Person" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_name=$event.target.value.toLowerCase();hideBreakdowns();"
-                    (click)="$event.target.value='';vars.search_name=''">
-            </td>
-            <td width="50%">
-                <input value="" placeholder="Search For Show/Department" style="box-sizing:border-box;width:100%;padding:5px;" (keyup)="vars.search_project=$event.target.value.toLowerCase();hideBreakdowns()"
-                    (click)="$event.target.value='';vars.search_project=''">
-            </td>
-        </tr>
-    </table>
-</div>
-
-<div *ngFor="let item of [[vars.timesheet, vars.titles],[vars.timesheet_studio, vars.titles_studio]];let i_0='index'">
-    <!-- Template for Projects -->
-    <div class="cat_1 projects" *ngFor="let x_1 of item[0]" style="margin-bottom: 10px;">
-        <div *ngIf=" x_1.cat_key ==  i_0 ">
-            <div class="cat_1_title">
-                <table style="width:100%;">
-                    <tr>
-                        <td style="width: 200px;font-size:1.5em;font-weight: 700;">
-                            {{ item[1][x_1.cat_key]['Title'] }}
-                        </td>
-                        <td>
-                            <table style="width: 100%;">
-                                <tr>
-                                    <td class="blank">&nbsp;</td>
-                                    <td *ngFor="let day of vars.days_label" class="day">{{ day }}</td>
-                                    <td class="sum_approval">&nbsp;</td>
-                                    <td>
-                                        <div class="empty">&nbsp;</div>
-                                    </td>
-                                    <td>
-                                        <div class="empty">&nbsp;</div>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class="cat_1_content" *ngIf="x_1.children.length > 0">
-                <div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'">
-                    <div *ngIf="vars.search_project.length == 0 || item[1][x_1.cat_key][x_2.cat_key]['Title'].toLowerCase().indexOf(vars.search_project) != -1">
-                        <div *ngIf="!first">&nbsp;</div>
-                        <div style="border-bottom:1px #BBB solid;padding-bottom:5px;margin-bottom: 5px;">
-                            <table style="width:100%;">
-                                <tr>
-                                    <td style="width: 200px;" class="cat_0_title">
-                                        {{ item[1][x_1.cat_key][x_2.cat_key]['Title'] }}
-                                    </td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div *ngFor="let x_3 of x_2.children;let i_3 = 'index'">
-
-                            <!--  This is the layout for the Shows section of the Approval Page -->
-                            <div *ngIf="x_1.cat_key == 0">
-                                <div [style.opacity]="(vars.user_focused == x_3.cat_key || !vars.user_focused) ? 1.0 : 0.25">
-                                    <div *ngIf="vars.search_name.length == 0 || vars.users[x_3.cat_key].FullName_r.toLowerCase().indexOf(vars.search_name) != -1">                                        
-                                        <table style="width:100%;" [style.color]="(x_3.rejected) ? '#F00' : default">
-                                            <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                <td style="width: 200px;" [style.opacity]="(x_3.approved) ? .3 : 1.0">
-                                                    <div class="btn_1" (click)="toggleBreakdown($event,x_3.cat_key, x_3)">{{ vars.users[x_3.cat_key].FullName_r}}</div>
-                                                </td>
-                                                <td>
-                                                    <table style="width: 100%;">
-                                                        <tr [style.font-weight]="(vars.user_focused == x_3.cat_key) ? 800 : default">
-                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                            
-
-                                                            <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" [style.opacity]="(x_3.approved) ? .3 : 1.0" >
-                                                                <div *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) || hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)" class="ot_popup_container">
-                                                                    <div class="ot_popup">
-                                                                        <div *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i)">
-                                                                            OT: {{ hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) }}
-                                                                        </div>
-                                                                        <div *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)">
-                                                                            DT: {{ hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) }}
-                                                                        </div>                                                                        
-                                                                    </div>
-                                                                </div>    
-                                                                <span [style.opacity]="(x_3.sum_hours[day_i] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[day_i] }}</span>
-                                                                
-                                                                <span class="star_container">
-                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
-                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>                                                                                                                                        
-                                                                </span>                                                                
-                                                            </td>
-                                                            <td class="sum_approval" [style.opacity]="(x_3.approved) ? .3 : 1.0" >
-                                                                <span style="font-weight:700">{{x_3.sum_hours[1] + x_3.sum_hours[2] + x_3.sum_hours[3]
-                                                                    + x_3.sum_hours[4] + x_3.sum_hours[5] + x_3.sum_hours[6]
-                                                                    + x_3.sum_hours[0] | number : '1.2-2'}}</span>
-                                                                <span style="opacity:0.25;">/{{vars.users[x_3.cat_key].Data.TotalHours| number : '1.2-2'}}</span>
-                                                            </td>
-                                                            <td *ngIf="x_3.rejected || x_3.approved" width="1%">
-                                                                <div title="" class="empty">&nbsp;</div>
-                                                            </td>
-                                                            <td width="1%" *ngIf="!x_3.rejected">
-                                                                <div title="Approve" [class]="(x_3.approved) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3)" (mouseover)="(x_3.approved) ? x_3.approval_hover = true : x_3.approval_hover = false" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
-                                                            </td>
-                                                            <td width="1%" *ngIf="!x_3.approved">
-                                                                <div title="Reject" [class]="(x_3.rejected) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_3)" (mouseover)="x_3.approval_hover = true;x_3.rejected_hover=true;" (mouseout)="x_3.approval_hover = false;x_3.rejected_hover=false;">&nbsp;</div>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div *ngIf="x_3.rejected_by != false" [class.hideRejectedBy]="!x_3.approval_hover" [class.showRejectedBy]="x_3.approval_hover" class="rejected_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
-                                        <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
-                                            Rejected by <span style="font-weight:700;">{{ x_3.rejected_by}}</span> on Jan 4, 2017
-                                        </div>
-                                        <div>
-                                            <div *ngIf="x_3.rejected_note.length > 0" class="rejected_note_text note_text">                                                
-                                                <div class="rejected_text">
-                                                    <span class="rejected_title">Artist Note</span><br />
-                                                    {{ x_3.rejected_note }}
-                                                </div>
-                                            </div>
-                                            <div *ngIf="x_3.rejected_note_department.length > 0" class="rejected_note_text note_text">                                                
-                                                <div class="rejected_text">
-                                                    <span class="rejected_title">Department Note</span><br />
-                                                    {{ x_3.rejected_note_department }}
-                                                </div>
-                                            </div>
-                                        </div>                                        
-                                    </div>
-                                    <div *ngIf="x_3.approved_by != false" [class.hideApprovedBy]="!x_3.approval_hover" [class.showApprovedBy]="x_3.approval_hover" class="approved_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
-                                        <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
-                                            Approved by <span style="font-weight:700;">{{ x_3.approved_by}}</span> on Jan 4, 2017
-                                        </div>
-                                    </div>
+    <div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">		
+        <div *ngIf="vars.showTimeSheet">
+        <div *ngFor="let item of [[vars.timesheet, vars.titles],[vars.timesheet_studio, vars.titles_studio]];let i_0='index'">
+            <!-- Template for Projects -->
+            <div class="cat_1 projects" *ngFor="let x_1 of item[0]" style="margin-bottom: 10px;">
+                <div *ngIf=" x_1.cat_key ==  i_0 ">
+                    <div class="cat_1_title">
+                        <table style="width:100%;">
+                            <tr>
+                                <td style="width: 200px;font-size:1.5em;font-weight: 700;">
+                                    {{ item[1][x_1.cat_key]['title'] }}
+                                </td>
+                                <td>
+                                    <table style="width: 100%;">
+                                        <tr>
+                                            <td class="blank">&nbsp;</td>
+                                            <td *ngFor="let day of vars.days_label" class="day">{{ day }}</td>
+                                            <td class="sum_approval">&nbsp;</td>
+                                            <td>
+                                                <div class="empty">&nbsp;</div>
+                                            </td>
+                                            <td>
+                                                <div class="empty">&nbsp;</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="cat_1_content" *ngIf="x_1.children.length > 0">
+                        <div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_1 = 'index'">
+                            <div *ngIf="vars.search_project.length == 0 || item[1][x_1.cat_key][x_2.cat_key]['title'].toLowerCase().indexOf(vars.search_project) != -1">
+                                <div *ngIf="!first">&nbsp;</div>
+                                <div style="border-bottom:1px #BBB solid;padding-bottom:5px;margin-bottom: 5px;">
+                                    <table style="width:100%;">
+                                        <tr>
+                                            <td style="width: 200px;" class="cat_0_title">
+                                                {{ item[1][x_1.cat_key][x_2.cat_key]['title'] }}
+                                            </td>
+                                            <td>&nbsp;</td>
+                                        </tr>
+                                    </table>
                                 </div>
+                                <div *ngFor="let x_3 of x_2.children;let i_3 = 'index'">
 
-                                <div *ngIf="x_3.breakdown_show" class="breakdown_div">
-                                    <div class="btn_1" style="margin-bottom:20px;" (click)="(x_3.show_entire_timesheet) ? x_3.show_entire_timesheet = false : x_3.show_entire_timesheet = true">
-                                        <span *ngIf="!x_3.show_entire_timesheet">Show Full Time Sheet</span>
-                                        <span *ngIf="x_3.show_entire_timesheet">Collapse Time Sheet</span>
-                                    </div>
-                                    <div *ngFor="let b_1 of vars.timesheet_by_user[x_3.cat_key]">
+                                    <!--  This is the layout for the Shows section of the Approval Page -->
+                                    <div *ngIf="x_1.cat_key == 0">
+                                        <div [style.opacity]="(vars.user_focused == x_3.cat_key || !vars.user_focused) ? 1.0 : 0.25">
+                                            <div *ngIf="vars.search_name.length == 0 || vars.users[x_3.cat_key].fullName_r.toLowerCase().indexOf(vars.search_name) != -1">                                        
+                                                <table style="width:100%;" [style.color]="(vars.rejections[x_3.cat_key]) ? '#F00' : default">
+                                                    <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
+                                                        <td style="width: 200px;" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] && !vars.rejections[x_3.cat_key]) ? .3 : 1.0">
+                                                            <div class="btn_1" (click)="toggleBreakdown($event,x_3.cat_key, x_3)">{{ vars.users[x_3.cat_key].fullName_r}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <table style="width: 100%;">
+                                                                <tr [style.font-weight]="(vars.user_focused == x_3.cat_key) ? 800 : default">
+                                                                    <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                    
 
-                                        <div *ngIf="(b_1.cat_key == x_1.cat_key) || x_3.show_entire_timesheet">                                            
-                                            <div style="font-weight:700;font-size:1.2em">
-                                                &nbsp;{{item[1][b_1.cat_key]['Title']}}
-                                            </div>
-                                        </div>
-
-                                        <div *ngFor="let b_2 of b_1.children">
-                                            <div *ngIf="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) || x_3.show_entire_timesheet">
-                                                <div style="font-size:1em;font-weight:700;">&nbsp;{{item[1][b_1.cat_key][b_2.cat_key]['Title']}}</div>
-
-                                                <div *ngFor="let b_3 of b_2.children">
-
-                                                    <div *ngIf="b_3.hours">
-                                                        <table style="width:100%;">
-                                                            <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
-                                                                <td style="width: 190px;">
-                                                                    <div>&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
-                                                                </td>
-                                                                <td>
-                                                                    <table style="width: 100%;">
-                                                                        <tr>
-                                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                                            <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
-                                                                                <span [style.opacity]="(b_3.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_3.hours[day_i] }}</span>
-                                                                                <span class="star_container">
-                                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                </span>                                                                               
-                                                                            </td>                                                                            
-                                                                            <td class="sum" style="font-weight:400;">
-                                                                                {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
-                                                                            </td>
-                                                                            <td style="text-align:center;">
-                                                                                <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </td>
-                                                            </tr>
-                                                        </table>
-                                                        <div *ngIf="b_3.showNote" class="note_text">
-                                                            <div> A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ b_3.note }}</div>
+                                                                    <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] && !vars.rejections[x_3.cat_key]) ? .3 : 1.0" >
+                                                                        <div *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) || hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)" class="ot_popup_container">
+                                                                            <div class="ot_popup">
+                                                                                <div *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i)">
+                                                                                    OT: {{ hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) }}
+                                                                                </div>
+                                                                                <div *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)">
+                                                                                    DT: {{ hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) }}
+                                                                                </div>                                                                        
+                                                                            </div>
+                                                                        </div>
+                                                                        <span [style.opacity]="(x_3.sum_hours[day_i] <= 0) ? 0.25 : 1.0">{{ x_3.sum_hours[day_i] }}</span>
+                                                                        
+                                                                        <span class="star_container">
+                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
+                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>                                                                                                                                        
+                                                                        </span>                                                                
+                                                                    </td>
+                                                                    <td class="sum_approval" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? .3 : 1.0" >
+                                                                        <span style="font-weight:700">{{x_3.sum_hours[1] + x_3.sum_hours[2] + x_3.sum_hours[3]
+                                                                            + x_3.sum_hours[4] + x_3.sum_hours[5] + x_3.sum_hours[6]
+                                                                            + x_3.sum_hours[0] | number : '1.2-2'}}</span>
+                                                                        <span style="opacity:0.25;">/{{vars.users[x_3.cat_key].data.totalHours| number : '1.2-2'}}</span>                                                                        
+                                                                    </td>
+                                                                    <td *ngIf="vars.rejections[x_3.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" width="1%">
+                                                                        <div title="" class="empty">&nbsp;</div>
+                                                                    </td>
+                                                                    <td width="1%" *ngIf="!vars.rejections[x_3.cat_key]">
+                                                                        <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3, [x_1, x_2, x_3])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? x_3.approval_hover = true : x_3.approval_hover = false" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
+                                                                    </td>
+                                                                    <td width="1%" *ngIf="!vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] || vars.rejections[x_3.cat_key]">
+                                                                        <div title="Reject" [class]="(vars.rejections[x_3.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_3,[x_1,x_2,x_3])" (mouseover)="x_3.approval_hover = true;x_3.rejected_hover=true;" (mouseout)="x_3.approval_hover = false;x_3.rejected_hover=false;">&nbsp;</div>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>                                            
+                                            <div *ngIf="vars.rejections[x_3.cat_key]" [class.hideRejectedBy]="!x_3.approval_hover" [class.showRejectedBy]="x_3.approval_hover" class="rejected_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
+                                                <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
+                                                   <span style="font-weight:700;">{{ vars.rejections[x_3.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_3.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_3.cat_key]['rejected_on']) }}</span>
+                                                </div>
+                                                <div>
+                                                    <div *ngIf="vars.rejections[x_3.cat_key]['rejectedNote_artist'].length > 0" class="rejected_note_text note_text">                                                
+                                                        <div class="rejected_text">
+                                                            <span class="rejected_title">Artist Note</span><br />
+                                                            {{ vars.rejections[x_3.cat_key]['rejectedNote_artist'] }}
                                                         </div>
                                                     </div>
-                                                    <div *ngIf="!b_3.hours">
-                                                        <div *ngFor="let b_4 of b_3.children">
-                                                            &nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}} : {{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key]['Title']}}
-                                                            <div *ngFor="let b_5 of b_4.children">
+                                                    <div *ngIf="vars.rejections[x_3.cat_key]['rejectedNote_department'].length > 0" class="rejected_note_text note_text">                                                
+                                                        <div class="rejected_text">
+                                                            <span class="rejected_title">Department Note</span><br />
+                                                            {{ vars.rejections[x_3.cat_key]['rejectedNote_department'] }}
+                                                        </div>
+                                                    </div>
+                                                </div>                                        
+                                            </div>
+                                            <div *ngIf="vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] && !vars.rejections[x_3.cat_key]" [class.hideApprovedBy]="!x_3.approval_hover" [class.showApprovedBy]="x_3.approval_hover" class="approved_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
+                                                <div style="padding:10px 0px 10px 10px;font-size:1.1em;">                                                    
+                                                    <span style="font-weight:700;">{{ vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['approved_by'] }}</span> approved on <span style="font-weight:700;">{{ serviceService.generateDate(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['approved_on']) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div *ngIf="x_3.breakdown_show" class="breakdown_div">
+                                            <div class="btn_1" style="margin-bottom:20px;" (click)="(x_3.show_entire_timesheet) ? x_3.show_entire_timesheet = false : x_3.show_entire_timesheet = true">
+                                                <span *ngIf="!x_3.show_entire_timesheet">Show Full Time Sheet</span>
+                                                <span *ngIf="x_3.show_entire_timesheet">Collapse Time Sheet</span>
+                                            </div>
+                                            <div *ngFor="let b_1 of vars.timesheet_by_user[x_3.cat_key]">
+
+                                                <div *ngIf="(b_1.cat_key == x_1.cat_key) || x_3.show_entire_timesheet">                                            
+                                                    <div style="font-weight:700;font-size:1.2em">
+                                                        &nbsp;{{item[1][b_1.cat_key]['title']}}
+                                                    </div>
+                                                </div>
+
+                                                <div *ngFor="let b_2 of b_1.children">
+                                                    <div *ngIf="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) || x_3.show_entire_timesheet">
+                                                        <div style="font-size:1em;font-weight:700;">&nbsp;{{item[1][b_1.cat_key][b_2.cat_key]['title']}}</div>
+
+                                                        <div *ngFor="let b_3 of b_2.children">
+
+                                                            <div *ngIf="b_3.hours">
                                                                 <table style="width:100%;">
                                                                     <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                                         <td style="width: 190px;">
-                                                                            <div>&nbsp;&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key][b_5.cat_key]['Title']}}</div>
+                                                                            <div>&nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['title']}}</div>
                                                                         </td>
                                                                         <td>
                                                                             <table style="width: 100%;">
                                                                                 <tr>
                                                                                     <td class="blank" style="padding:5px;">&nbsp;</td>
                                                                                     <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
-                                                                                        <span [style.opacity]="(b_5.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_5.hours[day_i] }}</span>
+                                                                                        <span [style.opacity]="(b_3.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_3.hours[day_i] }}</span>
                                                                                         <span class="star_container">
-                                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                        </span>
-                                                                                    </td>                                                                                    
+                                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                            <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                        </span>                                                                               
+                                                                                    </td>                                                                            
                                                                                     <td class="sum" style="font-weight:400;">
-                                                                                        {{b_5.hours[1] + b_5.hours[2] + b_5.hours[3] + b_5.hours[4] + b_5.hours[5] + b_5.hours[6] + b_5.hours[0] | number : '1.2-2'}}
+                                                                                        {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
                                                                                     </td>
                                                                                     <td style="text-align:center;">
-                                                                                        <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
+                                                                                        <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
                                                                                     </td>
                                                                                 </tr>
                                                                             </table>
                                                                         </td>
                                                                     </tr>
-                                                                </table>
-                                                                <div *ngIf="b_5.showNote" class="note_text">
-                                                                    <div> A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ b_5.note }}</div>
+                                                                </table> 
+                                                                <div *ngIf="b_3.showNote" class="note_text"> 
+                                                                    <div> {{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key] }}</div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div style="padding:5px;">
-                                        <div style="border-top:1px #555 solid;">
-                                            <table style="width:100%;">
-                                                <tr>
-                                                    <td style="width: 190px;" class="title">
-                                                        <table style="width: 100%;">
-                                                            <tr *ngIf="vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
-                                                                <td>Regular Time</td>
-                                                            </tr>
-                                                            <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
-                                                                <td>Overtime</td>
-                                                            </tr>
-                                                            <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
-                                                                <td>Double Time</td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                    <td>
-                                                        <table style="width: 100%;">
-                                                            <tr *ngIf="vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
-                                                                <td class="blank">&nbsp;</td>
-                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                    {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][day_i] | number : '1.2-2'}}
-                                                                </td>                                                                
-                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['rt'][7] | number
-                                                                    : '1.2-2'}}</td>
-                                                                <td></td>
-                                                            </tr>
-                                                            <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
-                                                                <td class="blank">&nbsp;</td>
-                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                    {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][day_i] | number : '1.2-2'}}
-                                                                </td>
-                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['ot'][7] | number
-                                                                    : '1.2-2'}}</td>
-                                                                <td></td>
-                                                            </tr>
-                                                            <tr *ngIf="sumArray(vars.users[x_3.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
-                                                                <td class="blank">&nbsp;</td>
-                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                    {{ vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][day_i] | number : '1.2-2'}}
-                                                                </td>                                                                
-                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].Data.TotalHours_byDay['dt'][7] | number
-                                                                    : '1.2-2'}}</td>
-                                                                <td></td>
-                                                            </tr>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div *ngIf="true"  style="margin-top:10px;">
-                                            <div *ngIf="vars.users[x_3.cat_key].Data.ot_assignment['dt']">
-                                                <div *ngIf="vars.users[x_3.cat_key].Data.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.users[x_3.cat_key].Data.ot_assignment['dt'].length > 0 && vars.users[x_3.cat_key].Data.ot_assignment['ot'].length > 0) ? '20px' : 0">
-                                                    <div style="font-weight:700">Double time allocation:
-                                                        <span class="star_container">
-                                                            <span class="star">&#9733;</span>
-                                                            <span class="star">&#9733;</span>
-                                                        </span>
-                                                    </div>
-                                                    <div *ngFor="let x of vars.users[x_3.cat_key].Data.ot_assignment['dt'];">					
-                                                        {{ item[1][x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>                                            
-                                            <div *ngIf="vars.users[x_3.cat_key].Data.ot_assignment['ot'].length > 0">
-                                                <div style="font-weight:700">Overtime allocation:
-                                                    <span class="star_container">
-                                                        <span class="star">&#9733;</span>                                                        
-                                                    </span>
-                                                </div>
-                                                <div *ngFor="let x of vars.users[x_3.cat_key].Data.ot_assignment['ot'];">					
-                                                    {{ item[1][x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
-                                                    
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                                            <div *ngIf="!b_3.hours">
+                                                                
+                                                                <div *ngFor="let b_4 of b_3.children"> 
 
-                            <!--  This is the layout for the Studio section of the Approval Page -->
-                            <div *ngIf="x_1.cat_key == 1">
-                                <div style="font-weight:400;font-style:italic;">
-                                    {{ item[1][x_1.cat_key][x_2.cat_key][x_3.cat_key]['Title'] }}
-                                </div>
-
-                                <div *ngFor="let x_4 of x_3.children">
-
-                                    <div *ngIf="vars.search_name.length == 0 || vars.users[x_4.cat_key].FullName_r.toLowerCase().indexOf(vars.search_name) != -1">
-                                        <table style="width:100%;" [style.color]="(x_4.rejected) ? '#F00' : default">
-                                            <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
-                                                <td style="width: 200px;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
-                                                    <div class="btn_1" (click)="toggleBreakdown($event,x_4.cat_key, x_4)">&nbsp;{{ vars.users[x_4.cat_key].FullName_r}}</div>
-                                                </td>
-                                                <td>
-                                                    <table style="width: 100%;">
-                                                        <tr [style.font-weight]="(vars.user_focused == x_4.cat_key) ? 800 : default">
-                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                            <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" [style.opacity]="(x_4.approved) ? .3 : 1.0">
-                                                                <!--                                                                     
-                                                                    <div *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) || hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)" class="ot_popup_container">
-                                                                    <div class="ot_popup">
-                                                                        <div *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i)">
-                                                                            OT: {{ hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) }}
-                                                                        </div>
-                                                                        <div *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)">
-                                                                            DT: {{ hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) }}
-                                                                        </div>                                                                        
+                                                                    <div *ngIf="b_3.cat_key == 6 || b_3.cat_key == 7">
+                                                                            &nbsp;&nbsp;{{ item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['title'] }}                                                                        
+                                                                        <table style="width:100%;">
+                                                                            <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
+                                                                                <td style="width: 190px;">
+                                                                                    &nbsp;&nbsp;&nbsp;&nbsp;{{ vars.titles_obj[b_1.cat_key]['cat_3'][b_3.cat_key]['cat_4'][b_4.cat_key]['title'] }}
+                                                                                </td>
+                                                                                <td>
+                                                                                    <table style="width: 100%;">
+                                                                                        <tr>
+                                                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                                            <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
+                                                                                                <span [style.opacity]="(b_4.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_4.hours[day_i] }}</span>
+                                                                                                <span class="star_container">
+                                                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                    <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                </span>
+                                                                                            </td>                                                                                    
+                                                                                            <td class="sum" style="font-weight:400;">
+                                                                                                {{b_4.hours[1] + b_4.hours[2] + b_4.hours[3] + b_4.hours[4] + b_4.hours[5] + b_4.hours[6] + b_4.hours[0] | number : '1.2-2'}}
+                                                                                            </td>
+                                                                                            <td style="text-align:center;">
+                                                                                                <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_4.showNote = true;" (mouseout)="b_4.showNote = false;">&nbsp;</div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                        <div *ngIf="b_4.showNote" class="note_text">
+                                                                            <div> {{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key] }}</div>
+                                                                        </div>                                                                    
                                                                     </div>
-                                                                </div>
-                                                                -->
-                                                               <span [style.opacity]="(x_4.hours[day_i] <= 0) ? 0.25 : 1.0">{{ x_4.hours[day_i] }}</span>
-                                                               <span class="star_container">
-                                                                    <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
-                                                                    <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
-                                                                </span>
-                                                            </td>
-                                                            <td class="sum_approval" [style.opacity]="(x_4.approved) ? .3 : 1.0">
-                                                                <span style="font-weight:700">{{x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4]
-                                                                    + x_4.hours[5] + x_4.hours[6] + x_4.hours[0] | number
-                                                                    : '1.2-2'}}</span>
-                                                                <span style="opacity:0.25;">/{{vars.users[x_4.cat_key].Data.TotalHours| number : '1.2-2'}}</span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>                                               
-                                                <td *ngIf="x_4.rejected || x_4.approved" width="1%">
-                                                    <div title="" class="empty">&nbsp;</div>
-                                                </td>
-                                                <td width="1%" *ngIf="!x_4.rejected">
-                                                    <div title="Approve" [class]="(x_4.approved) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_4)" (mouseover)="(x_4.approved) ? x_4.approval_hover = true : x_4.approval_hover = false" (mouseout)="x_4.approval_hover = false;">&nbsp;</div>
-                                                </td>
-                                                <td width="1%" *ngIf="!x_4.approved">
-                                                    <div title="Reject" [class]="(x_4.rejected) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_4)" (mouseover)="x_4.approval_hover = true;x_4.rejected_hover=true;" (mouseout)="x_4.approval_hover = false;x_4.rejected_hover=false;">&nbsp;</div>
-                                                </td>
-                                            </tr>
-                                        </table>
 
-                                        <div *ngIf="x_4.rejected_by != false" [class.hideRejectedBy]="!x_4.approval_hover" [class.showRejectedBy]="x_4.approval_hover" class="rejected_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
-                                            <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
-                                                Rejected by <span style="font-weight:700;">{{ x_4.rejected_by}}</span> on Jan 4, 2017
-                                            </div>
-                                            <div *ngIf="x_4.rejected_note.length > 0" class="rejected_note_text note_text">                                                
-                                                <div class="rejected_text">
-                                                    <span class="rejected_title">Artist Note</span><br />
-                                                    {{ x_4.rejected_note }}
-                                                </div>
-                                            </div>
-                                            <div *ngIf="x_4.rejected_note_department.length > 0" class="rejected_note_text note_text">                                                
-                                                <div class="rejected_text">
-                                                    <span class="rejected_title">Department Note</span><br />
-                                                    {{ x_4.rejected_note_department }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div *ngIf="x_4.approved_by != false" [class.hideApprovedBy]="!x_4.approval_hover" [class.showApprovedBy]="x_4.approval_hover" class="approved_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
-                                            <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
-                                                Approved by <span style="font-weight:700;">{{ x_4.approved_by}}</span> on Jan 4, 2017
-                                            </div>
-                                        </div>
+                                                                    <div *ngIf="b_3.cat_key == 4 || b_3.cat_key == 5">
+                                                                        &nbsp;&nbsp;{{item[1][b_1.cat_key][b_2.cat_key][b_3.cat_key]['title']}} : {{ vars.titles_obj[b_1.cat_key]['cat_3'][b_3.cat_key]['cat_4'][b_4.cat_key]['title'] }}
 
-                                        <div *ngIf="x_4.breakdown_show" class="breakdown_div">
-                                            <div class="btn_1" style="margin-bottom:20px;" (click)="(x_4.show_entire_timesheet) ? x_4.show_entire_timesheet = false : x_4.show_entire_timesheet = true">
-                                                <span *ngIf="!x_4.show_entire_timesheet">Show Full Time Sheet</span>
-                                                <span *ngIf="x_4.show_entire_timesheet">Collapse Time Sheet</span>
-                                            </div>
-
-                                            <div *ngFor="let b_1 of vars.timesheet_by_user[x_4.cat_key]">
-
-                                                <div *ngIf="(b_1.cat_key == x_1.cat_key) || x_4.show_entire_timesheet" style="font-weight:700;font-size:1.2em;">
-                                                    &nbsp;{{vars.titles[b_1.cat_key]['Title']}}
-                                                </div>
-
-                                                <div *ngFor="let b_2 of b_1.children">
-                                                    <div *ngIf="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) || x_4.show_entire_timesheet">
-                                                        <div style="font-size:1em;font-weight:700;">&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key]['Title']}}</div>
-
-                                                        <div *ngFor="let b_3 of b_2.children">
-                                                            <div *ngIf="(b_3.cat_key == x_3.cat_key) || x_4.show_entire_timesheet">
-                                                                <div *ngIf="b_3.hours">                                                                    
-                                                                    <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
-                                                                        <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
-                                                                            <td style="width: 190px;">
-                                                                                <div>&nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}}</div>
-                                                                            </td>
-                                                                            <td>
-                                                                                <table style="width: 100%;">
-                                                                                    <tr>
-                                                                                        <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                                                        <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
-                                                                                            <span [style.opacity]="(b_3.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_3.hours[day_i] }}</span>
-                                                                                            <span class="star_container">
-                                                                                                <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                                <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                            </span>
-                                                                                        </td>
-                                                                                        <td class="sum" style="font-weight:400;">
-                                                                                            {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
-                                                                                        </td>
-                                                                                        <td style="text-align:center;">
-                                                                                            <div [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </table>
-                                                                            </td>
-                                                                        </tr>
-                                                                    </table>
-                                                                    <div *ngIf="b_3.showNote" class="note_text">
-                                                                        <div> A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ b_3.note }}</div>
-                                                                    </div>                                                            
-                                                                </div>
-                                                                <div *ngIf="!b_3.hours">
-                                                                    <div *ngFor="let b_4 of b_3.children">
-                                                                        &nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['Title']}} : {{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key]['Title']}}
                                                                         <div *ngFor="let b_5 of b_4.children">
-                                                                            <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
-                                                                                <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
+                                                                            <table style="width:100%;">
+                                                                                <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
                                                                                     <td style="width: 190px;">
-                                                                                        <div>&nbsp;&nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key][b_4.cat_key][b_5.cat_key]['Title']}}</div>
+                                                                                        <div *ngIf="b_3.cat_key == 4">&nbsp;&nbsp;&nbsp;{{ vars.assets_byShow[b_2.cat_key]['obj'][b_5.cat_key]['cat_Title'] }}</div>
+                                                                                        <div *ngIf="b_3.cat_key == 5">&nbsp;&nbsp;&nbsp;{{ vars.shots_byShow[b_2.cat_key]['obj'][b_5.cat_key]['cat_Title'] }}</div>
                                                                                     </td>
                                                                                     <td>
                                                                                         <table style="width: 100%;">
                                                                                             <tr>
                                                                                                 <td class="blank" style="padding:5px;">&nbsp;</td>
-                                                                                                <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
+                                                                                                <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
                                                                                                     <span [style.opacity]="(b_5.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_5.hours[day_i] }}</span>
                                                                                                     <span class="star_container">
-                                                                                                        <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
-                                                                                                        <span *ngIf="hasOT(vars.users[x_4.cat_key].Data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                        <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                        <span *ngIf="hasOT(vars.users[x_3.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_3.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_3.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
                                                                                                     </span>
-                                                                                                </td>
+                                                                                                </td>                                                                                    
                                                                                                 <td class="sum" style="font-weight:400;">
                                                                                                     {{b_5.hours[1] + b_5.hours[2] + b_5.hours[3] + b_5.hours[4] + b_5.hours[5] + b_5.hours[6] + b_5.hours[0] | number : '1.2-2'}}
                                                                                                 </td>
                                                                                                 <td style="text-align:center;">
-                                                                                                    <div [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
+                                                                                                    <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key+'_'+b_5.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
                                                                                                 </td>
                                                                                             </tr>
                                                                                         </table>
@@ -591,8 +349,8 @@
                                                                                 </tr>
                                                                             </table>
                                                                             <div *ngIf="b_5.showNote" class="note_text">
-                                                                                <div> A note entered by the artist would display here for the approver to see. If there is no note then the 'note' icon will not be present on the screen for the specific row of data.{{ b_5.note }}</div>
-                                                                            </div>                                                                    
+                                                                                <div> {{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key+'_'+b_5.cat_key] }}</div>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -607,44 +365,44 @@
                                                         <tr>
                                                             <td style="width: 190px;" class="title">
                                                                 <table style="width: 100%;">
-                                                                    <tr *ngIf="vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
+                                                                    <tr *ngIf="vars.users[x_3.cat_key].data.totalHours_byDay['rt'][7] > 0.0">
                                                                         <td>Regular Time</td>
-                                                                    </tr>                                                                    
-                                                                    <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
+                                                                    </tr>
+                                                                    <tr *ngIf="sumArray(vars.users[x_3.cat_key].data.totalHours_byDay['ot']) > 0.0">
                                                                         <td>Overtime</td>
                                                                     </tr>
-                                                                    <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
+                                                                    <tr *ngIf="sumArray(vars.users[x_3.cat_key].data.totalHours_byDay['dt']) > 0.0">
                                                                         <td>Double Time</td>
                                                                     </tr>
                                                                 </table>
                                                             </td>
                                                             <td>
                                                                 <table style="width: 100%;">
-                                                                    <tr *ngIf="vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][7] > 0.0">
+                                                                    <tr *ngIf="vars.users[x_3.cat_key].data.totalHours_byDay['rt'][7] > 0.0">
                                                                         <td class="blank">&nbsp;</td>
-                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                            {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][day_i] | number : '1.2-2'}}
-                                                                        </td>
-                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['rt'][7]
-                                                                            | number : '1.2-2'}}</td>
+                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].data.totalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                            {{ vars.users[x_3.cat_key].data.totalHours_byDay['rt'][day_i] | number : '1.2-2'}}
+                                                                        </td>                                                                
+                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].data.totalHours_byDay['rt'][7] | number
+                                                                            : '1.2-2'}}</td>
                                                                         <td></td>
                                                                     </tr>
-                                                                    <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['ot']) > 0.0">
+                                                                    <tr *ngIf="sumArray(vars.users[x_3.cat_key].data.totalHours_byDay['ot']) > 0.0">
                                                                         <td class="blank">&nbsp;</td>
-                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                            {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][day_i] | number : '1.2-2'}}
+                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].data.totalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                            {{ vars.users[x_3.cat_key].data.totalHours_byDay['ot'][day_i] | number : '1.2-2'}}
                                                                         </td>
-                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['ot'][7]
-                                                                            | number : '1.2-2'}}</td>
+                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].data.totalHours_byDay['ot'][7] | number
+                                                                            : '1.2-2'}}</td>
                                                                         <td></td>
                                                                     </tr>
-                                                                    <tr *ngIf="sumArray(vars.users[x_4.cat_key].Data.TotalHours_byDay['dt']) > 0.0">
+                                                                    <tr *ngIf="sumArray(vars.users[x_3.cat_key].data.totalHours_byDay['dt']) > 0.0">
                                                                         <td class="blank">&nbsp;</td>
-                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
-                                                                            {{ vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][day_i] | number : '1.2-2'}}
-                                                                        </td>
-                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].Data.TotalHours_byDay['dt'][7]
-                                                                            | number : '1.2-2'}}</td>
+                                                                        <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_3.cat_key].data.totalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                            {{ vars.users[x_3.cat_key].data.totalHours_byDay['dt'][day_i] | number : '1.2-2'}}
+                                                                        </td>                                                                
+                                                                        <td class="sum" style="font-weight:700;">{{ vars.users[x_3.cat_key].data.totalHours_byDay['dt'][7] | number
+                                                                            : '1.2-2'}}</td>
                                                                         <td></td>
                                                                     </tr>
                                                                 </table>
@@ -653,43 +411,338 @@
                                                     </table>
                                                 </div>
                                                 <div *ngIf="true"  style="margin-top:10px;">
-                                                    <div *ngIf="vars.users[x_4.cat_key].Data.ot_assignment['dt']">
-                                                        <div *ngIf="vars.users[x_4.cat_key].Data.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.users[x_4.cat_key].Data.ot_assignment['dt'].length > 0 && vars.users[x_4.cat_key].Data.ot_assignment['ot'].length > 0) ? '20px' : 0">
-                                                            <div style="font-weight:700">
-                                                                    Double time allocation:<span class="star_container">
+                                                    
+                                                    <div *ngIf="vars.users[x_3.cat_key].data.ot_assignment['dt']">
+                                                        <div *ngIf="vars.users[x_3.cat_key].data.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.users[x_3.cat_key].data.ot_assignment['dt'].length > 0 && vars.users[x_3.cat_key].data.ot_assignment['ot'].length > 0) ? '20px' : 0">
+                                                            <div style="font-weight:700">Double time allocation:
+                                                                <span class="star_container">
                                                                     <span class="star">&#9733;</span>
                                                                     <span class="star">&#9733;</span>
                                                                 </span>
                                                             </div>
-                                                            <div *ngFor="let x of vars.users[x_4.cat_key].Data.ot_assignment['dt'];">					
-                                                                {{ item[1][x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+                                                            <div *ngFor="let x of vars.users[x_3.cat_key].data.ot_assignment['dt'];">					
+                                                                {{ item[1][x.cat_1][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
                                                             </div>
                                                         </div>
                                                     </div>                                            
-                                                    <div *ngIf="vars.users[x_4.cat_key].Data.ot_assignment['ot'].length > 0">
-                                                        <div style="font-weight:700">
-                                                                Overtime allocation:<span class="star_container">
-                                                                <span class="star">&#9733;</span>
-                                                            </span> </div>
-                                                        <div *ngFor="let x of vars.users[x_4.cat_key].Data.ot_assignment['ot'];">					
-                                                            {{ item[1][x.cat_1][x.cat_2]['Title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
-                                                            
+                                                    <div *ngIf="vars.users[x_3.cat_key].data.ot_assignment['ot'].length > 0">
+                                                        <div style="font-weight:700">Overtime allocation:
+                                                            <span class="star_container">
+                                                                <span class="star">&#9733;</span>                                                        
+                                                            </span>
+                                                        </div>
+                                                        <div *ngFor="let x of vars.users[x_3.cat_key].data.ot_assignment['ot'];">					
+                                                            {{ item[1][x.cat_1][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>                                                    
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
-                                    <!-- spacer  -->
 
-                                </div>
-                                    <div *ngIf="x_2.children.length > 1 && (i_3 + 1) != x_2.children.length" style="height:20px;">&nbsp;</div>
-                                </div>
-                            </div>                        
+                                    <!--  This is the layout for the Studio section of the Approval Page -->
+                                    <div *ngIf="x_1.cat_key == 1">
+                                        <div style="font-weight:400;font-style:italic;">
+                                            {{ item[1][x_1.cat_key][x_2.cat_key][x_3.cat_key]['title'] }}
+                                        </div>
+
+                                        <div *ngFor="let x_4 of x_3.children">
+
+                                            <div *ngIf="vars.search_name.length == 0 || vars.users[x_4.cat_key].fullName_r.toLowerCase().indexOf(vars.search_name) != -1">
+                                                <table style="width:100%;" [style.color]="(vars.rejections[x_4.cat_key]) ? '#F00' : default">
+                                                    <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
+                                                        <td style="width: 200px;" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] && !vars.rejections[x_4.cat_key]) ? .3 : 1.0">
+                                                            <div class="btn_1" (click)="toggleBreakdown($event,x_4.cat_key, x_4)">&nbsp;{{ vars.users[x_4.cat_key].fullName_r}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <table style="width: 100%;">
+                                                                <tr [style.font-weight]="(vars.user_focused == x_4.cat_key) ? 800 : default">
+                                                                    <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                    <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] && !vars.rejections[x_4.cat_key]) ? .3 : 1.0">                                                                    
+                                                                        <div *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) || hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)" class="ot_popup_container">
+                                                                            <div class="ot_popup">
+                                                                                <div *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i)">
+                                                                                    OT: {{ hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) }}
+                                                                                </div>
+                                                                                <div *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i)">
+                                                                                    DT: {{ hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) }}
+                                                                                </div>                                                                        
+                                                                            </div>
+                                                                        </div>
+                                                                    <span [style.opacity]="(x_4.hours[day_i] <= 0) ? 0.25 : 1.0">{{ x_4.hours[day_i] }}</span>
+                                                                    <span class="star_container">
+                                                                            <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
+                                                                            <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], x_1.cat_key, x_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == x_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == x_2.cat_key)" class="star">&#9733;</span>
+                                                                        </span>
+                                                                    </td>
+                                                                    <td class="sum_approval" [style.opacity]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? .3 : 1.0">
+                                                                        <span style="font-weight:700">{{x_4.hours[1] + x_4.hours[2] + x_4.hours[3] + x_4.hours[4]
+                                                                            + x_4.hours[5] + x_4.hours[6] + x_4.hours[0] | number
+                                                                            : '1.2-2'}}</span>
+                                                                        <span style="opacity:0.25;">/{{vars.users[x_4.cat_key].data.totalHours| number : '1.2-2'}}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>                                               
+                                                        <td *ngIf="vars.rejections[x_4.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]" width="1%">
+                                                            <div title="" class="empty">&nbsp;</div>
+                                                        </td>
+                                                        <td width="1%" *ngIf="!vars.rejections[x_4.cat_key]">
+                                                            <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_4, [x_1, x_2, x_3, x_4])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? x_4.approval_hover = true : x_4.approval_hover = false" (mouseout)="x_4.approval_hover = false;">&nbsp;</div>
+                                                        </td>
+                                                        <td width="1%" *ngIf="!vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] || vars.rejections[x_4.cat_key]">
+                                                            <div title="Reject" [class]="(vars.rejections[x_4.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_4,[x_1,x_2,x_3,x_4])" (mouseover)="x_4.approval_hover = true;x_4.rejected_hover=true;" (mouseout)="x_4.approval_hover = false;x_4.rejected_hover=false;">&nbsp;</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <div *ngIf="vars.rejections[x_4.cat_key]" [class.hideRejectedBy]="!x_4.approval_hover" [class.showRejectedBy]="x_4.approval_hover" class="rejected_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
+                                                    <div style="padding:10px 0px 10px 10px;font-size:1.1em;">
+                                                        <span style="font-weight:700;">{{ vars.rejections[x_4.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_4.cat_key]['show_dept_name'] }}</span> on {{ serviceService.generateDate(vars.rejections[x_4.cat_key]['rejected_on']) }}
+                                                    </div>
+                                                    <div *ngIf="vars.rejections[x_4.cat_key]['rejectedNote_artist'].length > 0" class="rejected_note_text note_text">                                                
+                                                        <div class="rejected_text">
+                                                            <span class="rejected_title">Artist Note</span><br />
+                                                            {{ vars.rejections[x_4.cat_key]['rejectedNote_artist'] }}
+                                                        </div>
+                                                    </div>
+                                                    <div *ngIf="vars.rejections[x_4.cat_key]['rejectedNote_department'].length > 0" class="rejected_note_text note_text">                                                
+                                                        <div class="rejected_text">
+                                                            <span class="rejected_title">Department Note</span><br />
+                                                            {{ vars.rejections[x_4.cat_key]['rejectedNote_department'] }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div *ngIf="vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]" [class.hideApprovedBy]="!x_4.approval_hover" [class.showApprovedBy]="x_4.approval_hover" class="approved_note" style="position:absolute;width:770px;z-index:1000;background-color:#BBB;">
+                                                    <div style="padding:10px 0px 10px 10px;font-size:1.1em;">                                                        
+                                                        <span style="font-weight:700;">{{ vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]['approved_by'] }}</span> approved on <span style="font-weight:700;">{{ serviceService.generateDate(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]['approved_on']) }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div *ngIf="x_4.breakdown_show" class="breakdown_div">
+                                                    <div class="btn_1" style="margin-bottom:20px;" (click)="(x_4.show_entire_timesheet) ? x_4.show_entire_timesheet = false : x_4.show_entire_timesheet = true">
+                                                        <span *ngIf="!x_4.show_entire_timesheet">Show Full Time Sheet</span>
+                                                        <span *ngIf="x_4.show_entire_timesheet">Collapse Time Sheet</span>
+                                                    </div>
+
+                                                    <div *ngFor="let b_1 of vars.timesheet_by_user[x_4.cat_key]">
+
+                                                        <div *ngIf="(b_1.cat_key == x_1.cat_key) || x_4.show_entire_timesheet" style="font-weight:700;font-size:1.2em;">
+                                                            &nbsp;{{vars.titles[b_1.cat_key]['title']}}
+                                                        </div>
+
+                                                        <div *ngFor="let b_2 of b_1.children">
+                                                            <div *ngIf="(b_1.cat_key == x_1.cat_key && b_2.cat_key == x_2.cat_key) || x_4.show_entire_timesheet">
+                                                                <div style="font-size:1em;font-weight:700;">&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key]['title']}}</div>
+
+                                                                <div *ngFor="let b_3 of b_2.children">
+                                                                    <div *ngIf="(b_3.cat_key == x_3.cat_key) || x_4.show_entire_timesheet">
+                                                                        <div *ngIf="b_3.hours">                                                                    
+                                                                            <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
+                                                                                <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
+                                                                                    <td style="width: 190px;">
+                                                                                        <div>&nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['title']}}</div>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <table style="width: 100%;">
+                                                                                            <tr>
+                                                                                                <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                                                <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
+                                                                                                    <span [style.opacity]="(b_3.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_3.hours[day_i] }}</span>
+                                                                                                    <span class="star_container">
+                                                                                                        <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                        <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                    </span>
+                                                                                                </td>
+                                                                                                <td class="sum" style="font-weight:400;">
+                                                                                                    {{b_3.hours[1] + b_3.hours[2] + b_3.hours[3] + b_3.hours[4] + b_3.hours[5] + b_3.hours[6] + b_3.hours[0] | number : '1.2-2'}}
+                                                                                                </td>
+                                                                                                <td style="text-align:center;">
+                                                                                                    <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_4.cat_key+'_'+b_3.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_3.showNote = true;" (mouseout)="b_3.showNote = false;">&nbsp;</div>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            </table>
+                                                                            <div *ngIf="b_3.showNote" class="note_text">
+                                                                                <div>{{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_4.cat_key+'_'+b_3.cat_key] }}</div>
+                                                                            </div>                                                            
+                                                                        </div>
+                                                                        <div *ngIf="!b_3.hours">
+                                                                            <div *ngFor="let b_4 of b_3.children">
+                                                                                <div *ngIf="b_3.cat_key == 6 || b_3.cat_key == 7">
+                                                                                    &nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['title']}}
+                                                                                    <table style="width:100%;">
+                                                                                        <tr [style.font-weight]="(x_3.approval_hover) ? 800 : default">
+                                                                                            <td style="width: 190px;">
+                                                                                                &nbsp;&nbsp;&nbsp;&nbsp;{{ vars.titles_obj[b_1.cat_key]['cat_3'][b_3.cat_key]['cat_4'][b_4.cat_key]['title'] }}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <table style="width: 100%;">
+                                                                                                    <tr>
+                                                                                                        <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                                                        <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
+                                                                                                            <span [style.opacity]="(b_4.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_4.hours[day_i] }}</span>
+                                                                                                            <span class="star_container">
+                                                                                                                <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                                <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                            </span>
+                                                                                                        </td>                                                                                    
+                                                                                                        <td class="sum" style="font-weight:400;">
+                                                                                                            {{b_4.hours[1] + b_4.hours[2] + b_4.hours[3] + b_4.hours[4] + b_4.hours[5] + b_4.hours[6] + b_4.hours[0] | number : '1.2-2'}}
+                                                                                                        </td>
+                                                                                                        <td style="text-align:center;">
+                                                                                                            <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_4.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_4.showNote = true;" (mouseout)="b_4.showNote = false;">&nbsp;</div>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </table>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                                    <div *ngIf="b_4.showNote" class="note_text">
+                                                                                        <div> {{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_3.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key] }}</div>
+                                                                                    </div>
+
+                                                                                </div>
+                                                                                <div *ngIf="b_3.cat_key == 4 || b_3.cat_key == 5">
+                                                                                    &nbsp;&nbsp;{{vars.titles[b_1.cat_key][b_2.cat_key][b_3.cat_key]['title']}} : {{ vars.titles_obj[b_1.cat_key]['cat_3'][b_3.cat_key]['cat_4'][b_4.cat_key]['title'] }}
+                                                                                    <div *ngFor="let b_5 of b_4.children">
+                                                                                        <table style="width:100%;" [style.opacity]="(x_4.approved) ? .3 : 1.0">
+                                                                                            <tr [style.font-weight]="(x_4.approval_hover) ? 800 : default">
+                                                                                                <td style="width: 190px;">
+                                                                                                    <div *ngIf="b_3.cat_key == 4">&nbsp;&nbsp;&nbsp;{{ vars.assets_byShow[b_2.cat_key]['obj'][b_5.cat_key]['cat_Title'] }}</div>
+                                                                                                    <div *ngIf="b_3.cat_key == 5">&nbsp;&nbsp;&nbsp;{{ vars.shots_byShow[b_2.cat_key]['obj'][b_5.cat_key]['cat_Title'] }}</div>
+                                                                                                </td>
+                                                                                                <td>
+                                                                                                    <table style="width: 100%;">
+                                                                                                        <tr>
+                                                                                                            <td class="blank" style="padding:5px;">&nbsp;</td>
+                                                                                                            <td *ngFor="let day_i of vars.days" class="day" [class.ot_bg]="(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)">
+                                                                                                                <span [style.opacity]="(b_5.hours[day_i] <= 0) ? 0.25 : 1.0">{{ b_5.hours[day_i] }}</span>
+                                                                                                                <span class="star_container">
+                                                                                                                    <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['ot'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                                    <span *ngIf="hasOT(vars.users[x_4.cat_key].data.ot_assignment['dt'], b_1.cat_key, b_2.cat_key, day_i) && !(vars.users[x_4.cat_key].ot_sel[day_i][0] == b_1.cat_key && vars.users[x_4.cat_key].ot_sel[day_i][1] == b_2.cat_key)" class="star">&#9733;</span>
+                                                                                                                </span>
+                                                                                                            </td>
+                                                                                                            <td class="sum" style="font-weight:400;">
+                                                                                                                {{b_5.hours[1] + b_5.hours[2] + b_5.hours[3] + b_5.hours[4] + b_5.hours[5] + b_5.hours[6] + b_5.hours[0] | number : '1.2-2'}}
+                                                                                                            </td>
+                                                                                                            <td style="text-align:center;">
+                                                                                                                <div *ngIf="this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_4.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key+'_'+b_5.cat_key]" [class]="'note_sel_sm'" (mouseover)="b_5.showNote = true;" (mouseout)="b_5.showNote = false;">&nbsp;</div>
+                                                                                                            </td>
+                                                                                                        </tr>
+                                                                                                    </table>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        </table>
+                                                                                        <div *ngIf="b_5.showNote" class="note_text">
+                                                                                            <div> {{ this.vars.notes[b_1.cat_key+'_'+b_2.cat_key+'_'+x_4.cat_key+'_'+b_3.cat_key+'_'+b_4.cat_key+'_'+b_5.cat_key] }}</div>
+                                                                                        </div>                                                                    
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div style="padding:5px;">
+                                                        <div style="border-top:1px #555 solid;">
+                                                            <table style="width:100%;">
+                                                                <tr>
+                                                                    <td style="width: 190px;" class="title">
+                                                                        <table style="width: 100%;">
+                                                                            <tr *ngIf="vars.users[x_4.cat_key].data.totalHours_byDay['rt'][7] > 0.0">
+                                                                                <td>Regular Time</td>
+                                                                            </tr>                                                                    
+                                                                            <tr *ngIf="sumArray(vars.users[x_4.cat_key].data.totalHours_byDay['ot']) > 0.0">
+                                                                                <td>Overtime</td>
+                                                                            </tr>
+                                                                            <tr *ngIf="sumArray(vars.users[x_4.cat_key].data.totalHours_byDay['dt']) > 0.0">
+                                                                                <td>Double Time</td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                    <td>
+                                                                        <table style="width: 100%;">
+                                                                            <tr *ngIf="vars.users[x_4.cat_key].data.totalHours_byDay['rt'][7] > 0.0">
+                                                                                <td class="blank">&nbsp;</td>
+                                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].data.totalHours_byDay['rt'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                                    {{ vars.users[x_4.cat_key].data.totalHours_byDay['rt'][day_i] | number : '1.2-2'}}
+                                                                                </td>
+                                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].data.totalHours_byDay['rt'][7]
+                                                                                    | number : '1.2-2'}}</td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                            <tr *ngIf="sumArray(vars.users[x_4.cat_key].data.totalHours_byDay['ot']) > 0.0">
+                                                                                <td class="blank">&nbsp;</td>
+                                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].data.totalHours_byDay['ot'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                                    {{ vars.users[x_4.cat_key].data.totalHours_byDay['ot'][day_i] | number : '1.2-2'}}
+                                                                                </td>
+                                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].data.totalHours_byDay['ot'][7]
+                                                                                    | number : '1.2-2'}}</td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                            <tr *ngIf="sumArray(vars.users[x_4.cat_key].data.totalHours_byDay['dt']) > 0.0">
+                                                                                <td class="blank">&nbsp;</td>
+                                                                                <td *ngFor="let day_i of vars.days" class="day hour_sum_breakdown" [style.opacity]="(vars.users[x_4.cat_key].data.totalHours_byDay['dt'][day_i] <= 0) ? 0.50 : 1.0">
+                                                                                    {{ vars.users[x_4.cat_key].data.totalHours_byDay['dt'][day_i] | number : '1.2-2'}}
+                                                                                </td>
+                                                                                <td class="sum" style="font-weight:700;">{{ vars.users[x_4.cat_key].data.totalHours_byDay['dt'][7]
+                                                                                    | number : '1.2-2'}}</td>
+                                                                                <td></td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <div *ngIf="true"  style="margin-top:10px;">
+                                                            <div *ngIf="vars.users[x_4.cat_key].data.ot_assignment['dt']">
+                                                                <div *ngIf="vars.users[x_4.cat_key].data.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.users[x_4.cat_key].data.ot_assignment['dt'].length > 0 && vars.users[x_4.cat_key].data.ot_assignment['ot'].length > 0) ? '20px' : 0">
+                                                                    <div style="font-weight:700">
+                                                                            Double time allocation:<span class="star_container">
+                                                                            <span class="star">&#9733;</span>
+                                                                            <span class="star">&#9733;</span>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div *ngFor="let x of vars.users[x_4.cat_key].data.ot_assignment['dt'];">					
+                                                                        {{ item[1][x.cat_1][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>                                            
+                                                            <div *ngIf="vars.users[x_4.cat_key].data.ot_assignment['ot'].length > 0">
+                                                                <div style="font-weight:700">
+                                                                        Overtime allocation:<span class="star_container">
+                                                                        <span class="star">&#9733;</span>
+                                                                    </span> </div>
+                                                                <div *ngFor="let x of vars.users[x_4.cat_key].data.ot_assignment['ot'];">					
+                                                                    {{ item[1][x.cat_1][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + vars.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+                                                                    
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                            <!-- spacer  -->
+
+                                        </div>
+                                            <div *ngIf="x_2.children.length > 1 && (i_3 + 1) != x_2.children.length" style="height:20px;">&nbsp;</div>
+                                        </div>
+                                    </div>                        
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+</div>
+
+
+<div style="height:300px;">&nbsp;</div>

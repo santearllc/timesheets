@@ -66,16 +66,6 @@
 	color:#677ef3;
 }
 
-.timesheet_show{
-	opacity: 1.0;
-	transition: opacity .25s .25s linear;
-}
-
-.timesheet_hide{
-	opacity: 0.0;
-	/*transition: opacity .25s linear;*/
-}
-
 .timesheet_footer{
 	color:#000;
 	background-color:#BCBCBC;	

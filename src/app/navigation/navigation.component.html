@@ -1,9 +1,9 @@
-<div>
+<div [class.disable-clicks]="!serviceService.valid_login">
 	<div class="logo"></div>
 		
 	<ul>
 
-		<li [style.opacity]="(serviceService.valid_login) ? 1.0 : 0.0 ">
+		<li>
 			<a (click)="serviceService.logOut()">SIGN OUT</a>
 		</li>
 
@@ -14,15 +14,18 @@
 		<li *ngIf="serviceService.valid_login && loggedIn">
 			<a routerLink="export">EXPORT</a>
 		</li>
-		<li *ngIf="serviceService.valid_login && loggedIn">
+		-->
+
+		<li>
 			<a routerLink="status">STATUS</a>
 		</li>
-		<li *ngIf="serviceService.valid_login && loggedIn">
+
+		<li>
 			<a routerLink="approval">APPROVALS</a>
 		</li>
 
-	-->
-		<li [style.opacity]="(serviceService.valid_login) ? 1.0 : 0.0 ">
+	
+		<li>
 			<a routerLink="entry">ENTRY</a>
 		</li>
 	</ul>

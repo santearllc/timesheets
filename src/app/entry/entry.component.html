@@ -42,8 +42,13 @@
 		</div>
 	</div>
 	
+	<!-- Display when loading time sheet -->
+	<div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);margin-top:20px;" *ngIf="!vars.showTimeSheet && vars.valid_login">
+			Loading Time Sheet...
+	</div>
+
 	<!-- Main section of component -->
-	<div *ngIf="vars.valid_login" style="margin-bottom: 10px;" [class.disable-clicks]="!vars.showTimeSheet">
+	<div *ngIf="vars.valid_login" style="margin-bottom: 10px;" [class.disable-clicks]="!vars.showTimeSheet" [style.opacity]="(!vars.showTimeSheet) ? 0.0 : 1.0">
 		<div>
 			<h1>{{vars.user_name}}</h1>
 		</div>
@@ -81,12 +86,9 @@
 		</div>
 	</div>
 
-	<!-- Display when loading time sheet -->
-	<div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);" *ngIf="!vars.showTimeSheet && vars.valid_login">
-		Loading Time Sheet...
-	</div>
+	
 
-	<div *ngIf="this.vars.status == 3 && vars.showTimeSheet" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">
+	<div *ngIf="this.vars.status == 2 && vars.showTimeSheet" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">
 		
 		<div style="font-size:1.25em;font-weight: 700;">This timesheet was rejected</div>	
 		<div style="font-style:italic;">Please refer to notes under show or department to resolve issue and then resubmit.</div>
@@ -110,9 +112,9 @@
 									<td class="sum">&nbsp;</td>
 									<td style="width:1%;">
 										<div>
-											<div class="menu" (click)="(x_1.show_menu) ? x_1.show_menu = false : x_1.show_menu = true"></div>
+											<div *ngIf="!vars.timesheet_submitted" class="menu" (click)="(x_1.show_menu) ? x_1.show_menu = false : x_1.show_menu = true"></div>
 											<div *ngIf="x_1.show_menu" class="menu_div">												
-												<div (click)="showHideEditLineItems()">Edit Line Items</div>
+												<div (click)="showHideEditLineItems()">Remove Line Item</div>
 												<div (click)="loadInitTimeheet();this.saveTimesheet();">Clear Timesheet</div>
 											</div>
 										</div>
@@ -126,7 +128,7 @@
 				<div class="addRowOption" style="margin-top:10px;">					
 					
 					<!-- search for show -->
-					<div *ngIf="x_1.cat_key == 0 && !vars.timesheet_submitted">						
+					<div *ngIf="x_1.cat_key == 0 && !vars.timesheet_submitted">
 						<div class="dd_div">
 							<div class="dd_search">
 								<div style="width:90%;display:inline-block;">
@@ -169,10 +171,9 @@
 				</div>
 			</div>
 
-			<div class="cat_1_content" *ngIf="x_1.children.length > 0">
-				<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'">
+			<div class="cat_1_content" style="padding:0px;" *ngIf="x_1.children.length > 0">
+				<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'" style="padding:20px;" [class.divider]="(!last)">
 					<div *ngIf="x_1.cat_key == 0 || showOvertimeIcons(x_2.ot_req, x_2.sum_hours)">
-						<div *ngIf="!first">&nbsp;</div>
 						<div style="border-bottom:1px #BBB solid;padding-bottom:0px;margin-bottom: 5px;">
 							<table style="width:100%;">
 								<tr>
@@ -192,9 +193,9 @@
 												</td>
 												<td style="width:1%;">
 													<div *ngIf="x_1.cat_key != 1">
-														<div class="menu" (click)="(x_2.show_menu) ? x_2.show_menu = false : x_2.show_menu = true"></div>
+														<div *ngIf="!vars.timesheet_submitted" class="menu" (click)="(x_2.show_menu) ? x_2.show_menu = false : x_2.show_menu = true"></div>
 														<div *ngIf="x_2.show_menu" class="menu_div">
-															<div (click)="showHideEditLineItems()">Edit Line Items</div>
+															<div (click)="showHideEditLineItems()">Remove Line Item</div>
 															<div *ngIf="x_1.cat_key == 0">
 																<div (click)="removeLineItem(x_2.children, i_2,[x_1.cat_key,x_2.cat_key])">Remove Show</div>
 															</div>															
@@ -348,9 +349,16 @@
 					</div>
 					<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' ">
 						<div *ngIf="x_3.hours">
+							<div *ngIf="!vars.submitted && vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" style="color:rgb(43, 43, 43);padding:10px;margin-left:-15px;margin-right:-15px;margin-bottom:5px;margin-top:5px;border:2px red solid;background-color:#BBB;">
+								<span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_on']) }}</span>
+								<div *ngIf="vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'].length > 0" style="margin-top:10px;font-style:italic;">
+									{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'] }}
+								</div>
+							</div>
+
 							<table style="width:100%;">
 								<tr>
-									<td class="title">
+									<td class="title">										
 										<div style="width: 200px;">
 											<div>{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['title'] }}</div> <!-- show tasks with no associated child objects (training, r&d, downtime) and all department tasks -->
 										</div>
@@ -443,7 +451,7 @@
 									<tr>
 										<td class="title">
 											<div style="width: 200px;">
-												<div>&nbsp;&nbsp;{{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['cat_4'][x_4.cat_key]['title'] }} </div> <!-- show tasks' position that aren't shots or assets -->
+												<div>&nbsp;&nbsp; {{ vars.titles_obj[x_1.cat_key]['cat_3'][x_3.cat_key]['cat_4'][x_4.cat_key]['title'] }} </div> <!-- show tasks' position that aren't shots or assets -->
 											</div>
 										</td>
 										<td>
@@ -558,7 +566,6 @@
 							</div>
 						</div>
 					</div>
-					<div *ngIf="!last" style="height:5px;display:none;">&nbsp;</div>
 				</div>
 			</div>
 		</div>
@@ -664,7 +671,6 @@
 
 		<div *ngIf="vars.timesheet_submitted" class="timesheet_submitted_footer">
 			<div>Time Sheet Submitted on {{ vars.submit_date }}</div>
-			<div class="btn_1" (click)="unsubmitTimesheet()">(unsubmit timesheet: only available in testing)</div>
 		</div>
 	</div>
 </div>
