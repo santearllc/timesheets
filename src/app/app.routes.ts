@@ -10,10 +10,12 @@ import { StatusComponent } from './status/status.component'
 import { LoginComponent } from './login/login.component'
 
 
+
 export const router: Routes = [
   { path: '', redirectTo : 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'approval', component: ApprovalComponent },  
+  { path: 'peek', component: ApprovalComponent },  
   { path: 'export', component: ExportComponent },
   { path: 'administrate', component: AdministrateComponent },
   { path: 'entry', component: EntryComponent },

@@ -88,7 +88,8 @@ export class EntryComponent {
 					this.serviceService.logOut()
 				}, 500)
 			} else {
-
+				this.serviceService.access = res['access'];
+				
 				document.cookie = "session=" + res.session;
 				document.cookie = "sub=" + res.sub;
 				this.serviceService.valid_login = true;
@@ -119,8 +120,7 @@ export class EntryComponent {
 		// get current time sheet
 		setTimeout(res=> {
 			this.getTimeSheet();
-		},1000)
-		
+		},1000)		
 	}
 
 	getShowsDepartmentsTasks() {
@@ -414,9 +414,7 @@ export class EntryComponent {
 			data_in.ot_sel = this.vars.ot_sel;
 
 			// save lines and ot selection to database
-			this.serviceService.saveTimeSheet(data_in, this.vars.week_of).subscribe(res => {
-				console.log('saved timesheet response: ')
-				console.log(res)
+			this.serviceService.saveTimeSheet(data_in, this.vars.week_of).subscribe(res => {				
 				// set save_status and color to saved/green
 				this.vars.save_status = "saved";
 				this.vars.save_status_color = "green";
@@ -425,7 +423,8 @@ export class EntryComponent {
 	}
 
 	// updates hours in time sheet obj and lines
-	updateHours(event, hours, day) {
+	updateHours(event, hours, day) {		
+		this.resetMenus(false, false)
 		var charCode = (event.which) ? event.which : event.keyCode;
 
 		// hide remove buttons and menu
@@ -543,6 +542,7 @@ export class EntryComponent {
 
 
 	setOvertimeChoice(cat_1, cat_2, day) {
+		this.resetMenus(false, false)
 		if (this.vars.current_office == 0) { // Oakland office rules			
 			if (this.vars.ot_sel[day][0] == cat_1 && this.vars.ot_sel[day][1] == cat_2) {
 				// toggles OT off
@@ -882,9 +882,12 @@ export class EntryComponent {
 		}
 
 		for (var i = 0; i < arr.length; i++) {
-			if (arr[i].cat_Title.toLowerCase().indexOf(phrase) != -1 && arr[i].cat_key != -1) {
-				arr[i].cats = cats;
-				results.push(arr[i]);
+			if (arr[i].cat_Title.toLowerCase().indexOf(phrase) != -1 && arr[i].cat_key != -1) {				
+				// Only add if not archived
+				if(arr[i].archived != 1){
+					arr[i].cats = cats;
+					results.push(arr[i]);
+				}
 			}
 		}
 
@@ -896,10 +899,11 @@ export class EntryComponent {
 	}
 
 	dropDownReset(event, dd_results) {
+
 		if (event != false) {
 			if (event.target.innerHTML.indexOf('&#9660;') != -1 || event.target.innerHTML.indexOf('▼') != -1) {
 				event.target.innerHTML = '&#9650;';
-				event = false;
+				event = false;				
 			} else {
 				event.target.innerHTML = '&#9660;';
 				event = true;
@@ -1134,9 +1138,7 @@ export class EntryComponent {
 		this.vars.showPopup = true
 	}
 
-	notesToggle(el) {
-		el.show_note_force = (!el.show_note_force && !this.vars.timesheet_submitted) ? true : false;
-	}
+	
 
 	updateNote(event, obj, cats) {
 		obj.note = event.target.value.trim();
@@ -1254,7 +1256,6 @@ export class EntryComponent {
 			this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_note_force', false);
 
 			this.serviceService.updateTimeSheetStatus_db(this.vars.week_of).subscribe(res => {
-				console.log(res);
 			});
 			
 			var lines_incl = []
@@ -1277,9 +1278,7 @@ export class EntryComponent {
 	}
 
 	unsubmitTimesheet() {
-		this.serviceService.unsubmitTimeSheetStatus_db(this.vars.week_of).subscribe(res => {
-			console.log('time sheet has been unsubmitted')
-			console.log(res)
+		this.serviceService.unsubmitTimeSheetStatus_db(this.vars.week_of).subscribe(res => {			
 			this.vars.timesheet_submitted = false;
 			var init_lines = this.deepClone(this.serviceService.getInitLines());
 			this.vars.lines.push(init_lines[0]);
@@ -1298,10 +1297,47 @@ export class EntryComponent {
 		return label;
 	}
 
-	resetMenus() {
-		console.log('reset Menus: need to setup function')
-	}
+	resetDropdowns(){
 
+
+	}
+	
+	resetMenus(el, prop) {
+		var init = false;
+		
+		if(prop){
+			init = el[prop];
+		}
+
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'show_menu', false);		
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'show_note_force', false);
+
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_showTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_assetTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_shotTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_productionTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_supervisionTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_departmentTask', false);
+		this.serviceService.hideShowDivs(this.vars.timesheet, 'dd_results_shot', false);
+
+		setTimeout(d =>{
+			//$('.dd_reveal').html('&#9660;')
+		},1000)
+		
+
+
+		if(typeof(init) == 'object'){
+			console.log('double here... ')
+			el[prop] = init;
+			console.log(el)
+		}
+
+		if(prop == 'show_menu' || prop == 'show_note_force'){
+			el[prop] = (init) ? false : true;
+		}
+
+
+	}
 }
 
 

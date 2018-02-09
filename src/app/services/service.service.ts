@@ -42,6 +42,7 @@ export class ServiceService {
   api_path;
   valid_login = false;
   show_signin = false;
+  access = { 0 : false, 1 : false, 2 : false, 3 : false, 4 : false, 5 : false, 6 : false }
 
   login_res = '';
   googleLoginButtonId = "googleBtn";
@@ -148,9 +149,10 @@ export class ServiceService {
   logOut(){    
     var auth2 = gapi.auth2.getAuthInstance();    
     var that = this
-    this.auth2.signOut().then(function () {      
+    this.auth2.signOut().then(function () {
       document.cookie = "logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       that.go('login');
+      that.access = { 0 : false, 1 : false, 2 : false, 3 : false, 4 : false, 5 : false, 6 : false }
     }); 
   }
   
@@ -200,8 +202,8 @@ export class ServiceService {
       .map(res => res.json());
   }
 
-  getTimeSheetsAllUsers_db(week_of) {
-    return this.http.get(this.api_path + '/api/timesheets/'+week_of+'?' + this.session_param('get'))
+  getTimeSheetsAllUsers_db(week_of,status) {
+    return this.http.get(this.api_path + '/api/timesheets/'+week_of+'?status='+status+'&' + this.session_param('get'))
       .map(res => res.json());
   }
 
@@ -220,10 +222,6 @@ export class ServiceService {
     return this.http.post(this.api_path + '/api/timesheet/line/unapprove?' + this.session_param('get'), data)
       .map(res => res.json());
   }
-
-  
-
-
 
   updateTimeSheetStatus_db(week_of) {
     var data = Object();
@@ -257,8 +255,49 @@ export class ServiceService {
     return this.http.get(this.api_path + '/api/timesheets/status/'+ week_of)
       .map(res => res.json());
   }
+  
+  getDelegates(userKey) {
+    return this.http.get(this.api_path + '/api/delegate?userKey=' + userKey)
+      .map(res => res.json());
+  }
+
+  addDelegate(data) {
+    return this.http.post(this.api_path + '/api/delegate/add?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  removeDelegate(data) {
+    return this.http.post(this.api_path + '/api/delegate/remove?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
 
 
+
+  getApprovers(params) {
+    return this.http.get(this.api_path + '/api/approver?' + params)
+      .map(res => res.json());
+  }
+
+  addApprover(data) {
+    return this.http.post(this.api_path + '/api/approver/add?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  removeApprover(data) {
+    return this.http.post(this.api_path + '/api/approver/remove?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+  
+  
+  getCustomWeek(year) {
+    return this.http.get(this.api_path + '/api/customweek?year=' + year +'&' + this.session_param('get'))
+      .map(res => res.json());
+  }
+
+  addCustomWeek(data) {
+    return this.http.post(this.api_path + '/api/customweek/add?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
 
   session_param(data) {
     if (data == 'get') {
@@ -271,6 +310,8 @@ export class ServiceService {
       return data
     }
   }
+
+  
 
   sumHours(data_in) {
     var data_out = data_in;
@@ -338,7 +379,10 @@ export class ServiceService {
               focus: [false, false, false, false, false, false, false],
               children: children[2],
               projectTask: -1,
-              departmentTask: -1
+              departmentTask: -1, 
+              show_menu : false,
+              show_note_force : false,
+              dd_results_showTask: false
             });
             for (var prop_3 in timesheet_in[prop_1][prop_2]) {
               if (!isNaN(parseInt(prop_3))) {
@@ -349,7 +393,10 @@ export class ServiceService {
                   hours: timesheet_in[prop_1][prop_2][prop_3]['hours'],
                   focus: [false, false, false, false, false, false, false],
                   children: children[3],
-                  productionTask: -1
+                  productionTask: -1, 
+                  show_menu : false,
+                  show_note_force : false,
+                  dd_results_showTask: false
                 });
                 for (var prop_4 in timesheet_in[prop_1][prop_2][prop_3]) {
                   if (!isNaN(parseInt(prop_4))) {
@@ -360,7 +407,9 @@ export class ServiceService {
                       hours: timesheet_in[prop_1][prop_2][prop_3][prop_4]['hours'],
                       focus: [false, false, false, false, false, false, false],
                       children: children[4],
-                      productionTask: -1
+                      productionTask: -1, 
+                      show_menu : false,
+                      show_note_force : false
                     });
                     for (var prop_5 in timesheet_in[prop_1][prop_2][prop_3][prop_4]) {
                       if (!isNaN(parseInt(prop_5))) {
@@ -370,7 +419,9 @@ export class ServiceService {
                           hours: timesheet_in[prop_1][prop_2][prop_3][prop_4][prop_5]['hours'],
                           focus: [false, false, false, false, false, false, false],
                           children: [],
-                          productionTask: -1
+                          productionTask: -1, 
+                          show_menu : false,
+                          show_note_force : false
                         });
                       }
                     }

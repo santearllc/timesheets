@@ -1,93 +1,7 @@
 <!-- Spacer -->
 <div style="height: 20px;">&nbsp;</div>
 
-<div>
-    <div class="header_a1">Scheduled Actions</div>
-    <div class="content_a1">
-        <table width="100%" style="color:#AAA">
-            <tr>
-                <td style="color:#000;">Overtime Report</td>
-                <td>Weekly</td>
-                <td>Tuesday 9am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Time Sheet Status</td>
-                <td>Weekly</td>
-                <td>Monday 9am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Time Sheet Status</td>
-                <td>Weekly</td>
-                <td>Monday 9am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Time Sheet Reminder</td>
-                <td>Weekly</td>
-                <td>Monday 9am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Time Sheet Reminder</td>
-                <td>Weekly</td>
-                <td>Monday 10am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Time Sheet Status</td>
-                <td>Weekly</td>
-                <td>Monday 11am local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-            <tr>
-                <td style="color:#000;">Disable Accounts</td>
-                <td>Weekly</td>
-                <td>Monday 12pm local</td>
-                <td style="text-align:right;">2017-10-10 09:00</td>
-                <td>&nbsp;</td>
-                <td>success</td>
-                <td style="text-align:right;">
-                    <input type="checkbox" checked>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
 
-<!-- Spacer -->
-<div style="height: 20px;">&nbsp;</div>
 
 <div>
     <div class="header_a1">Manual Actions</div>
@@ -117,23 +31,51 @@
 <div style="height: 20px;">&nbsp;</div>
 
 <div>
-    <div class="header_a1">Custom Start of Week</div>
+    <div class="header_a1">Custom Start of Week
+        <div style="font-size:12px;font-weight:100;font-style:italic;">Weeks that do not start on a Monday, due to a holiday or other event.</div>
+    </div>
     <div class="content_a1">
-        <div style="display:inline-block;float:right;;">
-            <button>add new</button>
+        <div style="display:inline-block;float:right;">
+            <button (click)="(vars.showCal) ? vars.showCal= false : vars.showCal=true">add new</button>
         </div>
+
+
+        <!-- Calendar | at some point this should become a reusable component -->
+        <div id="cal" *ngIf="vars.showCal" style="margin-left:560px;margin-top:32px;">
+            <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
+                <table width="100%;">
+                    <tr>
+                        <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
+                        <td style="text-align:center;">{{ vars.calendar.month_label }}</td>
+                        <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
+                    </tr>
+                </table>
+            </div>
+            <table class="cal_weeks" width="100%;">
+                <tr class="disable-clicks">
+                    <td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
+                </tr>
+                <tr *ngFor="let week of vars.calendar.weeks" [class.cal_cur_week]="week.cur_week">
+                    <td *ngFor="let day of week.days; let i = 'index'" (click)="daySelected(week.week_of_label,week.week_of,day,i)"  [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
+                </tr>
+            </table>		
+        </div>
+
         <div style="font-weight:700;border-bottom:1px #777 solid;padding-bottom:10px;margin-bottom:10px;">
-            <span style="font-size:1.3em;">&#8249;</span>&nbsp;December 2017&nbsp;
-            <span style="font-size:1.3em;">&#8250;</span>
+            <span style="font-size:1.3em;" (click)="backYear()">&#9664;</span>&nbsp;{{ vars.custom_week_year }}&nbsp;
+            <span style="font-size:1.3em;" (click)="forthYear()">&#9654;</span>
         </div>
-        <div>
-            <div>
+        <div *ngIf="vars.custom_week_start.length > 0">
+            <div *ngFor="let week of vars.custom_week_start;">
                 Week of
                 <span style="font-weight:700;">Dec 25 - Jan 1st</span>: Dec 26
-                <div style="display:inline-block;float:right;;">
+                <div style="display:inline-block;float:right;">
                     <button>remove</button>
                 </div>
             </div>
+        </div>
+        <div *ngIf="vars.custom_week_start.length <= 0">
+            There are no 'custom start of the week' records.
         </div>
 
     </div>
@@ -145,34 +87,44 @@
 
 <div>
     <div class="header_a1">Set Approvers
-        <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to approve a show or department.</div>
+        <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to approve time sheet lines for a show or department.</div>
     </div>
-    <div class="content_a1">
-        <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Project/Department" (click)="$event.target.value='';admin_vars.approval_sel = false;"
-            (keypress)="admin_vars.approval_sel = true" />
-
-        <div *ngIf="admin_vars.approval_sel" style="margin-top:20px;">
-            <div style="font-weight:700;font-size:1em;">Project Title/ Department Name</div>
-            <div style="margin-top:10px;padding-top:10px;border-top:1px #777 solid;">
-                <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person to Add" />
-            </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;">
-                    <button>remove</button>
+    <div class="content_a1">        
+        <div class="dd_div">
+            <div class="dd_search">
+                <div style="width:90%;display:inline-block;">
+                    <input placeholder="Show or Department" [(ngModel)]="vars.approvers_search" (click)="vars.approver_sel=false;vars.approver_result = false;vars.approvers_search=''" (keyup)="this.vars.approver_sel=false;vars.approver_result = searchShows(vars.approvers_search)"/>
                 </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
-            </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;;">
-                    <button>remove</button>
+            </div>             
+            <div *ngIf="vars.approver_result">
+                <div *ngIf="vars.approver_result.length > 0" class="dd_results" style="width:760px;">
+                    <div *ngFor="let result of vars.approver_result" [class.dd_result_sel]="result.selected" (click)="showSelected(result)">{{ result.cat_Title }}&nbsp;<div style="font-size:0.8em;font-style:italic;float:right;background:transparent;">{{result.type}}</div></div>
                 </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
             </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;;">
-                    <button>remove</button>
+        </div>
+        <div *ngIf="vars.approver_sel" style="margin-top:10px;">
+            <div *ngIf="this.vars.approvers.length > 0 " style="padding:10px;">
+                <div *ngFor="let d of this.vars.approvers; let i = 'index'" style="margin-top:10px;">
+                    <div style="display:inline-block;float:right;">
+                        <button (click)="removeApprover(d,i)">remove</button>
+                    </div>
+                    <div style="display:inline-block;">{{ d['fullName'] }}</div>
                 </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
+            </div>
+            <div *ngIf="this.vars.approvers.length <= 0 " style="padding:10px;">
+                No one has been set yet as approver...
+            </div>
+            <div class="dd_div">
+                <div class="dd_search">
+                    <div style="width:90%;display:inline-block;">
+                        <input placeholder="Add Approver" [(ngModel)]="vars.approvers_add_search" (click)="vars.approvers_add_result = false;vars.approvers_add_search=''" (keyup)="vars.approvers_add_result = searchDelegates(vars.approvers_add_search)"/>
+                    </div>
+                </div>
+                <div *ngIf="vars.approvers_add_result">
+                    <div *ngIf="vars.approvers_add_result.length > 0" class="dd_results" style="width:760px;">
+                        <div *ngFor="let result of vars.approvers_add_result" [class.dd_result_sel]="result.selected" (click)="approverSelected(result)">{{ result.fullName_r }} | {{ result.email }}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -185,32 +137,44 @@
         <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to fill out another person's time sheet on their behalf.</div>
     </div>
     <div class="content_a1">
-        <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person" (click)="$event.target.value='';admin_vars.delegate_sel = false;"
-            (keypress)="admin_vars.delegate_sel = true" />
+        <div class="dd_div">
+            <div class="dd_search">
+                <div style="width:90%;display:inline-block;">
+                    <input placeholder="Person to Delegate" [(ngModel)]="vars.delegates_search" (click)="vars.delegate_sel=false;vars.delegate_result = false;vars.delegates_search=''" (keyup)="this.vars.delegate_sel=false;vars.delegate_result = searchDelegates(vars.delegates_search)"/>
+                </div>
+            </div>             
+            <div *ngIf="vars.delegate_result">
+                <div *ngIf="vars.delegate_result.length > 0" class="dd_results" style="width:760px;">
+                    <div *ngFor="let result of vars.delegate_result" [class.dd_result_sel]="result.selected" (click)="delegateSelected(result)">{{ result.fullName_r }} | {{ result.email }}</div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="vars.delegate_sel" style="margin-top:10px;">            
+            <div *ngIf="this.vars.delegators.length > 0 " style="padding:10px;">
+                <div *ngFor="let d of this.vars.delegators; let i = 'index'" style="margin-top:10px;">
+                    <div style="display:inline-block;float:right;">
+                        <button (click)="removeDelegator(d,i)">remove</button>
+                    </div>
+                    <div style="display:inline-block;">{{ d['fullName'] }}</div>
+                </div>
+            </div>
+            <div *ngIf="this.vars.delegators.length <= 0 " style="padding:10px;">
+                No one has been set yet as delegator...
+            </div>
 
-        <div *ngIf="admin_vars.delegate_sel" style="margin-top:20px;">
-            <div style="font-weight:700;font-size:1em;">Last Name, First Name</div>
-            <div style="margin-top:10px;padding-top:10px;border-top:1px #777 solid;">
-                <input style="width:100%;box-sizing:border-box;" type="text" placeholder="&nbsp;Search for Person to Add" />
-            </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;;">
-                    <button>remove</button>
+            <div class="dd_div">
+                <div class="dd_search">
+                    <div style="width:90%;display:inline-block;">
+                        <input placeholder="Add Delegator" [(ngModel)]="vars.delegates_add_search" (click)="vars.delegate_add_result = false;vars.delegates_add_search=''" (keyup)="vars.delegate_add_result = searchDelegates(vars.delegates_add_search)"/>
+                    </div>
                 </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
-            </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;;">
-                    <button>remove</button>
+                <div *ngIf="vars.delegate_add_result">
+                    <div *ngIf="vars.delegate_add_result.length > 0" class="dd_results" style="width:760px;">
+                        <div *ngFor="let result of vars.delegate_add_result" [class.dd_result_sel]="result.selected" (click)="delegatorSelected(result)">{{ result.fullName_r }} | {{ result.email }}</div>
+                    </div>
                 </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
             </div>
-            <div style="margin-top:10px;">
-                <div style="display:inline-block;float:right;;">
-                    <button>remove</button>
-                </div>
-                <div style="display:inline-block;">Last Name, First Name</div>
-            </div>
+
         </div>
     </div>
 </div>
@@ -286,3 +250,93 @@
         </div>
     </div>
 </div>
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div>
+        <div class="header_a1">Scheduled Actions</div>
+        <div class="content_a1">
+            <table width="100%" style="color:#AAA">
+                <tr>
+                    <td style="color:#000;">Overtime Report</td>
+                    <td>Weekly</td>
+                    <td>Tuesday 9am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Time Sheet Status</td>
+                    <td>Weekly</td>
+                    <td>Monday 9am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Time Sheet Status</td>
+                    <td>Weekly</td>
+                    <td>Monday 9am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Time Sheet Reminder</td>
+                    <td>Weekly</td>
+                    <td>Monday 9am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Time Sheet Reminder</td>
+                    <td>Weekly</td>
+                    <td>Monday 10am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Time Sheet Status</td>
+                    <td>Weekly</td>
+                    <td>Monday 11am local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color:#000;">Disable Accounts</td>
+                    <td>Weekly</td>
+                    <td>Monday 12pm local</td>
+                    <td style="text-align:right;">2017-10-10 09:00</td>
+                    <td>&nbsp;</td>
+                    <td>success</td>
+                    <td style="text-align:right;">
+                        <input type="checkbox" checked>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    
+    

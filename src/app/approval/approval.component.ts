@@ -1,6 +1,7 @@
 import { Component, OnInit, Pipe } from '@angular/core';
-import { ServiceService } from '../services/service.service';
+import { ServiceService } from '../services/service.service'; 
 import { TimesheetBreakdownComponent } from '../timesheet-breakdown/timesheet-breakdown.component';
+import { ActivatedRoute } from '@angular/router'
 
 import { forEach } from '@angular/router/src/utils/collection';
 
@@ -18,8 +19,9 @@ export class ApprovalComponent implements OnInit {
   // store all variables, objects, arrays in this object
   vars = Object();
 
-  constructor(public serviceService: ServiceService) {
+  constructor(public serviceService: ServiceService, private route:ActivatedRoute) {
     // connection to database functions
+    
   }
 
   ngOnInit() {
@@ -43,6 +45,9 @@ export class ApprovalComponent implements OnInit {
     this.vars.timesheet_status = Object();
     this.vars.notes = {}
 
+    // peek into users that have yet to submit their timesheets: 
+    this.vars.peek = (this.route.snapshot['_routeConfig']['path'] == 'peek') ? true : false;
+
     // create calendar for current week
     this.vars.calendar = this.serviceService.generateCalendar(new Date());
     this.vars.week_label = this.serviceService.calendarLabel(this.vars.calendar.week_of);
@@ -52,6 +57,7 @@ export class ApprovalComponent implements OnInit {
 
     this.serviceService.validateLogin().subscribe(res => {
       this.serviceService.googleInit();
+      
 
       if (!res['valid']) {
         this.serviceService.show_signin = true
@@ -65,6 +71,8 @@ export class ApprovalComponent implements OnInit {
           this.serviceService.logOut()
         }, 500)
       } else {
+        this.serviceService.access = res['access'];
+
         document.cookie = "session=" + res.session;
         document.cookie = "sub=" + res.sub;
         this.serviceService.valid_login = true;
@@ -130,7 +138,10 @@ export class ApprovalComponent implements OnInit {
         this.vars.users[user.public_key] = user;
       }
 
-      this.serviceService.getTimeSheetsAllUsers_db(week_of).subscribe(res => {
+      var status = (this.vars.peek) ? 0 : 1;
+
+      this.serviceService.getTimeSheetsAllUsers_db(week_of, status).subscribe(res => {
+        console.log(res)
         this.vars.rejections = res['rejections']
         this.vars.approvals = res['approvals']
         

@@ -64,14 +64,14 @@ export class StatusComponent implements OnInit {
 				this.vars.invalid_login_res = res['message']
 
 				setTimeout(timeout => {
-					this.serviceService.logOut()
+					this.serviceService.logOut();
 				}, 5000)
 			} else if (!this.serviceService.getCookie('logged_in')) {
 				setTimeout(timeout => {
-					this.serviceService.logOut()
+					this.serviceService.logOut();
 				}, 500)
 			} else {
-
+        this.serviceService.access = res['access'];
 				document.cookie = "session=" + res.session;
 				document.cookie = "sub=" + res.sub;
 				this.serviceService.valid_login = true;

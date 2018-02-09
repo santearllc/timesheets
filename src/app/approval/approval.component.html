@@ -74,7 +74,14 @@
 
 <!-- Display when loading time sheet -->
 <div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);margin-top:20px;" *ngIf="vars.loading && !vars.no_timesheets">
-    Loading Approvals...
+    Loading
+    <span *ngIf="!vars.peek">
+    Approvals...
+    </span>
+    <span *ngIf="vars.peek">
+        Time Sheets...
+    </span>
+    
 </div>
             
 
@@ -101,6 +108,11 @@
         No Time Sheets To Approve...
     </div>
 
+        <!-- Display when loading time sheet -->
+    <div class="cat_1_title" style="font-size:1.0em;color:rgb(43, 43, 43);margin:20px 0;" *ngIf="!vars.no_timesheets && vars.peek">
+        You are viewing time sheets not yet submitted...
+    </div>
+
     <div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">		
         <div *ngIf="vars.showTimeSheet">
         <div *ngFor="let item of [[vars.timesheet, vars.titles],[vars.timesheet_studio, vars.titles_studio]];let i_0='index'">
@@ -119,10 +131,10 @@
                                             <td class="blank">&nbsp;</td>
                                             <td *ngFor="let day of vars.days_label" class="day">{{ day }}</td>
                                             <td class="sum_approval">&nbsp;</td>
-                                            <td>
+                                            <td *ngIf="!vars.peek">
                                                 <div class="empty">&nbsp;</div>
                                             </td>
-                                            <td>
+                                            <td *ngIf="!vars.peek">
                                                 <div class="empty">&nbsp;</div>
                                             </td>
                                         </tr>
@@ -186,13 +198,13 @@
                                                                             + x_3.sum_hours[0] | number : '1.2-2'}}</span>
                                                                         <span style="opacity:0.25;">/{{vars.users[x_3.cat_key].data.totalHours| number : '1.2-2'}}</span>                                                                        
                                                                     </td>
-                                                                    <td *ngIf="vars.rejections[x_3.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" width="1%">
+                                                                    <td *ngIf="!vars.peek && (vars.rejections[x_3.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key])" width="1%">
                                                                         <div title="" class="empty">&nbsp;</div>
                                                                     </td>
-                                                                    <td width="1%" *ngIf="!vars.rejections[x_3.cat_key]">
+                                                                    <td width="1%" *ngIf="!vars.peek && !vars.rejections[x_3.cat_key]">
                                                                         <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3, [x_1, x_2, x_3])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? x_3.approval_hover = true : x_3.approval_hover = false" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
                                                                     </td>
-                                                                    <td width="1%" *ngIf="!vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] || vars.rejections[x_3.cat_key]">
+                                                                    <td width="1%" *ngIf="!vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] || vars.rejections[x_3.cat_key]">
                                                                         <div title="Reject" [class]="(vars.rejections[x_3.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_3,[x_1,x_2,x_3])" (mouseover)="x_3.approval_hover = true;x_3.rejected_hover=true;" (mouseout)="x_3.approval_hover = false;x_3.rejected_hover=false;">&nbsp;</div>
                                                                     </td>
                                                                 </tr>
@@ -484,13 +496,13 @@
                                                                 </tr>
                                                             </table>
                                                         </td>                                               
-                                                        <td *ngIf="vars.rejections[x_4.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]" width="1%">
+                                                        <td *ngIf="!vars.peek && (vars.rejections[x_4.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key])" width="1%">
                                                             <div title="" class="empty">&nbsp;</div>
                                                         </td>
-                                                        <td width="1%" *ngIf="!vars.rejections[x_4.cat_key]">
+                                                        <td width="1%" *ngIf="!vars.peek && !vars.rejections[x_4.cat_key]">
                                                             <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_4, [x_1, x_2, x_3, x_4])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? x_4.approval_hover = true : x_4.approval_hover = false" (mouseout)="x_4.approval_hover = false;">&nbsp;</div>
                                                         </td>
-                                                        <td width="1%" *ngIf="!vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] || vars.rejections[x_4.cat_key]">
+                                                        <td width="1%" *ngIf="!vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] || vars.rejections[x_4.cat_key]">
                                                             <div title="Reject" [class]="(vars.rejections[x_4.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_4,[x_1,x_2,x_3,x_4])" (mouseover)="x_4.approval_hover = true;x_4.rejected_hover=true;" (mouseout)="x_4.approval_hover = false;x_4.rejected_hover=false;">&nbsp;</div>
                                                         </td>
                                                     </tr>

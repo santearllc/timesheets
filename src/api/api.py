@@ -15,10 +15,11 @@ import urllib2, urllib
 app = Flask(__name__)
 
 # Postgresql Database 
-POSTGRES_URL ="atomicfiction.cbzrp1azkzhh.us-west-2.rds.amazonaws.com"
-POSTGRES_USER ="postgres"
-POSTGRES_PW ="AT0micP0stGr3Z"
-POSTGRES_DB ="tss"
+POSTGRES_URL = "atomicfiction.cbzrp1azkzhh.us-west-2.rds.amazonaws.com"
+POSTGRES_USER = "postgres"
+POSTGRES_PW = "at0micp0stgr3z"
+POSTGRES_DB = "tss"
+
 
 DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
 
@@ -153,7 +154,8 @@ class Delegator(db.Model):
 class Approver(db.Model):
 	approverKey = db.Column(db.Integer, primary_key=True)
 	userKey = db.Column(db.Integer)
-	showKey = db.Column(db.Integer)
+	cat1 = db.Column(db.Integer)
+	cat2 = db.Column(db.Integer)
 	createdBy = db.Column(db.Integer)
 	createdOn = db.Column(db.DateTime)	
 
@@ -188,20 +190,29 @@ class PayrollPeriod(db.Model):
 	updatedOn = db.Column(db.Date)
 
 
+class ActionHistory(db.Model):
+	actionHistoryKey = db.Column(db.Integer, primary_key=True)
+	script = db.Column(db.Text)
+	executedOn = db.Column(db.Date)
+	executedBy = db.Column(db.Integer)
+	status = db.Column(db.Integer)
+
+
+class WeekStart(db.Model):
+	weekStartKey = db.Column(db.Integer, primary_key=True)
+	createdBy = db.Column(db.Integer)
+	createdOn = db.Column(db.DateTime)
+	weekOf = db.Column(db.Date)
+	newStart = db.Column(db.Date)
+	
+
 # Uncomment two lines below if adding new model (Table) to db.  Note: If you modify a model 
 # above it will not get updated when running create_all(). You must update column in dbms or via sql. 
+
 # db.create_all()
 # db.session.commit()
 
 ### User Functions ###
-
-# is current email address in db? if not, then get a current list of bamboo users; else just log person in. 
-# 1 if the person logging in is 
-# 2 
-
-
-
-
 @app.route('/timesheets/status/<week_of>', methods=['GET'])
 def get_time_sheet_status_all_users(week_of):
 	users = User.query.order_by(User.lastName).all()
@@ -330,12 +341,15 @@ def vailidate_user():
 	    user_data['sub'] = idinfo['sub']
 	    user_data['bambooKey'] = bamboo['id']
 	    userKey = add_validated_user(user_data)
+	    access = user_access(userKey)
 
 	    session = str(uuid.uuid4())
 	    add_session(userKey, session, token, sub)
 	    userKey = get_user_public_key(userKey)
 
-	    return jsonify({'valid' : True, 'session' : session,  'id_token' : token, 'sub' : sub, 'email' : idinfo['email'], 'firstName' : idinfo['given_name'], 'lastName' : idinfo['family_name'], 'userKey' : userKey, 'data': data, 'department' : user_data['departmentKey']})
+	    
+
+	    return jsonify({'valid' : True, 'session' : session,  'id_token' : token, 'sub' : sub, 'email' : idinfo['email'], 'firstName' : idinfo['given_name'], 'lastName' : idinfo['family_name'], 'userKey' : userKey, 'data': data, 'department' : user_data['departmentKey'], 'access' : access})
 	except ValueError:
 	    # Invalid token 
 	    return jsonify({'valid' : False, 'id_token' : token, 'message' : 'Session expired... redirecting to sign in page.'})
@@ -380,6 +394,23 @@ def add_validated_user(data):
 		db.session.commit()
 		return user.userKey
 
+
+def user_access(userKey):
+	# set access levels for user
+	# 1 = sign out (true for all users)
+	# 1 = entry
+	# 2 = approvals
+	# 3 = timesheet peek (see what people have on their time sheets that aren't submitted)
+	# 4 = status
+	# 5 = export
+	# 6 = admin
+
+	data = {0 : True, 1 : True, 2 : False, 3 : False, 4 : False, 5 : False, 6 : False}
+
+	if userKey in [22]:
+		data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
+
+	return data
 
 @app.route('/user', methods=['GET'])
 def get_all_users():
@@ -1065,8 +1096,126 @@ def update_user_table():
 				user_data['bambooKey'] = bamboo['id']
 
 				add_validated_user(user_data)
-			
 
+### Administrator Functions ###
+
+@app.route('/delegate', methods=['GET'])
+def delegates_get():
+	args = request.args.to_dict()
+	data = []
+
+	userKey_delegate = get_user_private_key(args['userKey'])
+
+	delegates = Delegator.query.filter_by(userKey_delegate=userKey_delegate).all()
+	
+	for delegate in delegates:
+		delegate_data = {}
+		delegate_data['userKey_delegate'] = get_user_public_key(delegate.userKey_delegate)
+		delegate_data['public_key'] = get_user_public_key(delegate.userKey)
+		delegate_data['fullName'] = get_user_name(delegate.userKey)
+		
+		data.append(delegate_data)
+
+	return jsonify(data)
+
+@app.route('/delegate/add', methods=['POST'])
+def delegate_add():
+	data = request.get_json()
+	args = request.args.to_dict()
+	
+	session_data = get_session(args['session'], args['sub'])
+
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	userKey = get_user_private_key(data['userKey'])
+	userKey_delegate = get_user_private_key(data['userKey_delegate'])
+	userKey_createdBy = session_data['userKey']
+	
+	new_delegator = Delegator(userKey_delegate=userKey_delegate,userKey=userKey,createdBy=userKey_createdBy,createdOn=timestamp)
+	db.session.add(new_delegator)
+	db.session.commit()
+
+	return jsonify({'message' : 'delegate added'})
+
+@app.route('/delegate/remove', methods=['POST'])
+def delegate_remove():
+	data = request.get_json()
+
+	userKey = get_user_private_key(data['userKey'])
+	userKey_delegate = get_user_private_key(data['userKey_delegate'])
+	
+	delegates = Delegator.query.filter_by(userKey_delegate=userKey_delegate,userKey=userKey).all()
+	
+	for delegate in delegates:
+		db.session.delete(delegate)
+		db.session.commit()
+
+	return jsonify({'message' : 'delegate removed'})	
+
+
+@app.route('/approver', methods=['GET'])
+def approvers_get():
+	args = request.args.to_dict()
+	data = []
+
+	approvers = Approver.query.filter_by(cat1=args['cat1'],cat2=args['cat2']).all()
+	
+	for approver in approvers:
+		approver_data = {}
+		approver_data['public_key'] = get_user_public_key(approver.userKey)
+		approver_data['fullName'] = get_user_name(approver.userKey)
+
+		data.append(approver_data)
+
+	return jsonify(data)
+
+@app.route('/approver/add', methods=['POST'])
+def approver_add():
+	data = request.get_json()
+	args = request.args.to_dict()
+	
+	session_data = get_session(args['session'], args['sub'])
+
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	userKey = get_user_private_key(data['userKey'])
+	
+	new_approver = Approver(userKey=userKey,cat1=data['cat1'],cat2=data['cat2'],createdBy=session_data['userKey'],createdOn=timestamp)
+	db.session.add(new_approver)
+	db.session.commit()
+
+	return jsonify({'message' : 'approver added'})
+
+@app.route('/customweek/add', methods=['POST'])
+def weekStart_add():
+	data = request.get_json()
+	args = request.args.to_dict()
+	
+	session_data = get_session(args['session'], args['sub'])
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	
+	new_weekStart = WeekStart(weekOf=data['weekOf'],newStart=data['newStart'],createdBy=session_data['userKey'],createdOn=timestamp)
+	db.session.add(new_weekStart)
+	db.session.commit()
+
+	return jsonify({'message' : 'custom week added'})
+
+
+@app.route('/customweek', methods=['GET'])
+def weekStart_get():
+	args = request.args.to_dict()
+	data = []
+
+	weekStarts = WeekStart.query.all()
+	
+	for weekStart in weekStarts:
+		
+		weekStart_data = {}
+		weekStart_data['weekOf'] = get_user_public_key(weekStart.weekOf)
+		weekStart_data['weekStart'] = get_user_public_key(weekStart.weekStart)
+		weekStart_data['year'] = weekStart.weekOf.year
+		
+		data.append(weekStart_data)
+
+	return jsonify(data)
 
 
 if __name__ == "__main__":   	
