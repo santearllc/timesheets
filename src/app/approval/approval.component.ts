@@ -86,7 +86,7 @@ export class ApprovalComponent implements OnInit {
         }
 
         // load timesheet and associated shows, departments, and tasks for current week
-
+        
         this.loadWeek(this.vars.week_of);
         this.serviceService.checkLogin()
       }
@@ -141,10 +141,20 @@ export class ApprovalComponent implements OnInit {
       var status = (this.vars.peek) ? 0 : 1;
 
       this.serviceService.getTimeSheetsAllUsers_db(week_of, status).subscribe(res => {
-        console.log(res)
+
+        this.vars.payroll_week_of = res['payroll_week_of']
+
+        if(res['payroll_status'] > 0){
+          this.vars.period_locked = true
+        } else {
+          this.vars.period_locked = false
+        }
+
+        this.get_payroll_status();
+
         this.vars.rejections = res['rejections']
         this.vars.approvals = res['approvals']
-        
+
         for (var i = 0; i < res['timesheets'].length; i++) {
           this.vars.timesheet_status[res['timesheets'][i]['userKey']] = Object()
           this.vars.timesheet_status[res['timesheets'][i]['userKey']]['status'] = res['timesheets'][i]['status']
@@ -168,11 +178,30 @@ export class ApprovalComponent implements OnInit {
         } else {
           this.vars.loading = false
           this.vars.no_timesheets = true;
-          console.log('there are no submitted timesheets')
         }
       });
     });
   }
+
+  get_payroll_status(){
+		clearTimeout(this.vars.get_payroll_status_timeout)
+
+		this.serviceService.get_pay_period_lock(this.vars.payroll_week_of).subscribe(res => {
+      this.vars.payroll_status = res.status;
+      
+			if (this.vars.payroll_status > 0) {
+        this.vars.period_locked = true
+			} else {
+        this.vars.period_locked = false
+			}
+
+			this.vars.get_payroll_status_timeout = setTimeout(res=>{
+				this.get_payroll_status()
+			}, 5000)
+		});		
+  }
+  
+
 
   getShowsDepartmentsTasks() {
     // load department list - put into title object
@@ -275,17 +304,10 @@ export class ApprovalComponent implements OnInit {
 
 
   processTimeSheetData() {
-    console.log('lines: ')
-    
-    
     // convert rows from database into object
     var converted = this.convertLinesToObject(this.vars.lines)   
     var converted_studio = this.convertLinesToObject_studio(this.vars.lines);
-
-
-    console.log(this.vars.notes)
-
-
+    
     // set titles object 
     this.vars.titles = converted['titles'];
     this.vars.titles_studio = converted_studio['titles'];
@@ -754,9 +776,7 @@ export class ApprovalComponent implements OnInit {
       this.vars.approvals[index]['approved_by'] = this.vars.user_name;
       this.vars.approvals[index]['approved_on'] = new Date();
 
-      this.serviceService.approveTimeSheetLine(data).subscribe(res => {
-        console.log('RES')
-        console.log(res)
+      this.serviceService.approveTimeSheetLine(data).subscribe(res => {        
       });
     }
   }
@@ -791,9 +811,6 @@ export class ApprovalComponent implements OnInit {
 
   // rejects selected row item
   rowRejected(y) {
-    
-    console.log('confirmed rejection for the current user. ')
-
     var cats = this.vars.reject_focus;
     
     var data = Object();
@@ -894,8 +911,6 @@ export class ApprovalComponent implements OnInit {
     delete this.vars.approvals[index];
 
     this.serviceService.unapproveTimeSheetLine(data).subscribe(res => {
-      console.log('unapprove line item')
-      console.log(res)
     })
 
     this.vars.showPopup_unapproval = false;

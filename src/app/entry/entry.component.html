@@ -48,22 +48,17 @@
 
 	<!-- Main section of component -->
 	<div *ngIf="vars.valid_login" style="margin-bottom: 10px;" [class.disable-clicks]="!vars.showTimeSheet" [style.opacity]="(!vars.showTimeSheet) ? 0.0 : 1.0">
-		<div>
-			<h1>{{vars.user_name}}</h1>
+		<div style="margin-bottom:20px;">
+			<div style="display:inline-block;font-size:2em;font-weight:700;">{{vars.user_name}} <div *ngIf="this.vars.delegate.length > 1" style="display:inline-block;cursor:pointer;" (click)="(vars.show_delegated) ? vars.show_delegated = false : vars.show_delegated=true">&#9830;</div>
+				<div *ngIf="vars.show_delegated" class="user_list">
+					<div *ngFor="let i of vars.delegate" (click)="load_delegated(i.user_key, i.full_name)">{{ i.full_name }} </div>
+				</div>
+			</div>
 		</div>
+		
 		<div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
 		<div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
 		<div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>
-
-		<!-- Texual and graphical indicator for save state; defaults to hidden until an action is made -->
-		<!-- 
-		<div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimesheet()">
-			{{ vars.save_status }}
-			<svg height="10" width="10">
-				<circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="vars.save_status_color" />
-			</svg>
-		</div>
-		-->
 
 		<!-- Calendar | at some point this should become a reusable component -->
 		<div id="cal" *ngIf="vars.showCal">
@@ -89,14 +84,17 @@
 
 	
 
-	<div *ngIf="this.vars.status == 2 && vars.showTimeSheet" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">
-		
+	<div *ngIf="this.vars.status == 2 && vars.showTimeSheet" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">		
 		<div style="font-size:1.25em;font-weight: 700;">This timesheet was rejected</div>	
 		<div style="font-style:italic;">Please refer to notes under show or department to resolve issue and then resubmit.</div>
 	</div>
 
+	<div *ngIf="vars.payroll_status > 0  && vars.showTimeSheet && vars.timesheet_submitted && this.vars.status != 1" class="cat_1_title" style="color:rgb(43, 43, 43);margin-bottom:20px;border:2px red solid;">		
+		<div style="font-size:1.25em;font-weight: 700;">This payroll period has been locked by accounting</div>
+	</div>
+
 	<!-- time sheet generation -->
-	<div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">		
+	<div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">
 		<div class="cat_1 projects" *ngFor="let x_1 of vars.timesheet; let i_0 = 'index'" style="margin-bottom: 10px;">
 			<div class="cat_1_title">
 				<table style="width:100%;">
@@ -347,7 +345,7 @@
 					</div>
 					<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' ">
 						<div *ngIf="x_3.hours">
-							<div *ngIf="!vars.submitted && vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" style="color:rgb(43, 43, 43);padding:10px;margin-left:-15px;margin-right:-15px;margin-bottom:5px;margin-top:5px;border:2px red solid;background-color:#BBB;">
+							<div *ngIf="!vars.submitted && vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" style="color:rgb(43, 43, 43);padding:10px;margin-left:-20px;margin-right:-20px;margin-bottom:5px;margin-top:5px;border:2px red solid;background-color:#BBB;">
 								<span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_on']) }}</span>
 								<div *ngIf="vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'].length > 0" style="margin-top:10px;font-style:italic;">
 									{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'] }}
@@ -679,7 +677,8 @@
 		
 
 		<div *ngIf="vars.timesheet_submitted" class="timesheet_submitted_footer">
-			<div>Time Sheet Submitted on {{ vars.submit_date }}</div>
+			<div *ngIf="this.vars.status == 1">Time Sheet Submitted on {{ vars.submit_date }}</div>
+			<div *ngIf="this.vars.status == 0">Time Sheet Was Not Submitted</div>
 		</div>
 	</div>
 </div>

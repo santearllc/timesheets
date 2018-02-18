@@ -28,49 +28,43 @@
     </div>
 </div>
 
+<div style="margin-bottom: 10px;margin-top:20px;">
+    <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
+    <div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
+    <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>
+    
+    <div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
+        {{vars.save_status}}
+        <svg height="10" width="10">
+            <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="vars.save_status_color" />
+        </svg>
+    </div>
 
-
-        <div style="margin-bottom: 10px;margin-top:20px;">
-            <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
-            <div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
-            <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>
-            
-            <div *ngIf="vars.save_status" style="float:right;color:#555;" (click)="saveTimeSheet()">
-                {{vars.save_status}}
-                <svg height="10" width="10">
-                    <circle cx="5" cy="5" r="5" stroke="black" stroke-width="3" [attr.fill]="vars.save_status_color" />
-                </svg>
-            </div>
-
-
-            <!-- Calendar | at some point this should become a reusable component -->
-            <div id="cal" *ngIf="vars.showCal">
-                <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
-                    <table width="100%;">
-                        <tr>
-                            <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
-                            <td style="text-align:center;">{{ vars.calendar.month_label }}</td>
-                            <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
-                        </tr>
-                    </table>
-                </div>
-                <table class="cal_weeks" width="100%;">
-                    <tr class="disable-clicks">
-                        <td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
-                    </tr>
-                    <tr *ngFor="let week of vars.calendar.weeks" (click)="weekSelected(week.week_of_label,week.week_of)" [class.cal_cur_week]="week.cur_week">
-                        <td *ngFor="let day of week.days" [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
-                    </tr>
-                </table>		
-            </div>
-
-
-
+    <!-- Calendar | at some point this should become a reusable component -->
+    <div id="cal" *ngIf="vars.showCal">
+        <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
+            <table width="100%;">
+                <tr>
+                    <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
+                    <td style="text-align:center;">{{ vars.calendar.month_label }}</td>
+                    <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
+                </tr>
+            </table>
         </div>
+        <table class="cal_weeks" width="100%;">
+            <tr class="disable-clicks">
+                <td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
+            </tr>
+            <tr *ngFor="let week of vars.calendar.weeks" (click)="weekSelected(week.week_of_label,week.week_of)" [class.cal_cur_week]="week.cur_week">
+                <td *ngFor="let day of week.days" [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
+            </tr>
+        </table>		
+    </div>
+</div>
 
-        <div style="margin-bottom:10px;">
+<div style="margin-bottom:10px;">
 
-        </div>
+</div>
 
 <!-- Display when loading time sheet -->
 <div class="cat_1_title" style="font-size:1.5em;font-weight: 700;color:rgb(43, 43, 43);margin-top:20px;" *ngIf="vars.loading && !vars.no_timesheets">
@@ -108,9 +102,14 @@
         No Time Sheets To Approve...
     </div>
 
-        <!-- Display when loading time sheet -->
+    <!-- Display when loading time sheet -->
     <div class="cat_1_title" style="font-size:1.0em;color:rgb(43, 43, 43);margin:20px 0;" *ngIf="!vars.no_timesheets && vars.peek">
         You are viewing time sheets not yet submitted...
+    </div>
+
+    <!-- Display when loading time sheet -->
+    <div class="cat_1_title" style="font-size:1.0em;color:rgb(43, 43, 43);margin:20px 0;" *ngIf="vars.period_locked && !vars.peek">
+        This payroll period has been locked by accounting
     </div>
 
     <div [class.timesheet_hide]="!vars.showTimeSheet" [class.timesheet_show]="vars.showTimeSheet">		
@@ -131,10 +130,10 @@
                                             <td class="blank">&nbsp;</td>
                                             <td *ngFor="let day of vars.days_label" class="day">{{ day }}</td>
                                             <td class="sum_approval">&nbsp;</td>
-                                            <td *ngIf="!vars.peek">
+                                            <td *ngIf="!vars.peek && !vars.period_locked">
                                                 <div class="empty">&nbsp;</div>
                                             </td>
-                                            <td *ngIf="!vars.peek">
+                                            <td *ngIf="!vars.peek && !vars.period_locked">
                                                 <div class="empty">&nbsp;</div>
                                             </td>
                                         </tr>
@@ -198,13 +197,13 @@
                                                                             + x_3.sum_hours[0] | number : '1.2-2'}}</span>
                                                                         <span style="opacity:0.25;">/{{vars.users[x_3.cat_key].data.totalHours| number : '1.2-2'}}</span>                                                                        
                                                                     </td>
-                                                                    <td *ngIf="!vars.peek && (vars.rejections[x_3.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key])" width="1%">
+                                                                    <td *ngIf="!vars.period_locked && !vars.peek && (vars.rejections[x_3.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key])" width="1%">
                                                                         <div title="" class="empty">&nbsp;</div>
                                                                     </td>
-                                                                    <td width="1%" *ngIf="!vars.peek && !vars.rejections[x_3.cat_key]">
+                                                                    <td width="1%" *ngIf="!vars.period_locked && !vars.peek && !vars.rejections[x_3.cat_key]">
                                                                         <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_3, [x_1, x_2, x_3])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]) ? x_3.approval_hover = true : x_3.approval_hover = false" (mouseout)="x_3.approval_hover = false;">&nbsp;</div>
                                                                     </td>
-                                                                    <td width="1%" *ngIf="!vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] || vars.rejections[x_3.cat_key]">
+                                                                    <td width="1%" *ngIf="!vars.period_locked && !vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key] || vars.rejections[x_3.cat_key]">
                                                                         <div title="Reject" [class]="(vars.rejections[x_3.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_3,[x_1,x_2,x_3])" (mouseover)="x_3.approval_hover = true;x_3.rejected_hover=true;" (mouseout)="x_3.approval_hover = false;x_3.rejected_hover=false;">&nbsp;</div>
                                                                     </td>
                                                                 </tr>
@@ -496,13 +495,13 @@
                                                                 </tr>
                                                             </table>
                                                         </td>                                               
-                                                        <td *ngIf="!vars.peek && (vars.rejections[x_4.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key])" width="1%">
+                                                        <td *ngIf="!vars.period_locked && !vars.peek && (vars.rejections[x_4.cat_key] || vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key])" width="1%">
                                                             <div title="" class="empty">&nbsp;</div>
                                                         </td>
-                                                        <td width="1%" *ngIf="!vars.peek && !vars.rejections[x_4.cat_key]">
+                                                        <td width="1%" *ngIf="!vars.period_locked && !vars.peek && !vars.rejections[x_4.cat_key]">
                                                             <div title="Approve" [class]="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? 'approval_sel' : 'approval'" (click)="rowApproved($event,x_4, [x_1, x_2, x_3, x_4])" (mouseover)="(vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key]) ? x_4.approval_hover = true : x_4.approval_hover = false" (mouseout)="x_4.approval_hover = false;">&nbsp;</div>
                                                         </td>
-                                                        <td width="1%" *ngIf="!vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] || vars.rejections[x_4.cat_key]">
+                                                        <td width="1%" *ngIf="!vars.period_locked && !vars.peek && !vars.approvals[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key+'_'+x_4.cat_key] || vars.rejections[x_4.cat_key]">
                                                             <div title="Reject" [class]="(vars.rejections[x_4.cat_key]) ? 'reject_sel' : 'reject'" (click)="rowRejectedConfirm(x_4,[x_1,x_2,x_3,x_4])" (mouseover)="x_4.approval_hover = true;x_4.rejected_hover=true;" (mouseout)="x_4.approval_hover = false;x_4.rejected_hover=false;">&nbsp;</div>
                                                         </td>
                                                     </tr>

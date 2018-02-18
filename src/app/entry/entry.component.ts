@@ -9,6 +9,7 @@
 import { Component, OnInit, NgZone } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 
+
 declare const gapi: any;  
 declare var jquery: any;
 declare var $: any;
@@ -45,7 +46,9 @@ export class EntryComponent {
 		this.vars.timesheet_submitted = false;
 		this.vars.valid_login = true;
 		this.vars.showEntryComponent = true;
-		this.vars.department = 17; // default to production
+		this.vars.department = 0; // default to production
+		this.vars.delegate = []
+		this.vars.delegator_selected = -1;
 
 		this.vars.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
@@ -108,7 +111,15 @@ export class EntryComponent {
 		});
 	}
 
+	load_delegated(user_key, user_name){
+		this.vars.user_name = user_name
+		this.vars.show_delegated = false;
+		this.vars.delegator_selected = user_key
+		
+		this.vars.showTimeSheet = false
 
+		this.loadWeek()
+	}
 
 	loadWeek() {
 		// reset loaded
@@ -194,15 +205,25 @@ export class EntryComponent {
 		});
 	}
 
-
 	getTimeSheet() {
 		// load current weekOf time sheet from database
-		this.serviceService.getTimeSheet_db(this.vars.week_of).subscribe(res => {
+		var data_in = {}
+		data_in['week_of'] = this.vars.week_of;
+		data_in['user_key'] = this.vars.delegator_selected;
+		
+
+		this.serviceService.getTimeSheet_db(data_in).subscribe(res => {
 			
 			this.vars.rejections = res['rejections']
 			this.vars.status = res.data.status;
-			this.vars.auto_generated_time_sheet = res.data.auto_generated_time_sheet;
+			this.vars.payroll_status = res.payroll_status;
+			this.vars.payroll_week_of = res.payroll_week_of;
 
+			this.vars.delegate = res.delegating;
+
+			this.get_payroll_status();
+			
+			this.vars.auto_generated_time_sheet = res.data.auto_generated_time_sheet;
 
 			if (res.data.auto_generated_time_sheet) {
 				clearTimeout(this.vars.auto_generated_time_sheet_timeout);
@@ -221,16 +242,28 @@ export class EntryComponent {
 			}
 
 			// if the time status is 1 or >= 3 (submitted or (partial)approved) then change the var to true
-			if (res.data.status == 1 || res.data.status >= 3) {
+			if (res.data.status == 1 || res.payroll_status > 0) {
+				
 				this.vars.timesheet_submitted = true;
 				var client_timestamp = this.serviceService.date_server_to_client(res.data.updatedOn)
 				this.vars.submit_date = this.serviceService.generateDate(client_timestamp)
+
 			} else {
 				this.vars.timesheet_submitted = false;
-				var init_lines = this.deepClone(this.serviceService.getInitLines());
-				this.vars.lines.push(init_lines[0]);				
-				init_lines[1].cat_2 = this.vars.department;
-				this.vars.lines.push(init_lines[1]);
+				var existing = {0 : false, 1 : false}
+
+				for(var i = 0; i < this.vars.lines.length; i++){
+					existing[this.vars.lines[i]['cat_1']]   = true;
+				}
+				
+				if(!existing[0]){
+					var init_lines = this.deepClone(this.serviceService.getInitLines());
+					this.vars.lines.push(init_lines[0]);				
+				}
+				if(!existing[1]){
+					init_lines[1].cat_2 = this.vars.department;
+					this.vars.lines.push(init_lines[1]);
+				}
 			}
 
 			
@@ -255,6 +288,23 @@ export class EntryComponent {
 			// once all of the shows' shots and assets have been loaded check to see if the timesheet can be displayed
 			this.checkLoaded('timesheet');
 		});
+	}
+
+	get_payroll_status(){
+		clearTimeout(this.vars.get_payroll_status_timeout)
+
+		this.serviceService.get_pay_period_lock(this.vars.payroll_week_of).subscribe(res => {
+			this.vars.payroll_status = res.status;
+			if (this.vars.payroll_status > 0 || this.vars.status == 1) {
+				this.vars.timesheet_submitted = true;
+			} else {
+				this.vars.timesheet_submitted = false;
+			}
+
+			this.vars.get_payroll_status_timeout = setTimeout(res=>{
+				this.get_payroll_status()
+			}, 5000)
+		});		
 	}
 
 	displayTimeSheet() {
@@ -412,6 +462,7 @@ export class EntryComponent {
 			var data_in = Object();
 			data_in.lines = this.vars.lines;
 			data_in.ot_sel = this.vars.ot_sel;
+			data_in.userKey = this.vars.delegator_selected
 
 			// save lines and ot selection to database
 			this.serviceService.saveTimeSheet(data_in, this.vars.week_of).subscribe(res => {				
@@ -1252,10 +1303,14 @@ export class EntryComponent {
 		if (functionName == 'confirmTimesheet') {
 			this.vars.timesheet_submitted = true;
 			this.vars.status = 1;
+			this.vars.rejections = [];
 			this.vars.submit_date = this.serviceService.generateDate(new Date());
 			this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_note_force', false);
+			var data_in = {}
+			data_in['week_of'] = this.vars.week_of
+			data_in['user_key'] = this.vars.delegator_selected
 
-			this.serviceService.updateTimeSheetStatus_db(this.vars.week_of).subscribe(res => {
+			this.serviceService.updateTimeSheetStatus_db(data_in).subscribe(res => {
 			});
 			
 			var lines_incl = []

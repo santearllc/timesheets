@@ -73,7 +73,7 @@ export class ServiceService {
       {
         userKey: 0,
         cat_1: 1,
-        cat_2: 8,
+        cat_2: 0,
         cat_3: 11,
         cat_4: null,
         cat_5: null,
@@ -197,8 +197,8 @@ export class ServiceService {
       .map(res => res.json());
   }
 
-  getTimeSheet_db(week_of) {    
-    return this.http.get(this.api_path + '/api/timesheet?weekStart=' + week_of + '&' + this.session_param('get'))
+  getTimeSheet_db(data) {
+    return this.http.get(this.api_path + '/api/timesheet?userKey='+data['user_key']+'&weekStart=' + data['week_of'] + '&' + this.session_param('get'))
       .map(res => res.json());
   }
 
@@ -223,12 +223,13 @@ export class ServiceService {
       .map(res => res.json());
   }
 
-  updateTimeSheetStatus_db(week_of) {
+  updateTimeSheetStatus_db(data_in) {
     var data = Object();
     data = this.session_param(data)
-    data.week_of = week_of
+    data.week_of = data_in['week_of']
+    data.user_key = data_in['user_key']
 
-    return this.http.put(this.api_path + '/api/timesheet/' + week_of + '/status', data)
+    return this.http.put(this.api_path + '/api/timesheet/' + data['week_of'] + '/status', data)
       .map(res => res.json());
   }
 
@@ -255,7 +256,9 @@ export class ServiceService {
     return this.http.get(this.api_path + '/api/timesheets/status/'+ week_of)
       .map(res => res.json());
   }
+
   
+  // admin page
   getDelegates(userKey) {
     return this.http.get(this.api_path + '/api/delegate?userKey=' + userKey)
       .map(res => res.json());
@@ -270,8 +273,6 @@ export class ServiceService {
     return this.http.post(this.api_path + '/api/delegate/remove?' + this.session_param('get'), data)
       .map(res => res.json());
   }
-
-
 
   getApprovers(params) {
     return this.http.get(this.api_path + '/api/approver?' + params)
@@ -288,7 +289,6 @@ export class ServiceService {
       .map(res => res.json());
   }
   
-  
   getCustomWeek(year) {
     return this.http.get(this.api_path + '/api/customweek?year=' + year +'&' + this.session_param('get'))
       .map(res => res.json());
@@ -299,6 +299,26 @@ export class ServiceService {
       .map(res => res.json());
   }
 
+
+  // Payroll Period
+  pay_periods() {
+    return this.http.get(this.api_path + '/api/payperiods?')
+      .map(res => res.json());
+  }
+
+  pay_period_lock(data) {
+    return this.http.post(this.api_path + '/api/payperiod/lock?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  get_pay_period_lock(week_of){
+    return this.http.get(this.api_path + '/api/payperiod/lock?weekOf='+week_of+'&' + this.session_param('get'))
+      .map(res => res.json());
+  }
+
+
+
+  
   session_param(data) {
     if (data == 'get') {
       var param = 'session=' + this.getCookie('session') + '&sub=' + this.getCookie('sub')
@@ -718,9 +738,9 @@ export class ServiceService {
   }
 
 
-  calendarLabel(d1) {
+  calendarLabel(d1, offset=0) {
     d1 = new Date(d1 + ' 00:00:00:00');
-    var d2 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate() + 6);
+    var d2 = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate() + 6 + offset);
     var today = this.date_yyyymmdd_dashed(new Date());
 
 

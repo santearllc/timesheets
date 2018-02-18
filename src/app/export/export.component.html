@@ -1,16 +1,60 @@
-<div style="height: 20px;">&nbsp;</div>
 
+<div *ngIf="vars.showPopup" class="popup">
+    <div>
+        <div class="popup_title">Confirm Hard Lock</div>
+        <div class="popup_text">
+            Are you sure you want to hard lock this pay period?  You will not be able to unlock it until the end of time. 
+        </div>
+        <div class="popup_buttons">
+            <button (click)="confirm_hard_lock()">Yes - Hard Lock</button>
+            <button (click)="vars.showPopup = false;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div style="height: 20px;">&nbsp;</div>
 
 <div class="header_a1">Export Time Sheet Data</div>
 <div class="content_a1">
+  <!-- <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>  -->
+  <div class="btn_1" style="display:inline-block;" (click)="(vars.showCal) ? vars.showCal = false : vars.showCal = true;">{{vars.week_label}}</div>
+  <!-- <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_forth.label,vars.calendar.week_forth.week_of)">&#9654;</div>  -->
   
-  <span style="font-size:1.3em;">&#8249;</span>&nbsp;Dec 11, 2017 - Dec 24, 2017&nbsp;
-  <span style="font-size:1.3em;">&#8250;</span>
+
+  <div id="cal" *ngIf="vars.showCal">
+    <div style="padding-bottom:5px;margin-bottom:10px;border-bottom:1px #DDD solid;">
+        <table width="100%;">
+            <tr>
+                <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, -1)">&#9664;</td>
+                <td style="text-align:center;">{{ vars.calendar.month_label }}</td>
+                <td class="btn_1" (click)="vars.calendar = serviceService.calendarBackForth(vars.calendar.cur_year_month, 1)">&#9654;</td>
+            </tr>
+        </table>
+    </div>
+    <table class="cal_weeks" width="100%;">
+        <tr class="disable-clicks">
+            <td *ngFor="let day_i of serviceService.days_label" style="font-weight:700;">{{ day_i }}</td>
+        </tr>
+        <tr *ngFor="let week of vars.calendar.weeks" (click)="weekSelected(week.week_of_label,week.week_of)" [class.cal_cur_week]="week.cur_week">
+            <td *ngFor="let day of week.days" [style.opacity]="(day.cur_mo) ? 1.0 : 0.5 ">{{ day.date }}</td>					
+        </tr>
+    </table>		
+  </div>
+
   <div style="margin-top:20px;"><span style="font-weight:700;">Current Status:</span> # Approvals Pending </div>
   
-  <div style="margin-top:20px;">
-    <button>Lock Pay Period</button>
-    <button>Export</button>
+  <div style="margin-top:40px;">
+    <div class="lock" [class.lock_disabled]="vars.lock_state == 2 || vars.lock_state == -1" [class.is_locked]="vars.lock_state == 1" (click)="soft_lock()">
+      <span *ngIf="vars.lock_state == 0">Soft Lock Pay Period</span>
+      <span *ngIf="vars.lock_state != 0">Unlock Pay Period</span>
+    </div>&nbsp;&nbsp;
+    <div class="lock" [class.lock_disabled]="vars.lock_state == 0 || vars.lock_state == 2 || vars.lock_state == -1" [class.is_locked]="vars.lock_state == 2" (click)="hard_lock()">
+        <span *ngIf="vars.lock_state != 2">Hard Lock Pay Period</span>
+        <span *ngIf="vars.lock_state == 2">Pay Period Hard Locked</span>        
+    </div>
+    <div [class.lock_disabled]="vars.lock_state == 0 || vars.lock_state == -1" class="export" style="float:right;">
+      Export
+    </div>
   </div>
   
 

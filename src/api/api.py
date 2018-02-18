@@ -49,6 +49,11 @@ class User(db.Model):
 	bambooKey = db.Column(db.Integer)
 	departmentKey = db.Column(db.Integer)
 
+class UserByWeek(db.Model):
+	UserByWeekKey = db.Column(db.Integer, primary_key=True)
+	userKey = db.Column(db.Integer)
+	weekOf = db.Column(db.Date)
+
 class Time(db.Model):
 	timeKey = db.Column(db.Integer, primary_key=True)	
 	timeSheetKey = db.Column(db.Integer)
@@ -65,7 +70,7 @@ class Time(db.Model):
 	rejectedBy = db.Column(db.Integer)
 	rejectedOn = db.Column(db.DateTime)
 	rejectedNote_artist = db.Column(db.Text)
-	rejectedNote_department = db.Column(db.Text)
+	rejectedNote_department = db.Column(db.Text)	
 	ip = db.Column(db.Text)
 
 class Timesheet(db.Model):
@@ -74,7 +79,8 @@ class Timesheet(db.Model):
 	status = db.Column(db.Integer)
 	updatedBy = db.Column(db.Integer)
 	updatedOn = db.Column(db.DateTime)	
-	weekOf = db.Column(db.Date)	
+	weekOf = db.Column(db.Date)
+	officeKey = db.Column(db.Integer)
 
 class OvertimeSelect(db.Model):
 	overtimeKey = db.Column(db.Integer, primary_key=True)
@@ -88,6 +94,7 @@ class Show(db.Model):
 	shotgunKey = db.Column(db.Integer)
 	showTitle = db.Column(db.String(50))
 	showCode = db.Column(db.String(50))
+	archived = db.Column(db.Integer)
 
 class Department(db.Model):
 	departmentKey = db.Column(db.Integer, primary_key=True)
@@ -190,6 +197,17 @@ class PayrollPeriod(db.Model):
 	updatedOn = db.Column(db.Date)
 
 
+class Action(db.Model):
+	actionKey = db.Column(db.Integer, primary_key=True)
+	script = db.Column(db.Text)
+	functionName = db.Column(db.Text)
+	description = db.Column(db.Text)
+	active = db.Column(db.Boolean)
+	executedOn = db.Column(db.Date)
+	executedBy = db.Column(db.Integer)
+	status = db.Column(db.Integer)
+
+
 class ActionHistory(db.Model):
 	actionHistoryKey = db.Column(db.Integer, primary_key=True)
 	script = db.Column(db.Text)
@@ -209,8 +227,8 @@ class WeekStart(db.Model):
 # Uncomment two lines below if adding new model (Table) to db.  Note: If you modify a model 
 # above it will not get updated when running create_all(). You must update column in dbms or via sql. 
 
-# db.create_all()
-# db.session.commit()
+#db.create_all()
+#db.session.commit()
 
 ### User Functions ###
 @app.route('/timesheets/status/<week_of>', methods=['GET'])
@@ -389,7 +407,7 @@ def add_validated_user(data):
 		db.session.add(new_user)
 		db.session.commit()
 		return get_user_private_key(userKeyPublic)
-	else:		
+	else:
 		User.query.filter_by(email=data["email"]).update({'sub' : data['sub'],'officeKey' : data['officeKey'], 'departmentKey' : data['departmentKey'], 'firstName' : data['firstName'], 'lastName' : data['lastName']})
 		db.session.commit()
 		return user.userKey
@@ -521,6 +539,15 @@ def get_user_name(userKey):
  
 @app.route('/timesheets/<week_of>', methods=['GET'])
 def get_time_sheets_all_users(week_of):
+	args = request.args.to_dict()
+	status = 1
+	try:
+		if 'status' in args:
+			status = args['status']
+	except():
+		status = 1
+
+
 	timesheets_arr = []
 	lines_out = []
 	overtime_sel = {}
@@ -528,7 +555,7 @@ def get_time_sheets_all_users(week_of):
 	approvals = {}
 	
 	# select timesheet; see if there is a timesheet for the current week for the user
-	timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status >= 1).all()
+	timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status >= status).all()
 
 	for timesheet in timesheets:
 		ot_sel = [[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1]]
@@ -588,7 +615,7 @@ def get_time_sheets_all_users(week_of):
 
 			lines_out.append(line_data)
 
-	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals})
+	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals, 'status' : str(status)})
 
 
 def get_show_title(showKey):
@@ -753,12 +780,14 @@ def unsubmit_timesheet(weekStart):
 @app.route('/timesheet/<weekStart>/status', methods=['PUT'])
 def submit_timesheet(weekStart):
 	data = request.get_json()
-	
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+
+	# get user session data to get user key
 	session_data = get_session(data['session'], data['sub'])
 	userKey = session_data['userKey']
 
-	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-
+	# get office key for the user
+	userData = User.query.filter_by(userKey=userKey).first()
 
 	# find timeSheetKey based on  userKey and weekStart
 	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=data['week_of']).first()
@@ -774,7 +803,7 @@ def submit_timesheet(weekStart):
 		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": None, 'approvedOn' : None, 'rejectedBy' : None, 'rejectedOn' : None, 'rejectedNote_department' : None, 'rejectedNote_artist' : None})
 		db.session.commit()
 
-	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedOn' : timestamp})
+	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedOn' : timestamp, 'officeKey' : userData.officeKey})
 	db.session.commit()
 	
 	return jsonify({'message' : 'timesheet status updated'})
@@ -1028,7 +1057,6 @@ def add_show():
 
 @app.route('/show', methods=['GET'])
 def get_shows():
-
 	shows = Show.query.order_by(Show.showTitle).all()
 	output = []
 
@@ -1036,6 +1064,7 @@ def get_shows():
 		show_data = {}
 		show_data['cat_key'] = show.showKey
 		show_data['cat_Title'] = show.showTitle
+		show_data['archived'] = show.archived
 		
 		output.append(show_data)
 

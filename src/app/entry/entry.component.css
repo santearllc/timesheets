@@ -103,5 +103,20 @@
 
 
 
+.user_list{
+	position: absolute;	
+	font-size:0.5em;
+	border:1px #555 solid;
+}
+
+.user_list > div{
+	background-color: #FFF;	
+	color:#000;
+	padding:10px;	
+	cursor:pointer;
+}
 
 
+.user_list > div:hover{
+	background-color: #AAA;	
+}
