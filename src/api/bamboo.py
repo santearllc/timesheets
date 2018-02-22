@@ -182,6 +182,13 @@ class Bamboo:
 
 
 #Bamboo().sync()
-rate = Bamboo().get_user_rate_info(475)
+
+# this person is salary 
+rate = Bamboo().get_user_rate_info(350)
+print rate
+
+
+# this person is hourly 
+rate = Bamboo().get_user_rate_info(483)
 print rate
 

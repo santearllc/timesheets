@@ -1,27 +1,22 @@
 #!/usr/bin/python
 
+from config import AF_Config
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
+from bamboo import Bamboo
+from google.oauth2 import id_token
+from google.auth.transport import requests as requests_goog
 
 import uuid
 import datetime
 import os
-from google.oauth2 import id_token
-from google.auth.transport import requests as requests_goog
-
-from bamboo import Bamboo
 import urllib2, urllib
+
 
 app = Flask(__name__)
 
-# Postgresql Database 
-POSTGRES_URL = "atomicfiction.cbzrp1azkzhh.us-west-2.rds.amazonaws.com"
-POSTGRES_USER = "postgres"
-POSTGRES_PW = "at0micp0stgr3z"
-POSTGRES_DB = "tss"
 
-
-DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,pw=POSTGRES_PW,url=POSTGRES_URL,db=POSTGRES_DB)
+DB_URL = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=AF_Config().user,pw=AF_Config().pw,url=AF_Config().url,db=AF_Config().db)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # silence the deprecation warning
@@ -81,6 +76,7 @@ class Timesheet(db.Model):
 	updatedOn = db.Column(db.DateTime)	
 	weekOf = db.Column(db.Date)
 	officeKey = db.Column(db.Integer)
+	rateType = db.Column(db.Integer)
 
 class OvertimeSelect(db.Model):
 	overtimeKey = db.Column(db.Integer, primary_key=True)
@@ -207,7 +203,6 @@ class Action(db.Model):
 	executedBy = db.Column(db.Integer)
 	status = db.Column(db.Integer)
 
-
 class ActionHistory(db.Model):
 	actionHistoryKey = db.Column(db.Integer, primary_key=True)
 	script = db.Column(db.Text)
@@ -227,8 +222,8 @@ class WeekStart(db.Model):
 # Uncomment two lines below if adding new model (Table) to db.  Note: If you modify a model 
 # above it will not get updated when running create_all(). You must update column in dbms or via sql. 
 
-#db.create_all()
-#db.session.commit()
+# db.create_all()
+# db.session.commit()
 
 ### User Functions ###
 @app.route('/timesheets/status/<week_of>', methods=['GET'])
@@ -237,7 +232,6 @@ def get_time_sheet_status_all_users(week_of):
 	output = []
 	shows_rec = []
 	departments_rec = []
-	
 
 	for user in users:
 		user_data = {}
@@ -423,10 +417,13 @@ def user_access(userKey):
 	# 5 = export
 	# 6 = admin
 
-	data = {0 : True, 1 : True, 2 : False, 3 : False, 4 : False, 5 : False, 6 : False}
+	#data = {0 : True, 1 : True, 2 : False, 3 : False, 4 : False, 5 : False, 6 : False}
 
 	if userKey in [22]:
 		data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
+
+
+	data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
 
 	return data
 
@@ -541,12 +538,11 @@ def get_user_name(userKey):
 def get_time_sheets_all_users(week_of):
 	args = request.args.to_dict()
 	status = 1
-	try:
-		if 'status' in args:
-			status = args['status']
-	except():
-		status = 1
+	
+	status = int(args['status'])
 
+	payroll = get_pay_period_lock_return(week_of)
+	#payroll = {'status' : 0, 'week_of' : '2018-02-05'}
 
 	timesheets_arr = []
 	lines_out = []
@@ -555,7 +551,10 @@ def get_time_sheets_all_users(week_of):
 	approvals = {}
 	
 	# select timesheet; see if there is a timesheet for the current week for the user
-	timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status >= status).all()
+	if status in [1]:
+		timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status == 1).all()
+	else: 
+		timesheets = Timesheet.query.filter_by(weekOf=week_of).filter(Timesheet.status != 1).all()
 
 	for timesheet in timesheets:
 		ot_sel = [[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1]]
@@ -615,7 +614,7 @@ def get_time_sheets_all_users(week_of):
 
 			lines_out.append(line_data)
 
-	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals, 'status' : str(status)})
+	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals, 'status' : str(status), 'payroll_status' : payroll["status"], 'payroll_week_of' : payroll["week_of"]})
 
 
 def get_show_title(showKey):
@@ -640,10 +639,24 @@ def get_user_timesheet():
 	data['weekStart'] = args['weekStart']
 	ot_sel = [[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1],[-1,-1]]
 	rejections = {}
+
 	session_data = get_session(args['session'], args['sub'])
 	userKey = session_data['userKey']
+
+
+	delegating = get_delegating(userKey)
+
+	if args['userKey'] != '-1':		
+		if can_delegate(userKey, get_user_private_key(args['userKey'])):
+			userKey = get_user_private_key(args['userKey'])
+
+
 	data['userKey'] = userKey
 	data['auto_generated_time_sheet'] = False
+
+
+	# select payroll period status
+	payrollPeriod = PayrollPeriod.query.filter(PayrollPeriod.periodStart <= data['weekStart']).order_by(PayrollPeriod.periodStart.desc()).first()
 
 
 	# select timesheet; see if there is a timesheet for the current week for the user
@@ -687,7 +700,12 @@ def get_user_timesheet():
 				line_data['timeKey'] = line.timeKey
 				line_data['userKey'] = line.userKey			
 				line_data['cat_1'] = line.cat1
-				line_data['cat_2'] = line.cat2
+				
+				if line.cat1 in [1, '1']:
+					line_data['cat_2'] = 0
+				else: 
+					line_data['cat_2'] = line.cat2
+
 				line_data['cat_3'] = line.cat3
 				line_data['cat_4'] = line.cat4
 				line_data['cat_5'] = line.cat5
@@ -723,7 +741,12 @@ def get_user_timesheet():
 			line_data['timeSheetKey'] = line.timeSheetKey
 			line_data['userKey'] = line.userKey
 			line_data['cat_1'] = line.cat1
-			line_data['cat_2'] = line.cat2
+
+			if line.cat1 in [1, '1']:
+				line_data['cat_2'] = 0
+			else: 
+				line_data['cat_2'] = line.cat2
+
 			line_data['cat_3'] = line.cat3
 			line_data['cat_4'] = line.cat4
 			line_data['cat_5'] = line.cat5
@@ -752,8 +775,35 @@ def get_user_timesheet():
 				rejections[key]['rejectedNote_department'] = line.rejectedNote_department
 				rejections[key]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_departmentTask_title(line.cat3)
 	
-	return jsonify({'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections})
+	return jsonify({'delegating' : delegating,'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections, 'payroll_status' : payrollPeriod.payPeriodStatus, 'payroll_week_of' : payrollPeriod.periodStart.strftime('%Y-%m-%d')})
 
+
+
+def get_delegating(userKey):
+	data_out = []
+
+
+	# get user info 
+	user_info = User.query.filter_by(userKey=userKey).first()
+	data_out.append({ 'user_key' : -1, 'full_name' : str(user_info.firstName+' '+user_info.lastName)})
+
+	delegator = Delegator.query.filter_by(userKey=userKey).all()
+
+	for d in delegator:
+		user_info = User.query.filter_by(userKey=d.userKey_delegate).first()
+		data_out.append({ 'user_key' : get_user_public_key(d.userKey_delegate), 'full_name' : str(user_info.firstName+' '+user_info.lastName)})
+
+	return data_out
+
+
+def can_delegate(userKey, userKey_delegate):
+	delegator = Delegator.query.filter_by(userKey=userKey, userKey_delegate=userKey_delegate).first()
+
+	if delegator is None:
+		return False
+	else: 
+		return True
+		
 
 @app.route('/timesheet/<weekStart>/unsubmit', methods=['PUT'])
 def unsubmit_timesheet(weekStart):
@@ -786,6 +836,10 @@ def submit_timesheet(weekStart):
 	session_data = get_session(data['session'], data['sub'])
 	userKey = session_data['userKey']
 
+	if data['user_key'] != '-1':		
+		if can_delegate(userKey, get_user_private_key(data['user_key'])):
+			userKey = get_user_private_key(data['user_key'])
+
 	# get office key for the user
 	userData = User.query.filter_by(userKey=userKey).first()
 
@@ -803,7 +857,7 @@ def submit_timesheet(weekStart):
 		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": None, 'approvedOn' : None, 'rejectedBy' : None, 'rejectedOn' : None, 'rejectedNote_department' : None, 'rejectedNote_artist' : None})
 		db.session.commit()
 
-	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedOn' : timestamp, 'officeKey' : userData.officeKey})
+	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedBy' : session_data['userKey'], 'updatedOn' : timestamp, 'officeKey' : userData.officeKey})
 	db.session.commit()
 	
 	return jsonify({'message' : 'timesheet status updated'})
@@ -816,7 +870,10 @@ def save_timesheet():
 	session_data = get_session(data['session'], data['sub'])
 	userKey = session_data['userKey']
 	weekStart = data['weekStart']
-	
+
+	if data['userKey'] != '-1':		
+		if can_delegate(userKey, get_user_private_key(data['userKey'])):
+			userKey = get_user_private_key(data['userKey'])
 
 	# find timeSheetKey based on  userKey and weekStart
 	timesheet = Timesheet.query.filter_by(userKey=userKey, weekOf=weekStart).first()
@@ -1102,16 +1159,14 @@ def update_user_table():
 				user_data['firstName'] = bamboo['firstName']
 				user_data['lastName'] = bamboo['lastName']
 
-
 				# determine department based off of Bamboo
 				department = Department.query.filter_by(departmentTitle=bamboo["department"]).first()
 
 				if not department:
-					# defaults to production if no department is found (we should discuss this default)
-					user_data['departmentKey'] = 17
+					# defaults to NONE (0) if no department is found (we should discuss this default)
+					user_data['departmentKey'] = 0
 				else:
 					user_data['departmentKey'] = department.departmentKey
-
 
 				# determine office based off of Bamboo
 				if bamboo['location'] in ["Canada"]:
@@ -1120,11 +1175,11 @@ def update_user_table():
 					# otherwise defaults to USA
 					user_data['officeKey'] = 0
 
-
 				user_data['sub'] = None
 				user_data['bambooKey'] = bamboo['id']
 
 				add_validated_user(user_data)
+
 
 ### Administrator Functions ###
 
@@ -1247,6 +1302,59 @@ def weekStart_get():
 	return jsonify(data)
 
 
-if __name__ == "__main__":   	
+@app.route('/payperiod/lock', methods=['POST'])
+def pay_period_lock():
+	data = request.get_json()
+	args = request.args.to_dict()
+	
+	session_data = get_session(args['session'], args['sub'])
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	
+	payrollPeriod = PayrollPeriod.query.filter_by(periodStart=data['weekOf']).first()
+
+	if payrollPeriod is None:
+		new_payroll_period = PayrollPeriod(periodStart=data['weekOf'],payPeriodStatus=data['status'],updatedBy=session_data['userKey'],updatedOn=timestamp)
+		db.session.add(new_payroll_period)
+		db.session.commit()
+	else: 
+		PayrollPeriod.query.filter_by(periodStart=data['weekOf']).update({'payPeriodStatus' : data['status'],'updatedBy' : session_data['userKey'], 'updatedOn' : timestamp})
+		db.session.commit()
+
+	return jsonify({'message' : 'pay period locked', 'data' : data})
+
+@app.route('/payperiod/lock', methods=['GET'])
+def get_pay_period_lock():
+	args = request.args.to_dict()
+
+	payroll = get_pay_period_lock_return(args['weekOf'])	
+
+	return jsonify({ 'status' : payroll["status"], 'week_of' : args['weekOf'] })
+
+
+def get_pay_period_lock_return(week_of):
+	payrollPeriod = PayrollPeriod.query.filter(PayrollPeriod.periodStart <= week_of).order_by(PayrollPeriod.periodStart.desc()).first()
+	
+	if payrollPeriod is None:
+		return { 'status' : 0, 'week_of' : week_of}
+	else: 
+		return { 'status' : payrollPeriod.payPeriodStatus, 'week_of' : payrollPeriod.periodStart}
+
+
+@app.route('/payperiods', methods=['GET'])
+def get_pay_periods():
+	out_data = []
+
+	payrollPeriods = PayrollPeriod.query.order_by(PayrollPeriod.periodStart.asc()).all()
+	
+	if payrollPeriods is None:
+		return jsonify(out_data)
+	else:
+		for p in payrollPeriods:
+			out_data.append(p.periodStart.strftime('%Y-%m-%d'))
+
+	return jsonify(out_data)	
+
+
+if __name__ == "__main__":
 	app.run()
 

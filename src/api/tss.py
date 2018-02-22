@@ -57,4 +57,4 @@ class TSS():
 
 
 
-TSS().export_to_payroll('2018-01-29')
+#TSS().export_to_payroll('2018-01-29')
