@@ -120,3 +120,12 @@
 .user_list > div:hover{
 	background-color: #AAA;	
 }
+
+
+.delegate{
+	background-image: url("/assets/pawn.png");
+	width:16px;
+	height:20px;
+	display:inline-block;
+	cursor:pointer;
+}

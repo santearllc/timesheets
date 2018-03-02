@@ -63,4 +63,10 @@
     border-bottom: 6px lightgreen outset;    
 }
 
+.user_name{
+    cursor: pointer;
+}
 
+.user_name:hover{
+    color:#677ef3;
+}

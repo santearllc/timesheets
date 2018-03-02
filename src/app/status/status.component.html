@@ -1,3 +1,17 @@
+
+<div *ngIf="vars.showPopup" id="rejected_note_popup" class="popup">
+        <div>
+            <div class="popup_title">Time Sheet Options</div>
+            <div style="font-style:italic;font-size:0.8em;margin-top:10px;"> {{ vars.selected_user.fullName }} </div>
+            <div class="popup_buttons">
+                <!-- <button (click)="submit()">Submit</button>
+                <button (click)="unsubmit()">Unsubmit</button>  -->
+                <button (click)="edit()">Edit Hours</button>
+                <button (click)="vars.showPopup = false;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 <div style="margin-bottom: 10px;margin-top:20px;">
 
     <div class="btn_1" style="display:inline-block;" (click)="weekSelected(vars.calendar.week_back.label,vars.calendar.week_back.week_of)">&#9664;</div>
@@ -32,8 +46,6 @@
             </tr>
         </table>		
     </div>
-
-
 </div>
 <div class="cat_1 projects" style="margin-bottom: 10px;">
     <table width="100%">
@@ -70,7 +82,7 @@ loading week...
     <div *ngFor="let user of users_array;">
         <div style="border-bottom:1px #BBB solid;" *ngIf="vars.filter[user.timeSheetStatus] && (vars.search_name.length == 0 || user.fullName_r.toLowerCase().indexOf(vars.search_name) != -1) && (vars.search_project.length == 0 || user.shows_departments.toLowerCase().indexOf(vars.search_project) != -1)">
             <div [class]="status_class[user.timeSheetStatus]">&nbsp;</div>
-            <div style="padding:5px;display:inline-block;">
+            <div class="user_name" style="padding:5px;display:inline-block;" (click)="prompt_load(user)">
                 {{ user.fullName_r}}
             </div>
             <div style="float:right;text-align:right;color:#555;font-style:italic;font-size:0.8em;margin-top:5px;">

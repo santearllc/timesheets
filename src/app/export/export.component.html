@@ -41,7 +41,7 @@
     </table>		
   </div>
 
-  <div style="margin-top:20px;"><span style="font-weight:700;">Current Status:</span> # Approvals Pending </div>
+  <!-- <div style="margin-top:20px;"><span style="font-weight:700;">Current Status:</span> # Approvals Pending </div>   -->
   
   <div style="margin-top:40px;">
     <div class="lock" [class.lock_disabled]="vars.lock_state == 2 || vars.lock_state == -1" [class.is_locked]="vars.lock_state == 1" (click)="soft_lock()">
@@ -52,11 +52,20 @@
         <span *ngIf="vars.lock_state != 2">Hard Lock Pay Period</span>
         <span *ngIf="vars.lock_state == 2">Pay Period Hard Locked</span>        
     </div>
-    <div [class.lock_disabled]="vars.lock_state == 0 || vars.lock_state == -1" class="export" style="float:right;">
+    <div [class.lock_disabled]="vars.lock_state == 0 || vars.lock_state == -1" class="export" (click)="export()" style="float:right;">
       Export
     </div>
   </div>
-  
 
+  <div *ngIf="vars.export_files.length > 0" style="margin-top:20px;border-top:1px #666 solid;padding-top:10px;">
+      <table style="width:100%">
+          <tr *ngFor="let x of vars.export_files">
+              <td width="40px;">{{ x.office }}</td>
+              <td>{{ x.weekOf }} &nbsp;&nbsp;&nbsp;&nbsp;<a href="{{ x.path }}" target="_blank">{{ x.batch }}</a></td>
+              <td width="1%" *ngIf="x.status == 0">Processing</td>
+              <td width="1%" *ngIf="x.status == 1">&nbsp;</td>
+          </tr>
+      </table>      
+  </div>
 </div>
 

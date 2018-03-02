@@ -47,9 +47,11 @@ export class EntryComponent {
 		this.vars.valid_login = true;
 		this.vars.showEntryComponent = true;
 		this.vars.department = 0; // default to production
-		this.vars.delegate = []
-		this.vars.delegator_selected = -1;
-
+		this.vars.delegate = []		
+		this.vars.rate_type = 'hourly'
+		// this.serviceService.delegator_selected = -1;
+		
+		
 		this.vars.timesheet_totals = {
 			'rt': [0, 0, 0, 0, 0, 0, 0, 0],
 			'ot': [0, 0, 0, 0, 0, 0, 0, 0],
@@ -67,7 +69,7 @@ export class EntryComponent {
 		this.vars.shots_byShow = {};
 		this.vars.assets_byShow = {};
 
-		// create calendar for current week
+		// create calendar for current week		
 		this.vars.calendar = this.serviceService.generateCalendar(new Date());
 		this.vars.week_label = this.serviceService.calendarLabel(this.vars.calendar.week_of);
 
@@ -85,7 +87,7 @@ export class EntryComponent {
 				
 				setTimeout(timeout => {
 					this.serviceService.logOut()
-				}, 3000)
+				}, 2000)
 			} else if (!this.serviceService.getCookie('logged_in')) {
 				setTimeout(timeout => {
 					this.serviceService.logOut()
@@ -96,16 +98,20 @@ export class EntryComponent {
 				document.cookie = "session=" + res.session;
 				document.cookie = "sub=" + res.sub;
 				this.serviceService.valid_login = true;
-
-				this.vars.user_name = res['firstName'] + ' ' + res['lastName'];
-				if (res['firstName'].length == 0 && res['lastName'].length == 0) {
-					this.vars.user_name = res['email'];
-				}
-
 				this.vars.department = parseInt(res['department']);
 
 				// load timesheet and associated shows, departments, and tasks for current week
-				this.loadWeek();				
+				//this.loadWeek();
+				var week_of = this.serviceService.determineWeek(new Date(), 0);
+
+				if(this.serviceService.week_of != null){
+					week_of = this.serviceService.week_of;
+				}
+				
+				var week_of_label = this.serviceService.calendarLabel(week_of)
+				
+				this.weekSelected(week_of_label, week_of)
+				
 				this.serviceService.checkLogin()				
 			}
 		});
@@ -114,7 +120,7 @@ export class EntryComponent {
 	load_delegated(user_key, user_name){
 		this.vars.user_name = user_name
 		this.vars.show_delegated = false;
-		this.vars.delegator_selected = user_key
+		this.serviceService.delegator_selected = user_key
 		
 		this.vars.showTimeSheet = false
 
@@ -202,27 +208,42 @@ export class EntryComponent {
 
 			// once all of the tasks have been loaded check to see if the timesheet can be displayed
 			this.checkLoaded('tasks');
+			console.log('Titles: ')
+			console.log(this.vars.titles_obj)
 		});
 	}
 
 	getTimeSheet() {
 		// load current weekOf time sheet from database
 		var data_in = {}
-		data_in['week_of'] = this.vars.week_of;
-		data_in['user_key'] = this.vars.delegator_selected;
-		
+		data_in['week_of'] = this.vars.week_of;		
+		data_in['user_key'] = this.serviceService.delegator_selected;
 
 		this.serviceService.getTimeSheet_db(data_in).subscribe(res => {
+
+			// set label for user name (default to email address if f and l name is not set)
+			if (res['user_data']['firstName'].length == 0 && res['user_data']['lastName'].length == 0) {
+				this.vars.user_name = res['user_data']['email'];
+			} else {
+				this.vars.user_name = res['user_data']['firstName'] + ' ' + res['user_data']['lastName'];
+			}
+
+			// set rate type (default to hourly if none set)
+			if(res['user_data']['rateType'] == 'salary' || res['user_data']['rateType'] == 'hourly'){
+				this.vars.rate_type = res['user_data']['rateType']
+			} else {
+				this.vars.rate_type = 'hourly'
+			}
 			
+
 			this.vars.rejections = res['rejections']
 			this.vars.status = res.data.status;
 			this.vars.payroll_status = res.payroll_status;
 			this.vars.payroll_week_of = res.payroll_week_of;
-
 			this.vars.delegate = res.delegating;
 
 			this.get_payroll_status();
-			
+
 			this.vars.auto_generated_time_sheet = res.data.auto_generated_time_sheet;
 
 			if (res.data.auto_generated_time_sheet) {
@@ -462,7 +483,7 @@ export class EntryComponent {
 			var data_in = Object();
 			data_in.lines = this.vars.lines;
 			data_in.ot_sel = this.vars.ot_sel;
-			data_in.userKey = this.vars.delegator_selected
+			data_in.userKey = this.serviceService.delegator_selected
 
 			// save lines and ot selection to database
 			this.serviceService.saveTimeSheet(data_in, this.vars.week_of).subscribe(res => {				
@@ -563,9 +584,12 @@ export class EntryComponent {
 			+ this.vars.timesheet_totals['rt'][6];
 
 		// detertime break down of overtime hours
-		var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(this.vars.timesheet, this.vars.timesheet_totals, this.vars.current_office);
-		this.vars.timesheet_totals = totalsOvertimeBreakdown['TotalHours_byDay'];
-		this.vars.timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];
+		if(this.vars.rate_type != 'salary'){
+			var totalsOvertimeBreakdown = this.serviceService.totalsOvertimeBreakdown(this.vars.timesheet, this.vars.timesheet_totals, this.vars.current_office);
+			this.vars.timesheet_totals = totalsOvertimeBreakdown['TotalHours_byDay'];
+			this.vars.timesheet_totals_byShow = totalsOvertimeBreakdown['TotalHours_byShow'];
+		}
+		
 
 		// validate overtime and determine overtime breakdown
 		this.validateOvertime();
@@ -636,12 +660,13 @@ export class EntryComponent {
 		}
 	}
 
-	addRowOptionChanged(cats, option_sel = Object()) {
+	addRowOptionChanged(cats, option_sel = Object()) {		
 		var cat = cats[cats.length - 1];
 		cat.results = [];
 
 		if (parseInt(cats[0].cat_key) == 1) { // Departments
-			if (cat.cat_key > 0 && option_sel.cat_key >= 0) {
+			
+			if (cat.cat_key >= 0 && option_sel.cat_key >= 0) {
 				cat.departmentTask = option_sel.cat_key;
 				this.addLineItem(cats);
 			}
@@ -686,7 +711,7 @@ export class EntryComponent {
 	}
 
 
-	addLineItem(cats) {
+	addLineItem(cats) {		
 		var cat = cats[cats.length - 1];
 		var cat_array = [];
 		var hours = [0, 0, 0, 0, 0, 0, 0];
@@ -801,7 +826,7 @@ export class EntryComponent {
 
 		let convertLinesToTimeSheet = this.convertLinesToObject(this.vars.lines);
 		this.vars.timesheet = this.serviceService.generateTimesheetByUser(convertLinesToTimeSheet['timesheet']);
-		this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'autofocus', null);
+		//this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'autofocus', null);
 
 		this.updateTimesheetTotals();
 		this.saveTimesheet();
@@ -1080,6 +1105,12 @@ export class EntryComponent {
 
 
 	validateOvertime(onSubmit = false) {
+
+		// if salaried employee - don't track overtime 
+		if(this.vars.rate_type == 'salary'){
+			return true;
+		}
+
 		var ot_required = [false, false, false, false, false, false, false];
 		var ot_selected = [false, false, false, false, false, false, false];
 		var missing = [];
@@ -1143,8 +1174,8 @@ export class EntryComponent {
 				var total_shows = 0
 				
 				for(var cat_1 in this.vars.timesheet_totals_byShow){
-					for(var cat_2 in this.vars.timesheet_totals_byShow[cat_1]){
-						if(this.vars.timesheet_totals_byShow[cat_1][cat_2]['hours'][i] > 0.0){
+					for(var cat_2 in this.vars.timesheet_totals_byShow[parseInt(cat_1)]){
+						if(this.vars.timesheet_totals_byShow[parseInt(cat_1)][parseInt(cat_2)]['hours'][i] > 0.0){
 							total_shows += 1;
 						}
 					}
@@ -1308,7 +1339,7 @@ export class EntryComponent {
 			this.vars.timesheet = this.serviceService.hideShowDivs(this.vars.timesheet, 'show_note_force', false);
 			var data_in = {}
 			data_in['week_of'] = this.vars.week_of
-			data_in['user_key'] = this.vars.delegator_selected
+			data_in['user_key'] = this.serviceService.delegator_selected
 
 			this.serviceService.updateTimeSheetStatus_db(data_in).subscribe(res => {
 			});
@@ -1327,8 +1358,7 @@ export class EntryComponent {
 				}				
 			}
 			
-			this.vars.lines = lines_incl;
-			this.saveTimesheet()
+			this.vars.lines = lines_incl;			
 		}
 	}
 

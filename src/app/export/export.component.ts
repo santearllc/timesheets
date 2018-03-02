@@ -15,9 +15,11 @@ export class ExportComponent implements OnInit {
     // connection to database functions    
   }
 
-  ngOnInit() {    
+  ngOnInit() {
 
     this.vars.week_label = "Loading..."
+    this.vars.export_files = []
+    this.vars.export_allow = true
 
     this.serviceService.validateLogin().subscribe(res => {
       this.serviceService.googleInit();
@@ -74,9 +76,10 @@ export class ExportComponent implements OnInit {
       this.vars.calendar = this.serviceService.generateCalendar(new Date());
       this.vars.week_label = this.serviceService.calendarLabel(week_of, 7);
 
-      this.vars.week_of = week_of;    
+      this.vars.week_of = week_of;
       this.vars.lock_state = -1;
       this.get_pay_period_lock()
+      this.get_exports()
     });
 
   }
@@ -96,14 +99,17 @@ export class ExportComponent implements OnInit {
     clearTimeout(this.vars.timeout)
 
     this.serviceService.get_pay_period_lock(this.vars.week_of).subscribe(res => {
-      this.vars.lock_state = res['status'];
-       
+      this.vars.lock_state = res['status'];       
     });
 
     this.vars.timeout = setTimeout(res=>{
       this.get_pay_period_lock();
     }, 5000);
   }
+
+  
+
+
 
   soft_lock(){
     clearTimeout(this.vars.timeout);
@@ -139,6 +145,33 @@ export class ExportComponent implements OnInit {
 
   export(){
     console.log('export');
+    
+
+    if(this.vars.export_allow){
+      this.vars.export_allow = false;
+      console.log('exporting');
+
+      var week_of_next = this.serviceService.date_yyyymmdd_dashed(new Date(+new Date(this.vars.week_of) + 12096e5));
+
+      this.serviceService.export_tss_data(this.vars.week_of, week_of_next).subscribe(res =>{
+      })
+
+      this.vars.export_timeout = setTimeout(res=>{
+        this.vars.export_allow = true
+      }, 5000)
+    }
+  }
+
+  get_exports(){
+    var week_of_next = this.serviceService.date_yyyymmdd_dashed(new Date(+new Date(this.vars.week_of) + 12096e5));
+
+    this.serviceService.getExports(this.vars.week_of, week_of_next).subscribe(res => {
+      this.vars.export_files = res;
+    });
+
+    setTimeout(res => {
+      this.get_exports()
+    },2500)
   }
 
   weekSelected(week_of_label, week_of) {
@@ -150,6 +183,6 @@ export class ExportComponent implements OnInit {
 
     this.vars.week_label = this.serviceService.calendarLabel(this.vars.week_of, 7);
     
-    this.get_pay_period_lock();
+    this.get_pay_period_lock();    
   }
 }

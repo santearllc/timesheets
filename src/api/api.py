@@ -3,6 +3,7 @@
 from config import AF_Config
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
+from tss import TSS
 from bamboo import Bamboo
 from google.oauth2 import id_token
 from google.auth.transport import requests as requests_goog
@@ -25,6 +26,14 @@ os.environ['TZ'] = 'GMT'
 
 db = SQLAlchemy(app)
 
+
+class Access(db.Model):
+	accessKey = db.Column(db.Integer, primary_key=True)
+	userKey = db.Column(db.Integer)
+	page = db.Column(db.String(500))
+	createdOn = db.Column(db.DateTime)
+	createdBy = db.Column(db.Integer)
+
 class Session(db.Model):
 	sessionKey = db.Column(db.Integer, primary_key=True)
 	session = db.Column(db.String(50))
@@ -43,6 +52,8 @@ class User(db.Model):
 	sub = db.Column(db.String(500))
 	bambooKey = db.Column(db.Integer)
 	departmentKey = db.Column(db.Integer)
+	rateType = db.Column(db.String(10))
+	adp = db.Column(db.String(10))
 
 class UserByWeek(db.Model):
 	UserByWeekKey = db.Column(db.Integer, primary_key=True)
@@ -76,7 +87,7 @@ class Timesheet(db.Model):
 	updatedOn = db.Column(db.DateTime)	
 	weekOf = db.Column(db.Date)
 	officeKey = db.Column(db.Integer)
-	rateType = db.Column(db.Integer)
+	rateType = db.Column(db.String(10))
 
 class OvertimeSelect(db.Model):
 	overtimeKey = db.Column(db.Integer, primary_key=True)
@@ -174,6 +185,7 @@ class Office(db.Model):
 	officeKeyPublic = db.Column(db.String(50), unique=True)
 	label = db.Column(db.String(50))
 	description = db.Column(db.Text)
+	adp = db.Column(db.String(50))
 
 class UserOfficeHistory(db.Model):
 	userOfficeHistoryKey = db.Column(db.Integer, primary_key=True)
@@ -217,7 +229,18 @@ class WeekStart(db.Model):
 	createdOn = db.Column(db.DateTime)
 	weekOf = db.Column(db.Date)
 	newStart = db.Column(db.Date)
-	
+
+
+class TimesheetExport(db.Model):
+	timesheetExportKey = db.Column(db.Integer, primary_key=True)	
+	status = db.Column(db.Integer)
+	officeKey = db.Column(db.Integer)
+	weekOf = db.Column(db.Date)	
+	batch = db.Column(db.Text)
+	path = db.Column(db.Text)
+	executedOn = db.Column(db.Date)
+	executedBy = db.Column(db.Integer)	
+
 
 # Uncomment two lines below if adding new model (Table) to db.  Note: If you modify a model 
 # above it will not get updated when running create_all(). You must update column in dbms or via sql. 
@@ -225,9 +248,18 @@ class WeekStart(db.Model):
 # db.create_all()
 # db.session.commit()
 
+
 ### User Functions ###
 @app.route('/timesheets/status/<week_of>', methods=['GET'])
 def get_time_sheet_status_all_users(week_of):
+	args = request.args.to_dict()
+	
+	session_data = get_session(args['session'], args['sub'])
+	userKey = session_data['userKey']
+
+	if has_access(userKey, 'status') is False:
+		return jsonify({'access_granted' : False})
+
 	users = User.query.order_by(User.lastName).all()
 	output = []
 	shows_rec = []
@@ -239,6 +271,7 @@ def get_time_sheet_status_all_users(week_of):
 		user_data['fullName_r'] = user.lastName + ', ' + user.firstName
 		user_data['firstName'] = user.firstName
 		user_data['lastName'] = user.lastName
+		user_data['userKey'] = user.userKeyPublic
 		user_data['officeKey'] = user.officeKey
 		user_data['timeSheetStatus'] = 0
 		user_data['worked'] = []
@@ -294,7 +327,7 @@ def get_time_sheet_status_all_users(week_of):
 		department = Department.query.filter_by(departmentKey=departmentKey).first()
 		titles['1_'+str(departmentKey)] = department.departmentTitle
 
-	return jsonify({'users' : output, 'shows' : shows_rec_titles, 'departments' : departments_rec_titles, 'titles' : titles})
+	return jsonify({'access_granted' : True,'users' : output, 'shows' : shows_rec_titles, 'departments' : departments_rec_titles, 'titles' : titles})
 
 
 
@@ -330,7 +363,6 @@ def vailidate_user():
 	    user_data['email'] = idinfo['email']
 	    user_data['firstName'] = idinfo['given_name']
 	    user_data['lastName'] = idinfo['family_name']
-
 	    
 	    # determine department based off of Bamboo
 	    department = Department.query.filter_by(departmentTitle=bamboo["department"]).first()
@@ -349,7 +381,6 @@ def vailidate_user():
 			# otherwise defaults to USA
 			user_data['officeKey'] = 0
 
-	    
 	    user_data['sub'] = idinfo['sub']
 	    user_data['bambooKey'] = bamboo['id']
 	    userKey = add_validated_user(user_data)
@@ -357,9 +388,11 @@ def vailidate_user():
 
 	    session = str(uuid.uuid4())
 	    add_session(userKey, session, token, sub)
-	    userKey = get_user_public_key(userKey)
 
-	    
+	    # get rate type
+	    user_data['rate_type'] = get_user_rate_type(userKey)
+
+	    userKey = get_user_public_key(userKey)
 
 	    return jsonify({'valid' : True, 'session' : session,  'id_token' : token, 'sub' : sub, 'email' : idinfo['email'], 'firstName' : idinfo['given_name'], 'lastName' : idinfo['family_name'], 'userKey' : userKey, 'data': data, 'department' : user_data['departmentKey'], 'access' : access})
 	except ValueError:
@@ -373,8 +406,9 @@ def add_session(userKey, session, token, sub):
 	old_sessions = Session.query.filter_by(userKey=userKey).all()
 	
 	for old_session in old_sessions:
-		db.session.delete(old_session)
-		db.session.commit()
+		pass
+		#db.session.delete(old_session)
+		#db.session.commit()
 
 	new_session = Session(session=session,userKey=userKey,token=token,sub=sub,createdOn=timestamp)
 	db.session.add(new_session)
@@ -410,20 +444,44 @@ def add_validated_user(data):
 def user_access(userKey):
 	# set access levels for user
 	# 1 = sign out (true for all users)
-	# 1 = entry
+	# 1 = entry (true for all users)
 	# 2 = approvals
 	# 3 = timesheet peek (see what people have on their time sheets that aren't submitted)
 	# 4 = status
 	# 5 = export
 	# 6 = admin
 
-	#data = {0 : True, 1 : True, 2 : False, 3 : False, 4 : False, 5 : False, 6 : False}
+	data = {0 : True, 1 : True, 2 : False, 3 : False, 4 : False, 5 : False, 6 : False}
 
-	if userKey in [22]:
-		data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
+	# check approval table to see if user exists for any show/department (past, present, future)
+	# could consider tighenting this up in the future to only present jobs. 
+	approver = Approver.query.filter_by(userKey=userKey).first()
+	if approver is not None: 
+		data[2] = True
+		data[3] = True
 
+	# check access table
+	access = Access.query.filter_by(userKey=userKey, page="approvals").first()
+	if access is not None: 
+		data[2] = True
+		data[3] = True
 
-	data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
+	# check access table
+	access = Access.query.filter_by(userKey=userKey, page="status").first()
+	if access is not None: 
+		data[4] = True
+
+	# check access table
+	access = Access.query.filter_by(userKey=userKey, page="export").first()
+	if access is not None: 
+		data[5] = True
+
+	# check access table
+	access = Access.query.filter_by(userKey=userKey, page="admin").first()
+	if access is not None: 
+		data[6] = True
+
+	#data = {0 : True, 1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True}		
 
 	return data
 
@@ -486,6 +544,21 @@ def get_one_user(public_key):
 
 	return jsonify({'user' : user_data})
 
+
+
+def get_user_rate_type(user_key):
+	user = User.query.filter_by(userKey=user_key).first()
+
+	if not user:
+		return 'hourly'
+	else:
+		if user.rateType.lower() in ['salary', 'hourly']:
+			return user.rateType.lower()
+		else:
+			return 'hourly'
+
+
+
 @app.route('/user', methods=['POST'])
 def create_user():
 	data = request.get_json()
@@ -537,10 +610,14 @@ def get_user_name(userKey):
 @app.route('/timesheets/<week_of>', methods=['GET'])
 def get_time_sheets_all_users(week_of):
 	args = request.args.to_dict()
-	status = 1
-	
-	status = int(args['status'])
 
+	session_data = get_session(args['session'], args['sub'])
+	userKey = session_data['userKey']
+
+	if has_access(userKey, 'approvals') is False:
+		return jsonify({'access_granted' : False})
+
+	status = int(args['status'])
 	payroll = get_pay_period_lock_return(week_of)
 	#payroll = {'status' : 0, 'week_of' : '2018-02-05'}
 
@@ -614,7 +691,7 @@ def get_time_sheets_all_users(week_of):
 
 			lines_out.append(line_data)
 
-	return jsonify({'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals, 'status' : str(status), 'payroll_status' : payroll["status"], 'payroll_week_of' : payroll["week_of"]})
+	return jsonify({'access_granted' : True, 'message' : 'Time Sheets have been collected', 'timesheets' : timesheets_arr, 'lines' : lines_out, 'ot_sel' : overtime_sel, 'rejections' : rejections, 'approvals' : approvals, 'status' : str(status), 'payroll_status' : payroll["status"], 'payroll_week_of' : payroll["week_of"]})
 
 
 def get_show_title(showKey):
@@ -643,7 +720,6 @@ def get_user_timesheet():
 	session_data = get_session(args['session'], args['sub'])
 	userKey = session_data['userKey']
 
-
 	delegating = get_delegating(userKey)
 
 	if args['userKey'] != '-1':		
@@ -653,6 +729,18 @@ def get_user_timesheet():
 
 	data['userKey'] = userKey
 	data['auto_generated_time_sheet'] = False
+
+	# get user info
+	user = User.query.filter_by(userKey=userKey).first()
+
+	user_data = {}
+	user_data['public_key'] = user.userKeyPublic
+	user_data['email'] = user.email
+	user_data['fullName'] = user.firstName + ' ' + user.lastName
+	user_data['fullName_r'] = user.lastName + ', ' + user.firstName
+	user_data['firstName'] = user.firstName
+	user_data['lastName'] = user.lastName
+	user_data['rateType'] = user.rateType
 
 
 	# select payroll period status
@@ -775,7 +863,7 @@ def get_user_timesheet():
 				rejections[key]['rejectedNote_department'] = line.rejectedNote_department
 				rejections[key]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_departmentTask_title(line.cat3)
 	
-	return jsonify({'delegating' : delegating,'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections, 'payroll_status' : payrollPeriod.payPeriodStatus, 'payroll_week_of' : payrollPeriod.periodStart.strftime('%Y-%m-%d')})
+	return jsonify({'user_data' : user_data, 'delegating' : delegating,'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections, 'payroll_status' : payrollPeriod.payPeriodStatus, 'payroll_week_of' : payrollPeriod.periodStart.strftime('%Y-%m-%d')})
 
 
 
@@ -797,12 +885,22 @@ def get_delegating(userKey):
 
 
 def can_delegate(userKey, userKey_delegate):
+	can_delegate = False
+
+	# check delegator table
 	delegator = Delegator.query.filter_by(userKey=userKey, userKey_delegate=userKey_delegate).first()
 
-	if delegator is None:
-		return False
-	else: 
-		return True
+	if delegator is not None:
+		can_delegate = True
+
+
+	# check access table
+	access = Access.query.filter_by(userKey=userKey, page="status").first()
+	
+	if access is not None:
+		can_delegate = True
+
+	return can_delegate 
 		
 
 @app.route('/timesheet/<weekStart>/unsubmit', methods=['PUT'])
@@ -836,7 +934,7 @@ def submit_timesheet(weekStart):
 	session_data = get_session(data['session'], data['sub'])
 	userKey = session_data['userKey']
 
-	if data['user_key'] != '-1':		
+	if data['user_key'] not in ['-1', -1]:	
 		if can_delegate(userKey, get_user_private_key(data['user_key'])):
 			userKey = get_user_private_key(data['user_key'])
 
@@ -857,7 +955,7 @@ def submit_timesheet(weekStart):
 		db.session.query(Time).filter_by(timeKey=time.timeKey).update({"approvedBy": None, 'approvedOn' : None, 'rejectedBy' : None, 'rejectedOn' : None, 'rejectedNote_department' : None, 'rejectedNote_artist' : None})
 		db.session.commit()
 
-	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedBy' : session_data['userKey'], 'updatedOn' : timestamp, 'officeKey' : userData.officeKey})
+	db.session.query(Timesheet).filter_by(timeSheetKey=timeSheetKey).update({"status": 1, 'updatedBy' : session_data['userKey'], 'updatedOn' : timestamp, 'officeKey' : userData.officeKey, 'rateType' : userData.rateType})
 	db.session.commit()
 	
 	return jsonify({'message' : 'timesheet status updated'})
@@ -871,7 +969,7 @@ def save_timesheet():
 	userKey = session_data['userKey']
 	weekStart = data['weekStart']
 
-	if data['userKey'] != '-1':		
+	if data['userKey'] not in ['-1', -1]:
 		if can_delegate(userKey, get_user_private_key(data['userKey'])):
 			userKey = get_user_private_key(data['userKey'])
 
@@ -1188,6 +1286,11 @@ def delegates_get():
 	args = request.args.to_dict()
 	data = []
 
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
 	userKey_delegate = get_user_private_key(args['userKey'])
 
 	delegates = Delegator.query.filter_by(userKey_delegate=userKey_delegate).all()
@@ -1209,6 +1312,9 @@ def delegate_add():
 	
 	session_data = get_session(args['session'], args['sub'])
 
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
 	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 	userKey = get_user_private_key(data['userKey'])
 	userKey_delegate = get_user_private_key(data['userKey_delegate'])
@@ -1222,7 +1328,13 @@ def delegate_add():
 
 @app.route('/delegate/remove', methods=['POST'])
 def delegate_remove():
+	args = request.args.to_dict()
 	data = request.get_json()
+	
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
 
 	userKey = get_user_private_key(data['userKey'])
 	userKey_delegate = get_user_private_key(data['userKey_delegate'])
@@ -1240,6 +1352,11 @@ def delegate_remove():
 def approvers_get():
 	args = request.args.to_dict()
 	data = []
+
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
 
 	approvers = Approver.query.filter_by(cat1=args['cat1'],cat2=args['cat2']).all()
 	
@@ -1259,6 +1376,9 @@ def approver_add():
 	
 	session_data = get_session(args['session'], args['sub'])
 
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})	
+
 	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 	userKey = get_user_private_key(data['userKey'])
 	
@@ -1267,6 +1387,104 @@ def approver_add():
 	db.session.commit()
 
 	return jsonify({'message' : 'approver added'})
+
+
+@app.route('/approver/remove', methods=['POST'])
+def approver_remove():
+	args = request.args.to_dict()
+	data = request.get_json()
+	
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
+	userKey = get_user_private_key(data['userKey'])
+	
+	approvals = Approver.query.filter_by(userKey=userKey,cat1=data['cat1'],cat2=data['cat2']).all()
+	
+	for approval in approvals:
+		db.session.delete(approval)
+		db.session.commit()
+
+	return jsonify({'message' : 'approver removed'})	
+
+
+def has_access(user_key, page):
+	args = request.args.to_dict()
+	data = {'approvals' : [], 'status' : [], 'export' : [], 'admin' : []}
+	access = Access.query.filter_by(userKey=user_key, page=page).first()
+	
+	if access: 
+		return True
+
+	return False
+
+
+@app.route('/access', methods=['GET'])
+def access_get():
+	args = request.args.to_dict()
+	data = {'approvals' : [], 'status' : [], 'export' : [], 'admin' : []}
+
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
+	access_list = Access.query.all()
+	
+	for access in access_list:
+		access_data = {}
+		access_data['public_key'] = get_user_public_key(access.userKey)
+		access_data['fullName'] = get_user_name(access.userKey)
+
+		data[access.page].append(access_data)
+
+	return jsonify(data)
+
+
+
+@app.route('/access/add', methods=['POST'])
+def access_add():
+	data = request.get_json()
+	args = request.args.to_dict()
+
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
+	timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+	userKey = get_user_private_key(data['userKey'])
+	
+	add_access = Access(userKey=userKey,page=data['page'],createdBy=session_data['userKey'],createdOn=timestamp)
+	db.session.add(add_access)
+	db.session.commit()
+
+	return jsonify({'message' : 'access added'})
+
+
+
+@app.route('/access/remove', methods=['POST'])
+def access_remove():
+	args = request.args.to_dict()
+	data = request.get_json()
+	
+	session_data = get_session(args['session'], args['sub'])
+
+	if has_access(session_data['userKey'], 'admin') is False:
+		return jsonify({'access_granted' : False})
+
+	userKey = get_user_private_key(data['userKey'])
+	
+	access_list = Access.query.filter_by(userKey=userKey, page=data['page']).all()
+	
+	for access in access_list:
+		db.session.delete(access)
+		db.session.commit()
+
+	return jsonify({'message' : 'access removed'})	
+
 
 @app.route('/customweek/add', methods=['POST'])
 def weekStart_add():
@@ -1353,6 +1571,46 @@ def get_pay_periods():
 			out_data.append(p.periodStart.strftime('%Y-%m-%d'))
 
 	return jsonify(out_data)	
+
+
+@app.route('/exports', methods=['GET'])
+def get_exports():
+	args = request.args.to_dict()
+	data = []
+
+	# convert to date
+	week_1 = datetime.datetime.strptime(args['week_1'],'%Y-%m-%d')
+	week_2 = datetime.datetime.strptime(args['week_2'],'%Y-%m-%d')
+
+	exports = TimesheetExport.query.filter(TimesheetExport.weekOf >= week_1).filter(TimesheetExport.weekOf <= week_2).all()
+	
+	for export in exports:		
+		export_data = {}
+		export_data['status'] = export.status
+		export_data['weekOf'] = export.weekOf.strftime('%Y-%m-%d')
+		export_data['path'] = export.path
+		export_data['batch'] = export.batch
+		
+		if export.officeKey == 1:
+			export_data['office'] = 'CAN'
+		else: 
+			export_data['office'] = 'USA'
+		
+		data.append(export_data)
+
+	return jsonify(data)
+
+
+@app.route('/export', methods=['GET'])
+def export_tss():
+	args = request.args.to_dict()
+	data = []
+
+	TSS().export_to_payroll(args['week_1'])
+	TSS().export_to_payroll(args['week_2'])
+
+	return jsonify({'status' : 'success'})	
+
 
 
 if __name__ == "__main__":

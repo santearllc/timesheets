@@ -14,6 +14,7 @@
         "entry",
         "approval",
         "login",
+        "export",
         "api"
       ],
       "index": "index.html",

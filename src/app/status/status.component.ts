@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ServiceService } from '../services/service.service';
 import { forEach } from '@angular/router/src/utils/collection';
 
+
 declare const gapi: any;
 declare var jquery: any;
 declare var $: any;
@@ -23,6 +24,9 @@ export class StatusComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.serviceService.delegator_selected = -1
+
+    
     this.vars.total = [0,0,0,0,0];    
     this.vars.filter = [true, true, true, true, true];
     this.vars.search_name = '';
@@ -93,20 +97,27 @@ export class StatusComponent implements OnInit {
 
   loadWeek(week_of){
       this.serviceService.geStatuses_db(week_of).subscribe(res => {
-        this.vars.show_loading = false;
-        this.vars.showTitles = res['shows'];
-        this.vars.departmentTitles = res['departments'];
-        this.vars.titles = res['titles'];
-  
-        this.users_array = this.users_to_array(res['users']);
-        this.totalStatuses(this.users_array);
-        
-        clearTimeout(this.vars.loadWeek_timeout)
-  
-        this.vars.loadWeek_timeout = setTimeout(res=>{
-          this.loadWeek(this.vars.week_of)  
-        },5000);
-      });
+
+      if(!res['access_granted']){
+        this.serviceService.go('entry')
+        return false;
+      }
+
+      this.vars.show_loading = false;
+      this.vars.showTitles = res['shows'];
+      this.vars.departmentTitles = res['departments'];
+      this.vars.titles = res['titles'];
+
+      this.users_array = this.users_to_array(res['users']);
+      this.totalStatuses(this.users_array);
+      
+      clearTimeout(this.vars.loadWeek_timeout)
+
+      this.vars.loadWeek_timeout = setTimeout(res=>{
+        this.loadWeek(this.vars.week_of)  
+      },5000);
+    });
+    
   }
 
   totalStatuses(lines){
@@ -165,6 +176,41 @@ export class StatusComponent implements OnInit {
     
 
   }
+
+
+
+  prompt_load(user){
+    // before loading time sheet for the selected user ask if that is the action in which they want to take. 
+
+    this.vars.selected_user = user
+
+    console.log(this.vars.selected_user)
+    this.vars.showPopup = true;
+
+  }
+
+
+  submit(){
+    console.log('submit time sheet')
+    console.log(this.vars.selected_user)
+  }
+
+  unsubmit(){
+    console.log('unsubmit time sheet')
+    console.log(this.vars.selected_user)
+  }
+
+
+  edit(){
+    console.log('edit time sheet')
+    console.log(this.vars.selected_user)
+    this.serviceService.delegator_selected = this.vars.selected_user["userKey"]
+
+    this.serviceService.week_of = this.vars.week_of
+    this.serviceService.go('entry')
+  }
+
+
 
   compare(a,b) {
     if (a.fullName_r < b.fullName_r)

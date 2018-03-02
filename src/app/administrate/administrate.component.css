@@ -21,3 +21,14 @@
     outline:1px #333 solid;
 	cursor: pointer;
 }
+
+
+.page_text{
+    display: inline-block;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.page_text_sel{
+    font-weight: 700;
+}

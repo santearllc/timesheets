@@ -142,6 +142,13 @@ export class ApprovalComponent implements OnInit {
 
       this.serviceService.getTimeSheetsAllUsers_db(week_of, status).subscribe(res => {
 
+
+        if(!res['access_granted']){
+          this.serviceService.go('entry');
+          return false;
+        }
+
+
         this.vars.payroll_week_of = res['payroll_week_of']
 
         if(res['payroll_status'] > 0){

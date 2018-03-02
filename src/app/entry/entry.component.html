@@ -49,7 +49,7 @@
 	<!-- Main section of component -->
 	<div *ngIf="vars.valid_login" style="margin-bottom: 10px;" [class.disable-clicks]="!vars.showTimeSheet" [style.opacity]="(!vars.showTimeSheet) ? 0.0 : 1.0">
 		<div style="margin-bottom:20px;">
-			<div style="display:inline-block;font-size:2em;font-weight:700;">{{vars.user_name}} <div *ngIf="this.vars.delegate.length > 1" style="display:inline-block;cursor:pointer;" (click)="(vars.show_delegated) ? vars.show_delegated = false : vars.show_delegated=true">&#9830;</div>
+			<div style="display:inline-block;font-size:2em;font-weight:700;">{{vars.user_name}} <div *ngIf="this.vars.delegate.length > 1 || serviceService.delegator_selected  != -1" class="delegate" (click)="(vars.show_delegated) ? vars.show_delegated = false : vars.show_delegated=true"></div>
 				<div *ngIf="vars.show_delegated" class="user_list">
 					<div *ngFor="let i of vars.delegate" (click)="load_delegated(i.user_key, i.full_name)">{{ i.full_name }} </div>
 				</div>
@@ -643,14 +643,24 @@
 								<div *ngIf="vars.ot_assignment['dt'].length > 0" [style.margin-bottom]="(vars.ot_assignment['dt'].length > 0 && vars.ot_assignment['ot'].length > 0) ? '20px' : 0">
 									<div style="font-weight:700">Double time allocation</div>
 									<div *ngFor="let x of vars.ot_assignment['dt'];">					
-										{{ vars.titles_obj[x_1.cat_key]['cat_2'][x_2.cat_key]['title'] }} <span style="font-size:0.8em;">{{ ' (' + day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+										<div *ngIf="x.cat_1 == 0">
+											{{ vars.titles_obj[x.cat_1]['cat_2'][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>	
+										</div>
+										<div *ngIf="x.cat_1 == 1">
+											Studio <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>	
+										</div>
 									</div>
 								</div>
 							</div>							
 							<div *ngIf="vars.ot_assignment['ot'].length > 0">
 								<div style="font-weight:700">Overtime allocation: </div>
-								<div *ngFor="let x of vars.ot_assignment['ot'];">					
-									{{ vars.titles_obj[x.cat_1]['cat_2'][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>
+								<div *ngFor="let x of vars.ot_assignment['ot'];">
+									<div *ngIf="x.cat_1 == 0">
+										{{ vars.titles_obj[x.cat_1]['cat_2'][x.cat_2]['title'] }} <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>	
+									</div>
+									<div *ngIf="x.cat_1 == 1">
+										Studio <span style="font-size:0.8em;">{{ ' (' + serviceService.day_name_full[x.day] + ': '+ x.hours  + ' hours)' }}</span>	
+									</div>
 								</div>
 							</div>
 						</div>

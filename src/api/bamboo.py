@@ -31,9 +31,19 @@ class Bamboo:
 		page = requests.get('http://api.bamboohr.com/api/gateway.php/'+self.subdomain+'/v1/employees/'+str(user_key)+'/tables/compensation', headers=self.headers, auth=requests.auth .HTTPBasicAuth(self.api_key, 'x'))
 		
 		try:
+			comp_list = json.loads(page.text)
+			# get the last entry in the list			
+			return comp_list[len(comp_list)-1]
+		except TypeError:
+			return False	
+
+	def get_user_info(self,user_key,attributes):
+		page = requests.get('http://api.bamboohr.com/api/gateway.php/'+self.subdomain+'/v1/employees/'+str(user_key)+'?fields='+','.join(attributes), headers=self.headers, auth=requests.auth .HTTPBasicAuth(self.api_key, 'x'))
+		
+		try:
 			return json.loads(page.text)
 		except TypeError:
-			return False			
+			return False	
 
 	def get_user_byEmail(self, email):
 		users = self.get_users()
@@ -128,7 +138,18 @@ class Bamboo:
 				user_data['email'] = user['workEmail']				
 				user_data['firstName'] = user['firstName']
 				user_data['lastName'] = user['lastName']
-				
+				user_data['adp'] = self.get_user_info(user['id'], ["employeeNumber"])["employeeNumber"]
+
+
+				# update current rate type selection
+				rate = self.get_user_rate_info(user['id'])['type']
+
+				if rate.lower() in ['salary', 'hourly']:
+					user_data['rateType'] = rate.lower()
+				else:
+					user_data['rateType'] = 'hourly'
+
+				# determine department
 				if user['department'] in departments_by_name:
 					user_data['departmentKey'] = departments_by_name[user['department']]
 				else: 
@@ -165,8 +186,14 @@ class Bamboo:
 				if tss_userKey not in week_of_users:
 					missing_user_keys.append({'id' : tss_userKey, 'week_of' : week_of})
 
-				# add to list and to dictionary				
+				# update rate and adp id in tss user table
+				self.cur.execute("""UPDATE public.user SET "rateType"=%s, adp=%s WHERE "userKey"=%s;""", 
+					(user_data['rateType'], user_data['adp'], tss_userKey))
+				self.conn.commit()					
+
+				# add to list and to dictionary
 				user_keys.append(str(tss_userKey))
+			
 
 		# add missing users from the user_week_of table back to table
 		self.cur.executemany("""INSERT INTO user_by_week ("userKey","weekOf") VALUES (%(id)s, %(week_of)s)""", missing_user_keys)
@@ -183,12 +210,14 @@ class Bamboo:
 
 #Bamboo().sync()
 
+
 # this person is salary 
-rate = Bamboo().get_user_rate_info(350)
-print rate
+#rate = Bamboo().get_user_rate_info(350)
+#print rate
 
 
 # this person is hourly 
-rate = Bamboo().get_user_rate_info(483)
-print rate
+#rate = Bamboo().get_user_rate_info(483)
+
+
 

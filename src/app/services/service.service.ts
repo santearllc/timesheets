@@ -43,6 +43,8 @@ export class ServiceService {
   valid_login = false;
   show_signin = false;
   access = { 0 : false, 1 : false, 2 : false, 3 : false, 4 : false, 5 : false, 6 : false }
+  delegator_selected = -1;
+  week_of = null;
 
   login_res = '';
   googleLoginButtonId = "googleBtn";
@@ -253,14 +255,14 @@ export class ServiceService {
   }
 
   geStatuses_db(week_of) {
-    return this.http.get(this.api_path + '/api/timesheets/status/'+ week_of)
+    return this.http.get(this.api_path + '/api/timesheets/status/'+ week_of + '?' + this.session_param('get'))
       .map(res => res.json());
   }
 
   
   // admin page
   getDelegates(userKey) {
-    return this.http.get(this.api_path + '/api/delegate?userKey=' + userKey)
+    return this.http.get(this.api_path + '/api/delegate?userKey=' + userKey + '&' + this.session_param('get'))
       .map(res => res.json());
   }
 
@@ -275,7 +277,7 @@ export class ServiceService {
   }
 
   getApprovers(params) {
-    return this.http.get(this.api_path + '/api/approver?' + params)
+    return this.http.get(this.api_path + '/api/approver?' + params+ '&'+ this.session_param('get'))
       .map(res => res.json());
   }
 
@@ -288,9 +290,35 @@ export class ServiceService {
     return this.http.post(this.api_path + '/api/approver/remove?' + this.session_param('get'), data)
       .map(res => res.json());
   }
+
+  getAccess() {
+    return this.http.get(this.api_path + '/api/access?' + this.session_param('get'))
+      .map(res => res.json());
+  }
+ 
+  addAccess(data) {
+    return this.http.post(this.api_path + '/api/access/add?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
+  removeAccess(data) {
+    return this.http.post(this.api_path + '/api/access/remove?' + this.session_param('get'), data)
+      .map(res => res.json());
+  }
+
   
   getCustomWeek(year) {
     return this.http.get(this.api_path + '/api/customweek?year=' + year +'&' + this.session_param('get'))
+      .map(res => res.json());
+  }
+
+  export_tss_data(week_1, week_2){
+    return this.http.get(this.api_path + '/api/export?week_1='+week_1+'&week_2=' + week_2 +'&' + this.session_param('get'))
+      .map(res => res.json());
+  }
+
+  getExports(week_1,week_2) {
+    return this.http.get(this.api_path + '/api/exports?week_1='+week_1+'&week_2=' + week_2 +'&' + this.session_param('get'))
       .map(res => res.json());
   }
 
@@ -659,6 +687,8 @@ export class ServiceService {
     // push show/dept to array with hours (that aren't the ot sel item)
     var byHours = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
+
+
     for (var s_1 in vars.timesheet_totals_byShow) {
       for (var s_2 in vars.timesheet_totals_byShow[s_1]) {
         for (var i = 0; i < 7; i++) {
@@ -703,7 +733,7 @@ export class ServiceService {
           if (vars.current_office == 0) { // California Rules
 
             if (hours_dt > 0.0) {
-              ot_assignment['dt'].push({ day: i, hours: (hours_byShow > hours_dt) ? hours_dt : hours_byShow, cat_1: byHours[i][x_1]['cat_1'], cat_2: byHours[i][x_1]['cat_2'] });
+              ot_assignment['dt'].push({ day: i, hours: (hours_byShow > hours_dt) ? hours_dt : hours_byShow, cat_1: parseInt(byHours[i][x_1]['cat_1']), cat_2: parseInt(byHours[i][x_1]['cat_2']) });
 
               // after assignment then we need to adjust the hours
               var hours_byShow_tmp = hours_byShow;
@@ -713,7 +743,7 @@ export class ServiceService {
           }
 
           if (hours_ot > 0.0 && hours_byShow > 0.0) {
-            ot_assignment['ot'].push({ day: i, hours: (hours_byShow > hours_ot) ? hours_ot : hours_byShow, cat_1: byHours[i][x_1]['cat_1'], cat_2: byHours[i][x_1]['cat_2'] });
+            ot_assignment['ot'].push({ day: i, hours: (hours_byShow > hours_ot) ? hours_ot : hours_byShow, cat_1: parseInt(byHours[i][x_1]['cat_1']), cat_2: parseInt(byHours[i][x_1]['cat_2']) });
 
             // after assignment then we need to adjust the hours
             var hours_byShow_tmp = hours_byShow;
@@ -725,6 +755,7 @@ export class ServiceService {
     }
 
     vars.ot_assignment = ot_assignment;
+    
     //vars.show_ot_breakdown = false;
 
     if (return_values) {

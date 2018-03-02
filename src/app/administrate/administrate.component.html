@@ -1,7 +1,7 @@
 <!-- Spacer -->
 <div style="height: 20px;">&nbsp;</div>
 
-<div>
+<div *ngIf="false">
     <div class="header_a1">Manual Actions</div>
     <div class="content_a1">
         <table width="100%;" style="color:#AAA;">
@@ -124,11 +124,61 @@
 
 
 
-
 <!-- Spacer -->
 <div style="height: 20px;">&nbsp;</div>
 
 <div>
+    <div class="header_a1">Set Access
+        <div style="font-size:12px;font-weight:100;font-style:italic;">Allows a person to access certain pages.</div>
+    </div>
+    <div class="content_a1">
+        <div>
+            <div class="page_text" [class.page_text_sel]="vars.access=='approvals'" (click)="vars.access='approvals'">Approvals/Peek</div>
+            <div class="page_text" [class.page_text_sel]="vars.access=='status'" (click)="vars.access='status'">Status</div>
+            <div class="page_text" [class.page_text_sel]="vars.access=='export'" (click)="vars.access='export'">Export</div>
+            <div class="page_text" [class.page_text_sel]="vars.access=='admin'" (click)="vars.access='admin'">Admin</div>
+        </div>
+        <div *ngIf="vars.access" style="margin-top:10px;">
+
+            <div *ngIf="vars.access=='approvals'" style="font-size:0.8em;font-style:italic;margin-bottom:10px;">
+                This will allow a user to approve ALL time sheets. Otherwise add show/department specific approval under "Set Approvers" section. 
+            </div>
+            <div *ngIf="vars.set_access[vars.access].length <= 0" style="padding:10px;">                
+                No one has been granted access to this area...
+            </div>
+            <div *ngFor="let x of vars.set_access[vars.access]; let i = 'index'" style="padding:10px;">
+                <div style="display:inline-block;float:right;">
+                    <button (click)="removeAccess(x,i, vars.access)">remove</button>
+                </div>
+                <div style="display:inline-block;">{{ x['fullName'] }}</div>
+            </div>
+        
+            <div *ngIf="vars.access">
+                <div class="dd_div">
+                    <div class="dd_search">
+                        <div style="width:90%;display:inline-block;">
+                            <input placeholder="Add Person" [(ngModel)]="vars.admin_page_search" (click)="vars.delegate_sel=false;vars.admin_page_result = false;vars.admin_page_search=''" (keyup)="this.vars.delegate_sel=false;vars.admin_page_result = searchDelegates(vars.admin_page_search)"/>
+                        </div>
+                    </div>             
+                    <div *ngIf="vars.admin_page_result">
+                        <div *ngIf="vars.admin_page_result.length > 0" class="dd_results" style="width:760px;">
+                            <div *ngFor="let result of vars.admin_page_result" [class.dd_result_sel]="result.selected" (click)="accessSelected(result, vars.access)">{{ result.fullName_r }} | {{ result.email }}</div>
+                        </div>
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- Spacer -->
+<div style="height: 20px;">&nbsp;</div>
+
+<div *ngIf="false">
     <div class="header_a1">Custom Start of Week
         <div style="font-size:12px;font-weight:100;font-style:italic;">Weeks that do not start on a Monday, due to a holiday or other event.</div>
     </div>
@@ -256,7 +306,7 @@
 <!-- Spacer -->
 <div style="height: 20px;">&nbsp;</div>
 
-<div>
+<div *ngIf="false">
         <div class="header_a1">Scheduled Actions</div>
         <div class="content_a1">
             <table width="100%" style="color:#AAA">

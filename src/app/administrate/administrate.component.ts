@@ -22,6 +22,18 @@ export class AdministrateComponent {
   }
 
   ngOnInit() {    
+
+    this.vars.set_access = {}
+    this.vars.set_access['approvals'] = []
+    this.vars.set_access['status'] = []
+    this.vars.set_access['export'] = []
+    this.vars.set_access['admin'] = []
+
+
+
+    this.vars.set_access['admin'].push({'userKey' : 0, 'fullName' : 'Tyler Cote'})
+
+
     this.serviceService.validateLogin().subscribe(res => {
       this.serviceService.googleInit();
 
@@ -54,7 +66,7 @@ export class AdministrateComponent {
         this.getUsers();
         this.getShows();
         this.getDepartments();
-        
+        this.getAccess()
         // current year
 
         this.vars.calendar = this.serviceService.generateCalendar(new Date());
@@ -65,18 +77,25 @@ export class AdministrateComponent {
 
         this.vars.custom_week_year = new Date().getFullYear()
 
-        this.serviceService.getCustomWeek(this.vars.custom_week_year).subscribe(res=>{
+        /*this.serviceService.getCustomWeek(this.vars.custom_week_year).subscribe(res=>{
           console.log('get custom weeks')
           console.log(res)
           this.vars.custom_week_start = res
         })
-
+        */
         this.serviceService.checkLogin()
         
       }
-    });  
-
+    });
     this.vars.custom_week_start = [];
+  }
+
+  getAccess(){
+    this.serviceService.getAccess().subscribe(res => {
+      console.log('This is access: ')
+      console.log(res)
+      this.vars.set_access = res
+    });
   }
 
   getUsers(){
@@ -168,7 +187,7 @@ export class AdministrateComponent {
     // remove from array
     this.vars.delegators.splice(index, 1);
 
-    // remove drom database
+    // remove from database
     this.serviceService.removeDelegate(data).subscribe(res => {
     });    
   }
@@ -222,10 +241,8 @@ export class AdministrateComponent {
     data['userKey'] = userData['public_key'];
     data['cat1'] = this.vars.approvers_show_sel['cat_1'];
     data['cat2'] = this.vars.approvers_show_sel['cat_key'];
-     
-    console.log(data)
+
     this.serviceService.addApprover(data).subscribe(res => {      
-      console.log(res)
     });
   }
 
@@ -240,11 +257,41 @@ export class AdministrateComponent {
     // remove from array
     this.vars.approvers.splice(index, 1);
 
-    // remove drom database
+    // remove from database
     this.serviceService.removeApprover(data).subscribe(res => {
-    });    
+    });
   }
 
+  
+
+
+  accessSelected(userData, page){
+    console.log(userData)
+    this.vars.admin_page_result = false;
+    this.vars.admin_page_search = '';
+    this.vars.set_access[page].push(userData)
+    var data = {};
+    data['userKey'] = userData['public_key'];    
+    data['page'] = page;    
+
+    this.serviceService.addAccess(data).subscribe(res => {
+      console.log(res)
+    });
+  }
+
+
+  removeAccess(userData, index, page){
+    var data = {};
+    data['userKey'] = userData['public_key'];
+    data['page'] = page
+
+    // remove from array
+    this.vars.set_access[page].splice(index, 1);
+
+    // remove from database
+    this.serviceService.removeAccess(data).subscribe(res => {
+    });
+  }
 
   backYear(){
     this.vars.custom_week_year -=1 
