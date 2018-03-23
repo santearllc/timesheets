@@ -165,13 +165,30 @@
 						</div>
 					</div>
 				</div>
+				
 			</div>
+
+			<div>
+				<div class="rejection_note_studio" *ngIf="!vars.submitted && vars.rejections[x_1.cat_key]">
+					<span style="font-weight:700;">{{ vars.rejections[x_1.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_1.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_1.cat_key]['rejected_on']) }}</span>
+					<div *ngIf="vars.rejections[x_1.cat_key]['rejectedNote_artist'].length > 0" style="margin-top:10px;font-style:italic;">
+						{{ vars.rejections[x_1.cat_key]['rejectedNote_artist'] }}
+					</div>
+				</div>
+			</div>
+			
 
 			<div class="cat_1_content" style="padding:0px;" *ngIf="x_1.children.length > 0">
 				<div *ngFor="let x_2 of x_1.children; let last = last;let first = first; let i_2 = 'index'" style="padding:20px;" [class.divider]="(!last)">
 					<div *ngIf="x_1.cat_key == 0 || showOvertimeIcons(x_2.ot_req, x_2.sum_hours)">
 						<div style="border-bottom:1px #BBB solid;padding-bottom:0px;margin-bottom: 5px;">
-							<table style="width:100%;">
+							<div class="rejection_note" *ngIf="!vars.submitted && vars.rejections[x_1.cat_key+'_'+x_2.cat_key]">
+								<span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_1.cat_key+'_'+x_2.cat_key]['rejected_on']) }}</span>
+								<div *ngIf="vars.rejections[x_1.cat_key+'_'+x_2.cat_key]['rejectedNote_artist'].length > 0" style="margin-top:10px;font-style:italic;">
+									{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key]['rejectedNote_artist'] }}
+								</div>
+							</div>
+							<table style="width:100%;">								
 								<tr>
 									<td style="width: 200px;" class="cat_0_title">
 										<div *ngIf="x_1.cat_key != 1">{{ vars.titles_obj[x_1.cat_key]['cat_2'][x_2.cat_key]['title'] }}</div> <!-- show name or department name -->
@@ -181,7 +198,7 @@
 											<tr>
 												<td class="blank">&nbsp;</td>
 												<td *ngFor="let day_i of vars.days;" [class]="vars.ot_sel[day_i][0] == x_1.cat_key && vars.ot_sel[day_i][1] == x_2.cat_key &&  x_2.ot_req[day_i] && vars.ot_req[day_i] > 1 ? 'ot_selected day' : 'ot day'">
-													<div (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i] && x_2.sum_hours[day_i] > 0.0 && vars.ot_req[day_i] > 1">OT</div>										
+													<div class="ot_button" (click)="setOvertimeChoice(x_1.cat_key, x_2.cat_key, day_i)" *ngIf="x_2.ot_req[day_i] && x_2.sum_hours[day_i] > 0.0 && vars.ot_req[day_i] > 1">OT</div>										
 												</td>
 												<td class="blank">&nbsp;</td>
 												<td class="sum" style="text-align:right;">
@@ -344,14 +361,8 @@
 						</div>					
 					</div>
 					<div *ngFor="let x_3 of x_2.children; let i_2 = 'index' ">
+							
 						<div *ngIf="x_3.hours">
-							<div *ngIf="!vars.submitted && vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]" style="color:rgb(43, 43, 43);padding:10px;margin-left:-20px;margin-right:-20px;margin-bottom:5px;margin-top:5px;border:2px red solid;background-color:#BBB;">
-								<span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_by'] }}</span> rejected <span style="font-weight:700;">{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['show_dept_name'] }}</span> on <span style="font-weight:700;">{{ serviceService.generateDate(vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejected_on']) }}</span>
-								<div *ngIf="vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'].length > 0" style="margin-top:10px;font-style:italic;">
-									{{ vars.rejections[x_1.cat_key+'_'+x_2.cat_key+'_'+x_3.cat_key]['rejectedNote_artist'] }}
-								</div>
-							</div>
-
 							<table style="width:100%;">
 								<tr>
 									<td class="title">										
@@ -389,6 +400,7 @@
 									</td>
 								</tr>
 							</table>
+
 							<div *ngIf="x_3.show_note_force && !submit_date" class="note_textarea_div">
 								<textarea (keyup)="updateNote($event,x_3,[x_1.cat_key,x_2.cat_key,x_3.cat_key])" class="note_textarea" rows=7>{{ x_3.note }}</textarea>
 							</div>

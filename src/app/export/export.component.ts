@@ -19,6 +19,7 @@ export class ExportComponent implements OnInit {
 
     this.vars.week_label = "Loading..."
     this.vars.export_files = []
+    this.vars.export_files_by_batch = []
     this.vars.export_allow = true
 
     this.serviceService.validateLogin().subscribe(res => {
@@ -166,7 +167,34 @@ export class ExportComponent implements OnInit {
     var week_of_next = this.serviceService.date_yyyymmdd_dashed(new Date(+new Date(this.vars.week_of) + 12096e5));
 
     this.serviceService.getExports(this.vars.week_of, week_of_next).subscribe(res => {
-      this.vars.export_files = res;
+
+      console.log(res.data)
+
+      var batches = []
+
+      for(var i =0; i < res.data.length; i++){
+        
+        if(batches.indexOf(res.data[i].batch) == -1) {
+          batches.push(res.data[i].batch)
+        }
+      }
+
+      // sort the batch numbers DESC
+      batches = batches.sort(function(a, b){return b-a});
+
+      var export_by_batch = []
+
+      for(var b = 0; b < batches.length; b++) {
+        var batch = batches[b]
+        var batch_exports = []
+        for(var i = 0; i < res.data_by_batch[batch].length; i++){
+          batch_exports.push(res.data_by_batch[batch][i])
+        }   
+        export_by_batch.push(batch_exports)
+      }
+
+      this.vars.export_files_by_batch = export_by_batch
+
     });
 
     setTimeout(res => {
@@ -176,6 +204,9 @@ export class ExportComponent implements OnInit {
 
   weekSelected(week_of_label, week_of) {
     clearTimeout(this.vars.timeout);
+    
+    this.vars.export_files = []
+    this.vars.export_files_by_batch = []
 
     this.vars.lock_state = -1;
     this.vars.showCal = false

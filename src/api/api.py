@@ -851,17 +851,17 @@ def get_user_timesheet():
 			# rejection of a single line item will force the entire time sheet to be rejectedBy
 			if line.rejectedBy > 0 :
 				if line.cat1 == 0 :
-					key = str(line.cat1)+'_'+str(line.cat2)
+					index = str(line.cat1)+'_'+str(line.cat2)
 				else :
-					key = str(line.cat1)+'_'+str(line.cat2)+'_'+str(line.cat3)
+					index = str(line.cat1)
 
-				rejections[key] = {}
+				rejections[index] = {}
 
-				rejections[key]['rejected_on'] = line.rejectedOn
-				rejections[key]['rejected_by'] = get_user_name(line.rejectedBy)
-				rejections[key]['rejectedNote_artist'] = line.rejectedNote_artist
-				rejections[key]['rejectedNote_department'] = line.rejectedNote_department
-				rejections[key]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_departmentTask_title(line.cat3)
+				rejections[index]['rejected_on'] = line.rejectedOn
+				rejections[index]['rejected_by'] = get_user_name(line.rejectedBy)
+				rejections[index]['rejectedNote_artist'] = line.rejectedNote_artist
+				rejections[index]['rejectedNote_department'] = line.rejectedNote_department
+				rejections[index]['show_dept_name'] = get_show_title(line.cat2) if line.cat1 == 0 else get_departmentTask_title(line.cat3)
 	
 	return jsonify({'user_data' : user_data, 'delegating' : delegating,'lines' : lines_out, 'ot_sel' : ot_sel, 'data' : data, 'rejections' : rejections, 'payroll_status' : payrollPeriod.payPeriodStatus, 'payroll_week_of' : payrollPeriod.periodStart.strftime('%Y-%m-%d')})
 
@@ -1094,7 +1094,12 @@ def reject_line():
 		db.session.query(Timesheet).filter_by(timeSheetKey=timesheet.timeSheetKey).update({"status": 2, "updatedOn" : data['rejected_on']})
 		db.session.commit()
 
-	times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2'], cat3=data['cat3']).all()
+	if int(data['cat1']) == 0:
+		print 'this is at 0'
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2']).all()
+	else: 
+		print 'this is at 1'
+		times = Time.query.filter_by(userKey=userKey, timeSheetKey=timesheet.timeSheetKey, cat1=data['cat1'], cat2=data['cat2'], cat3=data['cat3']).all()
 
 	for time in times:
 		rejected_by = get_user_private_key(data['rejected_by'])
@@ -1577,14 +1582,19 @@ def get_pay_periods():
 def get_exports():
 	args = request.args.to_dict()
 	data = []
+	data_by_batch = {}
 
 	# convert to date
 	week_1 = datetime.datetime.strptime(args['week_1'],'%Y-%m-%d')
 	week_2 = datetime.datetime.strptime(args['week_2'],'%Y-%m-%d')
 
-	exports = TimesheetExport.query.filter(TimesheetExport.weekOf >= week_1).filter(TimesheetExport.weekOf <= week_2).all()
+	exports = TimesheetExport.query.filter(TimesheetExport.weekOf >= week_1).filter(TimesheetExport.weekOf <= week_2).order_by(TimesheetExport.batch.asc(),TimesheetExport.officeKey.asc()).all()
 	
-	for export in exports:		
+	for export in exports:
+
+		if export.batch not in data_by_batch:
+			data_by_batch[export.batch] = []
+
 		export_data = {}
 		export_data['status'] = export.status
 		export_data['weekOf'] = export.weekOf.strftime('%Y-%m-%d')
@@ -1596,9 +1606,10 @@ def get_exports():
 		else: 
 			export_data['office'] = 'USA'
 		
+		data_by_batch[export.batch].append(export_data)
 		data.append(export_data)
 
-	return jsonify(data)
+	return jsonify({'data' : data, 'data_by_batch' : data_by_batch})
 
 
 @app.route('/export', methods=['GET'])

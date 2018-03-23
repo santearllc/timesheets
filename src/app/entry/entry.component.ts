@@ -207,13 +207,18 @@ export class EntryComponent {
 			}
 
 			// once all of the tasks have been loaded check to see if the timesheet can be displayed
-			this.checkLoaded('tasks');
-			console.log('Titles: ')
-			console.log(this.vars.titles_obj)
+			this.checkLoaded('tasks');			
 		});
 	}
 
 	getTimeSheet() {
+
+		if(window.location.href.indexOf('timesheet.atomicfiction') != -1){
+			console.log('environment: production')
+		} else {
+			console.log('environment: dev')			
+		}
+	
 		// load current weekOf time sheet from database
 		var data_in = {}
 		data_in['week_of'] = this.vars.week_of;		
@@ -234,7 +239,6 @@ export class EntryComponent {
 			} else {
 				this.vars.rate_type = 'hourly'
 			}
-			
 
 			this.vars.rejections = res['rejections']
 			this.vars.status = res.data.status;
@@ -519,7 +523,7 @@ export class EntryComponent {
 			this.saveTimesheet();
 			this.addToUndo(this.vars.lines);
 		}
-
+	
 		// update timesheet totals and validate overtime
 		this.updateTimesheetTotals();
 
@@ -1412,9 +1416,7 @@ export class EntryComponent {
 
 
 		if(typeof(init) == 'object'){
-			console.log('double here... ')
 			el[prop] = init;
-			console.log(el)
 		}
 
 		if(prop == 'show_menu' || prop == 'show_note_force'){

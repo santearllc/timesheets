@@ -846,8 +846,6 @@ export class ApprovalComponent implements OnInit {
     this.vars.rejections[data.userKeyPublic]['rejectedNote_artist'] = data.rejectedNote_artist;
     this.vars.rejections[data.userKeyPublic]['rejectedNote_department'] = data.rejectedNote_department;
 
-    
-
     if(cats[0].cat_key == 1){
       this.vars.rejections[data.userKeyPublic]['show_dept_name'] = this.vars.titles_obj[data.cat1]['cat_2'][data.cat2]['title'] + ': ' + this.vars.titles_obj[data.cat1]['cat_3'][data.cat3]['title'];
     } else {
@@ -855,9 +853,11 @@ export class ApprovalComponent implements OnInit {
     }
     
 
+    console.log('reject line item: ')
+    console.log(data)
     
-
     this.serviceService.rejectTimeSheetLine(data).subscribe(res => {
+      console.log(res)
     });
 
 

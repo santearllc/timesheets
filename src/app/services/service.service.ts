@@ -58,8 +58,14 @@ export class ServiceService {
 
   constructor(public http: Http, private router: Router, private route: ActivatedRoute) {
 
-    this.api_path = 'http://atomicfiction.xyz';
-
+    // Set API location 
+		if(window.location.href.indexOf('timesheet.atomicfiction') != -1){
+      console.log('environment: production')
+      this.api_path = 'https://timesheet.atomicfiction.com';
+		} else {
+      console.log('environment: dev')
+      this.api_path = 'http://atomicfiction.xyz';
+		}
 
     this.lines_init = [
       {

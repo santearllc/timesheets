@@ -9,7 +9,7 @@ import csv
 import re
 import shutil
 from config import AF_Config
-
+import os
 
 
 class TSS():
@@ -22,8 +22,12 @@ class TSS():
 		self.export_data = {}
 		self.office_code = {}
 		self.batch = '{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
-		#self.export_path = '../export/_csv/'
+		self.week_of = None
 		self.export_path = '/var/www/html/export/_csv/'
+
+		if os.path.isdir(self.export_path) is False:
+			self.export_path = '../export/_csv/'
+
 		self.get_office_adp_id()
 		
 		# Code/Hours order: Double Time, Vacation, Sick, Holiday, Jury Duty, Bereavement
@@ -62,12 +66,13 @@ class TSS():
 
 
 	def export_to_payroll(self, week_of):
-		print "Exporting Payroll"
+
+		# set week of
+		self.week_of = week_of
 
 		# create timesheet_export record for boths offices
-		self.record_export_action(week_of, 0, end=False)
-		self.record_export_action(week_of, 1, end=False)
-
+		self.record_export_action(False)
+		
 		# get adp company code
 		self.cur.execute("""SELECT office."officeKey", office.adp
 							FROM office
@@ -155,10 +160,13 @@ class TSS():
 				del self.export_data[office_key][user]['hours']
 				del self.export_data[office_key][user]['by_day']
 
-				print self.export_data[office_key][user]
 
 		# data is ready to be exported to csv at this point
-		self.to_csv(week_of)				
+		self.to_csv(week_of)
+
+		# update database to indicate that export is complete
+		self.record_export_action(True)
+
 
 
 	def by_day(self, in_arr, hours, code):
@@ -416,14 +424,17 @@ class TSS():
 
 	def to_csv(self,week_of):
 		
-		f_path = self.export_path+week_of+'_'+str(self.batch)+'.csv'
-		
-		#copy template file
-		shutil.copy2(self.export_path+'_template.csv', f_path)
-		fd = open(f_path, 'a')
-		
 		# loop through offices
 		for office_key in self.export_data:
+
+			# set path for new csv file
+			f_path = self.export_path+week_of+'_'+str(self.batch)+'_'+str(office_key)+'.csv'
+
+			#copy template file
+			shutil.copy2(self.export_path+'_template.csv', f_path)
+			
+			fd = open(f_path, 'a')
+
 			# loop through users in each office
 			for user in self.export_data[office_key]:
 				line = self.export_data[office_key][user]
@@ -439,24 +450,27 @@ class TSS():
 				csv_line += self.h_csv_f(line['bd']['j'], 'j')
 				csv_line += self.h_csv_f(line['bd']['f'], 'f')
 
-				print csv_line
 
 				fd.write("""%s\n""" % csv_line)
 		
-			self.record_export_action(week_of, office_key, True)
-
-		fd.close()
+			fd.close()
 
 
-	def record_export_action(self, week_of, office_key, end=False):
+	def record_export_action(self, end=False):
 		executed_on = '{:%Y-%m-%d}'.format(datetime.datetime.now())
 
 		if end:
-			self.cur.execute("""UPDATE public.timesheet_export SET status=1 WHERE "officeKey"='%s' AND batch='%s'""" % (office_key, self.batch))
+			self.cur.execute("""UPDATE public.timesheet_export SET status=1 WHERE batch='%s'""" % (self.batch))
 			self.conn.commit()
 		else:
-			self.cur.execute("""INSERT INTO public.timesheet_export (batch, status, "officeKey", "weekOf", path, "executedOn", "executedBy") VALUES('%s','%s','%s','%s','%s','%s','%s')""" % (self.batch,0,office_key,week_of,self.export_path+self.batch+'.csv',executed_on,22))
+			# USA
+			self.cur.execute("""INSERT INTO public.timesheet_export (batch, status, "officeKey", "weekOf", path, "executedOn", "executedBy") VALUES('%s','%s','%s','%s','%s','%s','%s')""" % (self.batch,0,0,self.week_of,str('/export/_csv/'+self.week_of+'_'+self.batch+'_0.csv'),executed_on,22))
 			self.conn.commit()
+			
+			# CAN
+			self.cur.execute("""INSERT INTO public.timesheet_export (batch, status, "officeKey", "weekOf", path, "executedOn", "executedBy") VALUES('%s','%s','%s','%s','%s','%s','%s')""" % (self.batch,0,1,self.week_of,str('/export/_csv/'+self.week_of+'_'+self.batch+'_1.csv'),executed_on,22))
+			self.conn.commit()
+
 
 
 
